@@ -1,0 +1,1089 @@
+
+# Inference for Comparing Two Population Means
+
+```{r}
+library(IntroStats)
+```
+
+## Motivating Examples
+
+### Example: Faculty Salaries
+
+**Faculty Salaries study:** compare salaries from private institutions and public institutions. Randomly select 35 faculty members from private institutions and 30 from public institutions, then compare.
+
+
+![Faculty Salaries study](https://i.ibb.co/QQGx3YG/441-Table-10-03.png)
+
+### Example: Ruxolitinib 
+
+**Randomized Trial of Ruxolitinib** in Antiretroviral-Treated Adults With Human Immunodeficiency Virus (HIV). *Clinical Infectious Diseases, 2022(74)1*
+[https://doi.org/10.1093/cid/ciab212](https://doi.org/10.1093/cid/ciab212)
+
+-   **Primary Interest**: Change in plasma interleukin 6 (IL-6) by week 5.
+
+-   **Participants**: 40 received ruxolitinib and 20 received control.
+
+-   **Statistical Design**: 80% **power** to detect a 0.20 log10 pg/mL difference between arms for change in IL-6 from baseline to week 4/5, using a **2-sided t-test** with **10% type I error**.
+
+-   **Study Results**: By week 5, differences in IL-6 (mean fold change, 0.93 vs 1.10; **P = 0.18**).
+
+-   **Study Conclusion**: Ruxolitinib was well-tolerated. Baseline IL-6 levels were normal and **showed no significant reduction**.
+
+## Sampling Distribution of $\bar{X_1}-\bar{X_2}$
+
+In scientific research, a common practice involves comparing two groups, such as an experimental group and a control group. Denote the sample mean $\bar{x}_1$ for the first group and $\bar{x}_2$ for the second group with the sample size $n_1$ and $n_2$ respectively. If $X_i$ has mean $\mu_i$ and variance $\sigma_i^2$ for $i=1, 2$, then $\bar{x_1}-\bar{x_2}$ has a mean $\mu_1-\mu_2$ and variance $\sigma_1^2/n_1+\sigma_2^2/n_2$.
+	
+$$
+\bar{x}_1-\bar{x}_2 \sim N(\mu_1-\mu_2, \frac{\sigma_1^2}{n_1}+\frac{\sigma_2^2}{n_2})
+$$
+
+**Assumptions**:
+
+-   Suppose $x_i \sim N(\mu_i, \sigma_i^2)$ for $i = 1, 2$.  
+
+-   Then the sample mean $\bar{x}_i$ for sample size $n_i$ follows a $N(\mu_i, \frac{\sigma_i^2}{n_i})$ distribution.
+
+**Sampling Distribution**:
+
+-   $\bar{x}_1 - \bar{x}_2 \sim N(\mu_1 - \mu_2, \frac{\sigma_1^2}{n_1} + \frac{\sigma_2^2}{n_2})$
+
+**Standardized Test Statistic**:
+
+-   Define $z = \frac{(\bar{x}_1 - \bar{x}_2) - (\mu_1 - \mu_2)}{\sqrt{\frac{\sigma_1^2}{n_1} + \frac{\sigma_2^2}{n_2}}}$
+
+-   Then $z \sim N(0, 1)$.
+
+**Interpretation of CI for the Difference Between Two Sample Means**:
+
+-   Suppose the 95% CI for $\mu_1 - \mu_2$ is from 15 to 20. 
+
+-   We can be 95% confident that $\mu_1 - \mu_2$ lies somewhere between 15 and 20.
+
+### Example: Serum cholesterol level
+
+According to the national health and nutrition examination survey of 1988-1994, the estimated mean serum cholesterol level $(\mu)$ for US females aged 20-74 years to be 204 mg/dl and the standard deviation $(\sigma)$ is 44. If U.S. males have a mean 208 mg/dl and the standard deviation is also 44.  
+	
+**Question.** For a random sample of 50 women and another independent sample of 50 men in this age group, what is the probability that the sample mean difference ($\bar{x}_1-\bar{x}_2$) is less than 3 mg/dl?
+
+**Solution** 
+
+Let $\bar{x}_1$ and $\bar{x}_2$ denote the sample means for men and women respectively. Then $\bar{x}_1-\bar{x}_2$ follows a normal distribution with mean 208-204 = 4 mg/gl and variance $44/50 + 44/50 = 1.76$ mg/dl.
+
+$$
+\bar{x}_1-\bar{x}_2 \sim N(4, 1.76)
+$$
+So 
+$$
+P(\bar{x}_1-\bar{x}_2 < 3) = 0.225
+$$
+
+
+```{r}
+pnorm(3, mean=4, sd=sqrt(1.76))
+```
+
+### Standardized variable
+
+We can convert $\bar{x}_1-\bar{x}_2$ to
+
+$$
+z = \frac{(\bar{x}_1-\bar{x}_2) - (\mu_1-\mu_2)}{\sqrt{\frac{\sigma_1^2}{n_1}+\frac{\sigma_2^2}{n_2}}}
+$$
+and $z \sim N(0, 1)$. Then the probability is equivalent to the calculation regarding $z$ below.
+
+$$
+P(\bar{x}_1-\bar{x}_2 < 3) = \Phi\left(\frac{3-4}{\sqrt{44/50+44/50}}\right)
+$$
+```{r}
+pnorm((3-4)/sqrt(44/50+44/50))
+```
+
+Similarly, 
+
+$$
+\begin{eqnarray*}
+P(1<\bar{x}_1-\bar{x}_2 < 3) &=& P(\bar{x}_1-\bar{x}_2<3) - P(\bar{x}_1-\bar{x}_2\le 1) \\
+&=& \Phi\left(\frac{3-4}{\sqrt{44/50+44/50}}\right) - \Phi\left(\frac{1-4}{\sqrt{44/50+44/50}}\right)\\
+&=&0.214
+\end{eqnarray*}
+$$
+
+```{r}
+pnorm((3-4)/sqrt(44/50+44/50)) - pnorm((1-4)/sqrt(44/50+44/50)) 
+```
+## Two-Sample Hypothesis Test Concept
+
+**1. Objective:** 
+
+Determine whether the mean salaries of college faculty in private and public institutions are different.
+
+-   Pose the problem as a hypothesis test.
+
+-   How would you solve this problem intuitively?
+
+**2. Defining Populations**
+
+-   **Population 1**: All faculty in private institutions.
+
+-   **Population 2**: All faculty in public institutions.
+
+**3. Denoting the Means of the Variable "Salary":**
+
+-   **$\mu_1$**: Mean salary of all faculty in private institutions.
+
+-   **$\mu_2$**: Mean salary of all faculty in public institutions.
+
+**4. Stating the Hypothesis**
+
+-   **Null Hypothesis** ($H_0$): $\mu_1=\mu_2$ (Mean salaries are the same).
+
+-   **Alternative Hypothesis** ($H_a$): $\mu_1 \ne \mu_2$₂ (Mean salaries are different).
+
+![Two population means](https://i.ibb.co/kqQWGj7/442-Figure-10-01.png)
+
+
+![Faculty Salaries study](https://i.ibb.co/QQGx3YG/441-Table-10-03.png)
+
+**5. Observations**
+
+-   $\bar{x}_1 = 98.19$, $\bar{x}_2 = 83.18$, $\bar{x}_1 - \bar{x}_2 = 15.01$
+
+-   **A big question**: Is the difference of 15.01 ($15,010) reasonably attributed to *sampling error*, or is the difference large enough to indicate the two **populations** have different means?
+
+
+## Pooled t-test assuming population variances unknown but equal
+
+### Pooled Sample Standard Deviation
+
+**Assuming Equal Standard Deviations**
+
+-   For $\sigma_1 = \sigma_2 = \sigma$,  
+$$
+z = \frac{(\bar{x}_1 - \bar{x}_2) - (\mu_1 - \mu_2)}{\sigma \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim N(0, 1)
+$$
+-   Since $\sigma$ is unknown, **$z$ cannot be used** as a basis for hypothesis testing.
+
+**Using the Sample Estimate $s_p^2$ for $\sigma^2$**:
+
+-   Subscript $_p$ indicates the estimate is from **pooling** of $s_1^2$ and $s_2^2$.
+-   
+$$
+s_p^2 = \frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} = w_1s_1^2 + (1 - w_1)s_2^2,
+$$
+where $w_1 = \frac{n_1 - 1}{n_1 + n_2 - 2}$ (proportion of sample size).
+
+**Pooled sample standard deviation**:  
+
+$$s_p = \sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}$$
+
+### Distribution of the Pooled t-Statistic
+
+-   Suppose $x_i \sim N(\mu_i, \sigma)$ for $i = 1, 2$ with the same standard deviation.  For independent samples of sizes $n_1$ and $n_2$ from the two populations, the variable:  
+$$
+t = \frac{(\bar{x}_1 - \bar{x}_2) - (\mu_1 - \mu_2)}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}
+$$
+follows the **t-distribution** with $df = n_1 + n_2 - 2$.
+
+- $t$ can be used as the test statistic to obtain the critical value $t_\alpha$ or the $P$-value from the t-table.  
+
+- This is called the **pooled t-test**.
+
+
+### Pooled t-test procedure
+
+![Pooled t-test](https://i.ibb.co/dtDgpS9/Procedure10-1a.png)
+
+![Pooled t-test](https://i.ibb.co/W0RkkKH/Procedure10-1b.png) 
+
+
+#### Example: The Pooled t-Test
+
+*Objective**:
+
+Independent simple random samples of 35 faculty members in private institutions and 30 faculty members in public institutions data.  
+
+At the 5% significance level, do the data provide sufficient evidence to conclude that mean salaries for faculty in private and public institutions differ?
+
+
+```{r}
+	private=c( 97.3, 85.9,118.8, 93.9, 66.6,109.2, 64.9,
+    			   83.1,100.6, 99.3, 94.9, 94.4,139.3,108.8,
+    			  158.1,142.4, 85,  108.2,116.3,141.5, 51.4,
+    			  125.6, 70.6, 74.6, 69.9,115.4, 84.6, 92,
+    			   97.2, 55.1,126.6,116.7, 76,  109.6, 63)
+  public=c(59.9,115.7,126.1, 50.3,133.1, 89.3,
+    			 82.5, 67.1, 60.7, 79.9, 50.1, 81.7,
+    			 83.9,102.5,109.9,105.1, 67.9,107.5,
+    			 54.9, 41.5, 59.5, 65.9, 76.9, 66.9,
+    			 85.9,113.9, 70.3, 90.1, 99.7, 96.7)
+```
+
+**Checking Assumptions**
+
+**Assumption 1: Random Samples**
+
+-   **Simple random samples** for each population: Yes.
+
+**Assumption 2: Independence**
+
+-   **Independent samples** for both populations: Yes.
+
+**Assumption 3: Equal Standard Deviations**
+
+-   The sample standard deviations are 26.21 and 23.95. Close enough, so the assumption is met.
+
+![sample statistics](https://i.ibb.co/t8R9wvq/449-Table-10-06.png)
+
+```{r}
+x1bar = mean(private)
+s1 = sd(private)
+n1=length(private)
+
+x2bar = mean(public)
+s2 = sd(public)
+n2=length(public)
+
+x1bar
+s1
+n1
+
+x2bar
+s2
+n2
+```
+
+**Normality Check**
+
+-   **Normal populations or large samples**:  
+  The sample sizes are 35 and 30, both large.  
+  Normality check passed.
+
+![normality](https://i.ibb.co/VjWwmw0/450-Figure-10-02.png)
+
+```{r}
+normal.prob.plot(private)
+normal.prob.plot(public)
+```
+
+**Boxplot of Data**
+
+- A descriptive boxplot shows a considerable difference between the groups.
+
+![Boxplots](https://i.ibb.co/ygP3QXs/450-Figure-10-03.png)
+
+```{r}
+boxplot(c(private, public) ~ c(rep("private", length(private)), rep("public", length(public))), col="turquoise", horizontal =TRUE)
+```
+
+**Performing the Pooled t-Test**
+
+Step 1: Hypotheses: 
+
+-   $H_0: \mu_1 = \mu_2$ (mean salaries are the same).
+-   $H_a: \mu_1 \neq \mu_2$ (mean salaries are different).
+
+Step 2: Significance Level: 
+
+-   $\alpha = 0.05$.
+
+Step 3: Compute the Test Statistic:
+
+-   Formula:  
+  $t = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$  
+  where $s_p = \sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}$.
+
+-   Given $s_1 = 26.21$, $s_2 = 23.95$, compute:  
+  $s_p = \sqrt{\frac{(35 - 1)26.21^2 + (30 - 1)23.95^2}{35 + 30 - 2}} = 25.19$.
+
+-   Compute $t$:  
+  $t = \frac{\bar{x}_1 - \bar{x}_2}{25.19 \cdot \sqrt{\frac{1}{35} + \frac{1}{30}}} = 2.395$.
+
+Step 4: Determine Critical Values:
+
+-   Two-tailed test critical values: $\pm t_{\alpha/2}$ with $df = n_1 + n_2 - 2 = 63$.  Use R: `qt(1 - 0.025, df = 63)`  to obtain $t_{0.975} = 1.998$.
+
+Step 5: Decision: 
+
+-   Observed $t = 2.395$ falls in the rejection region.  
+  Reject $H_0$.
+
+Step 4: Compute P-Value:
+
+-   $P(|t| > 2.395)$ with $df = 63$.  Use R: `2 * (1 - pt(q = 2.395, df = 63)) = 0.0196`.
+
+Step 5: Decision:
+
+-   Since $P < 0.05$, reject $H_0$.
+
+**Use R function**
+
+```{r}
+two.mean.t(x1=private, x2=public, equal.variance = TRUE, tail="two", alpha=0.05)
+```
+
+**Using R built-in function**
+
+```{r}
+	t.test(x=private, y=public, var.equal = TRUE) #variance equal
+```
+
+
+### Example: Comparing Two Cholesterol-Lowering Drugs
+
+Researchers test whether two different drugs (Drug X and Drug Y) result in different reductions in LDL cholesterol levels. 
+
+-   Group 1 (Drug X): $n_1=30$, sample mean 102 mg/dL, sample standard deviation $s_1=12$
+
+-   Group 2 (Drug Y): $n_2=30$, sample mean 110 mg/dL, sample standard deviation $s_2=14$
+
+We assume equal population variances and calculate the **pooled sample variance**:
+
+$$
+s_p^2 = \frac{(30 - 1)(12)^2 + (30 - 1)(14)^2}{30 + 30 - 2} = \frac{29(144) + 29(196)}{58} = \frac{4176 + 5684}{58} = \frac{9860}{58} \approx 170
+$$
+
+Now compute the test statistic:
+
+$$
+t = \frac{102 - 110}{\sqrt{170 \left( \frac{1}{30} + \frac{1}{30} \right)}} = \frac{-8}{\sqrt{170 \cdot \frac{2}{30}}} = \frac{-8}{\sqrt{11.33}} \approx \frac{-8}{3.36} \approx -2.38
+$$
+
+With **df = 58**, and a significance level of $\alpha = 0.05$, the critical t-value for a two-tailed test is approximately $\pm 2.001$.
+
+Since $-2.38 < -2.001$, we reject $H_0$. There is a statistically significant difference in LDL reduction between the two drugs.
+
+**Summary**
+
+The **pooled t-test** is used when population variances are assumed to be equal, even though they are unknown. This assumption must be justified — often through pre-analysis tests or prior studies.
+
+
+**Using the R function:**
+
+```{r}
+two.mean.t(x1bar=102, n1=30, s1=12,
+          x2bar=110, n2=30, s2=14,
+          tail="two", alpha=0.05, equal.variance = TRUE)
+```
+## Pooled t-interval
+
+For a confidence level of $1-\alpha$, the CI for $\mu_1 - \mu_2$ is
+
+$$
+\bar{x}_1-\bar{x}_2 \pm t_{1-\alpha/2}\cdot s_p \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}
+$$
+where $t_{1-\alpha/2}$ is the $(1-\alpha/2)$ quantile of the t-distribution with $df = n_1+n_2-2$. Using R code: $t_{1-\alpha/2}$ = qt(1-alpha/2, df=n1+n2-2).
+
+![Interval](https://i.ibb.co/H7v6sS4/Procedure10-2.png)
+
+```{r}
+ci.mu.diff(x1=private, x2=public, known.variance = FALSE, equal.variance = TRUE, conflev = 0.95)
+```
+
+## Two-sample z-test
+
+It is rare that the population variances of both independent groups are **known**. Nevertheless, in such case, we can use a **two-sample z-test** to compare their means.
+
+### Assumptions
+
+-   Both populations are normally distributed or the sample sizes are large.
+
+-   The population variances $\sigma_1^2$ and $\sigma_2^2$ are known.
+
+-   Samples are independent and randomly selected
+
+
+### Test Statistic
+
+$$
+z = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{\sigma_1^2}{n_1} + \frac{\sigma_2^2}{n_2}}}
+$$
+
+Under null hypothesis, $z \sim N(0, 1)$. We compare the calculated z-value to the critical value from the standard normal distribution, or we compute a **p-value**.
+
+
+### Example: Comparing Two Types of Insulin
+
+A researcher wants to compare the effectiveness of **Insulin A** and **Insulin B** in reducing fasting blood glucose levels in diabetic patients.
+
+-   Group 1 (Insulin A): $n_1=50$, sample mean 110 mg/dL, population standard deviation $\sigma_1=15$
+
+-   Group 2 (Insulin B): $n_2=50$, sample mean 118 mg/dL, population standard deviation $\sigma_2=12$
+
+Using the two-sample z-test:
+
+$$
+z = \frac{110 - 118}{\sqrt{\frac{15^2}{50} + \frac{12^2}{50}}} = \frac{-8}{\sqrt{4.5 + 2.88}} = \frac{-8}{\sqrt{7.38}} \approx -2.94
+$$
+
+At $\alpha = 0.05$, the critical value is $\pm 1.96$.
+
+Since $-2.94 < -1.96$, we **reject the null hypothesis**. There is a statistically significant difference in fasting glucose levels between the two insulin types.
+
+**Note**
+
+The z-test is rarely used in practice because population variances are often unknown. However, when the variances are known (e.g., from large-scale historical data), it may be useful.
+
+**Using the R function:**
+
+```{r}
+two.mean.z(x1bar=110, n1=50, sigma1=15,
+          x2bar=118, n2=50, sigma2=12,
+          tail="two", alpha=0.05)
+```
+
+## Two-sample unpooled t-test assuming population variances unknown and unequal
+
+### Welch's t-Test
+
+When comparing two independent population means but **cannot assume equal variances**, we use the **unpooled t-test**, also called **Welch’s t-test**.
+
+Unlike the pooled t-test, this test does not pool the variances and adjusts the degrees of freedom accordingly.
+
+The test statistic
+
+$$
+t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{ \frac{s_1^2}{n_1} + \frac{s_2^2}{n_2} }}
+$$
+has approximately a **t-distribution**, and the degrees of freedom are calculated using the Welch–Satterthwaite equation:
+
+$$
+df = \frac{ \left( \frac{s_1^2}{n_1} + \frac{s_2^2}{n_2} \right)^2 }
+{ \frac{ \left( \frac{s_1^2}{n_1} \right)^2 }{n_1 - 1} + \frac{ \left( \frac{s_2^2}{n_2} \right)^2 }{n_2 - 1} }
+$$
+Please note: R uses the exact df without approximation. So there might be a small numerical difference when the approximate df is used from the formula above.
+
+
+### Cochran method
+
+The test statistic is 
+$$t^\prime = \frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)}{\sqrt{\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}}}$$
+
+The critical value of $t^\prime$ for $\alpha$ level 2-sided test is  
+$$t^\prime_{1-\alpha/2} = \frac{w_1t_1+w_2t_2}{w_1+w_2}$$
+
+where $$w_1=s_1^2/n_1, w_2=s_2^2/n_2$$, 
+$$t_1=t_{1-\alpha/2, df=n_1-1}$$ 
+and 
+$$t_2=t_{1-\alpha/2, df=n_2-1}$$. 
+
+The $100(1-\alpha)\%$ confidence interval for $\mu_1-\mu_2$ is given by
+
+$$
+(\bar{x}_1-\bar{x}_2) \pm t_{1-\alpha/2}^\prime\sqrt{\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}}
+$$
+
+The hypothesis testing procedure is, if the test is 2-sided $H_0: \mu_1 = \mu_2$, then 
+
+-The significance level $\alpha$ test has rejection region $t > t_{1-\alpha/2}^\prime$ or $t < -t_{1-\alpha/2}^\prime$, where $t_{1-\alpha/2}^\prime$, $t_{1-\alpha/2}$ is the $(1-\alpha/2)100\%$th percentile of $t$ distribution with $df=n_1+n_2-2$.
+-The observed value of the test statistic is calculated as $t_0^\prime = \frac{(\bar{X}_1-\bar{X}_2)}{\sqrt{\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}}}$.
+-If $t_0^\prime$ falls into the rejection region, then reject $H_0$. 
+
+For right-tailed test, the rejection region is $t > t_{1-\alpha}^\prime$. For left-tailed test, the rejection region is $t < -t_{1-\alpha}^\prime$. 
+	
+### Example
+
+One study was to determine if there were differing levels of the anticardiolipin antibody IgG in subjects with and without thrombosis. The researchers observed the following data: 
+
+-Thrombosis group: mean IgG level 59.01, n = 53, sd = 44.89
+-No Thrombosis group: mean IgG level 46.61, n = 54, sd = 34.85
+
+**Question**. 
+
+Perform a hypothesis test of significance level $\alpha=0.05$ to address the question: Are we able to conclude persons with thrombosis have, on average, higher IgG levels than those without thrombosis?
+
+**Solution**.
+
+**Welch Method**
+
+```{r}
+two.mean.t(x1bar=59.01, n1=53, s1=44.89,
+                     x2bar=46.61, n2=54, s2=34.85,
+                     tail="right", alpha=0.05,
+                     equal.variance=FALSE, uneqvar.method = "Welch")
+```
+**Cochran Method**
+
+```{r}
+two.mean.t(x1bar=59.01, n1=53, s1=44.89,
+                     x2bar=46.61, n2=54, s2=34.85,
+                     tail="right", alpha=0.05,
+                     equal.variance=FALSE, uneqvar.method = "Cochran")
+```
+**Try out the pooled t-test:**
+
+```{r}
+two.mean.t(x1bar=59.01, n1=53, s1=44.89,
+                     x2bar=46.61, n2=54, s2=34.85,
+                     tail="right", alpha=0.05,
+                     equal.variance=TRUE)
+```
+
+### Unpooled t-test Procedure
+
+![Unpooled t-test](https://i.ibb.co/LPvpy9j/Procedure10-3a.png)
+
+![Unpooled t-test](https://i.ibb.co/8D8hkSz/Procedure10-3b.png)
+### Example.
+
+Several neurosurgeons wanted to determine whether a dynamic system reduced the operative time relative to a static system (Table 10.7). At the 5\% significance level, do the data provide sufficient evidence to conclude that mean operative time is less with the dynamic system than with the static system?
+
+![Example](https://i.ibb.co/z4mNmXY/460-Table-10-07.png)
+
+The summary statistics are calculated below. The two sample standard deviations are \textcolor{blue}{considerably different}, so the pooled t-test is not appropriate.
+
+![Example](https://i.ibb.co/DkGrwHx/460-Table-10-08.png)
+
+```{r}
+dynamic = c(370, 360, 510, 445, 295, 315, 490,345, 
+	450, 505,335,280,325,500)
+static = c(430,445,455,455,490,535)	
+	
+x1bar = mean(dynamic)
+s1 = sd(dynamic)
+n1=length(dynamic)
+
+x2bar = mean(static)
+s2 = sd(static)
+n2=length(static)
+
+x1bar
+s1
+n1
+
+x2bar
+s2
+n2
+```
+The boxplot shows considerable difference in the distribution of the variable:
+
+![Boxplot](https://i.ibb.co/qM1z90M/460-Figure-10-06.png)
+
+**Check Assumptions**
+
+-   The data were obtained from a randomized comparative experiment, so the **assumptions of independent samples** are met.
+
+-   **Normality assumption** is checked by normal probability plots and boxplots. No outliers are observed.  The non-pooled t-test is robust to moderate violations of normality.
+
+```{r}
+normal.prob.plot(dynamic)
+normal.prob.plot(static)
+```
+
+**Perform the Non-Pooled t-Test**
+
+**Step 1: Hypotheses**
+
+-   $H_0: \mu_1 = \mu_2$ (mean dynamic time is not less than mean static time).  
+-   $H_a: \mu_1 < \mu_2$ (mean dynamic time is less than mean static time).
+
+**Step 2: Significance Level**
+
+-   $\alpha = 0.05$
+
+**Step 3: Compute the Test Statistic**
+
+-   Formula:  
+$$
+t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}
+$$  
+-   Substituting values:  
+  $$t = \frac{394.6 - 46.3}{\sqrt{\frac{84.7^2}{14} + \frac{38.2^2}{6}}} = -2.681$$
+
+**Step 4: Determine Critical Value**
+
+-   Formula for degrees of freedom (df):  
+  $$\Delta = \frac{\left(\frac{84.7^2}{14} + \frac{38.2^2}{6}\right)^2}{\frac{\left(\frac{84.7^2}{14}\right)^2}{14 - 1} + \frac{\left(\frac{38.2^2}{6}\right)^2}{6 - 1}} \approx 17$$  
+
+-   Critical value for the left-tailed test: $-t_{\alpha}$.  Use R: `qt(0.05, df = 17)`.  $-t_{0.05} = -1.740$.
+  
+![Decision](https://i.ibb.co/3p28cW2/461-Figure-10-07a.png)
+![Decision](https://i.ibb.co/GpqxZr4/461-Figure-10-07b.png)
+
+
+**Step 5: Decision**
+
+-   The observed test statistic $t = -2.681$ falls in the rejection region.  Therefore, **reject $H_0$**.
+
+At the 5\% significance level, the data provide sufficient evidence to conclude that the mean operative time is less with the dynamic system than with the static system.
+
+**Using R function:**
+
+```{r}
+two.mean.t(x1=dynamic, x2=static, equal.variance = FALSE)
+```
+**Using R Built-In function:**
+
+```{r}
+t.test(x=dynamic, y=static, var.equal  = FALSE)
+```
+### Example: Comparing Recovery Times After Surgery
+
+A clinical trial compares the **average recovery time (in days)** between two patient groups after different surgical procedures.
+
+-   Group 1 (Minimally Invasive): $n_1 = 25$, mean = 6.8 days, $s_1$ = 1.2
+
+-   Group 2 (Traditional Surgery): $n_2 = 22$, mean = 8.1 days, $s_2 = 2.1$
+
+Since the sample sizes are small and the standard deviations are noticeably different, we apply the **unpooled t-test**:
+
+$$
+t = \frac{6.8 - 8.1}{\sqrt{\frac{1.2^2}{25} + \frac{2.1^2}{22}}} = \frac{-1.3}{\sqrt{\frac{1.44}{25} + \frac{4.41}{22}}} = \frac{-1.3}{\sqrt{0.0576 + 0.2005}} = \frac{-1.3}{\sqrt{0.2581}} \approx \frac{-1.3}{0.508} \approx -2.56
+$$
+
+Now calculate **df** using the Welch-Satterthwaite formula:
+
+$$
+\begin{eqnarray*}
+df = \frac{(0.0576 + 0.2005)^2}{\frac{(0.0576)^2}{24} + \frac{(0.2005)^2}{21}} \approx \frac{(0.2581)^2}{\frac{0.0033}{24} + \frac{0.0402}{21}} \approx \frac{0.0666}{0.00205} \approx 32.49
+\end{eqnarray*}
+$$
+
+At 5\% two-sided significance level, the critical value is $\pm 2.037$, which can be obtained using $qt(0.975, df=32)$.
+
+Since $-2.56 < -2.037$, we **reject the null hypothesis**. The average recovery time differs significantly between the two procedures.
+
+
+
+```{r}
+two.mean.t(x1bar=6.8, n1=25, s1=1.2, x2bar=8.1, n2=22, s2=2.1, equal.variance = FALSE)
+```
+
+### Example: Heart Rate Comparison After Two Medications
+
+Researchers are comparing the mean heart rates of patients given two different hypertension medications. Equal variances cannot be assumed due to different standard deviations.
+
+-   **Medication A**:
+    -   $\bar{x}_1 = 75.2$ bpm\
+    -   $s_1 = 8.5$, $n_1 = 25$
+-   **Medication B**:
+    -   $\bar{x}_2 = 69.1$ bpm\
+    -   $s_2 = 12.4$, $n_2 = 22$
+
+Test at the 5% significance level if there's a difference in mean heart rate.
+
+```{r }
+# Data
+x1_bar <- 75.2
+s1 <- 8.5
+n1 <- 25
+
+x2_bar <- 69.1
+s2 <- 12.4
+n2 <- 22
+
+# Test statistic
+t_stat <- (x1_bar - x2_bar) / sqrt(s1^2/n1 + s2^2/n2)
+
+# Welch-Satterthwaite degrees of freedom
+df <- (s1^2/n1 + s2^2/n2)^2 / ((s1^2/n1)^2 / (n1 - 1) + (s2^2/n2)^2 / (n2 - 1))
+
+# Two-tailed p-value
+p_value <- 2 * pt(-abs(t_stat), df)
+
+t_stat
+df
+p_value
+```
+```{r}
+two.mean.t(x1bar=75.2, n1=25, s1=8.5, x2bar=69.1, n2=22, s2=12.4, equal.variance = FALSE)
+```
+### Non-pooled t-interval Procedure
+
+![non-pooled t-interval](https://i.ibb.co/7ydvG46/Procedure10-4.png)
+
+### Example
+
+```{r}
+ci.mu.diff(x1=dynamic, x2=static, known.variance = FALSE, equal.variance = FALSE, conflev = 0.95, uneqvar.method="Welch")
+```
+**Obtain the 90% CI for $\mu_1 - \mu_2$**
+
+**Step 1:** Determine $\alpha$ and $t_{1-\alpha/2}$:
+
+-   $\alpha = 0.10$  
+-   $t_{1-\alpha/2} = t_{0.975} = 1.740$ with $df = 17$.
+
+**Step 2:** Compute the Endpoints of the CI
+
+-   Formula for CI:  
+$$
+(\bar{x}_1 - \bar{x}_2) \pm t_{1-\alpha/2} \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}
+$$
+
+**Step 3:** Interpretation
+
+-   We can be **90% confident** that the difference between the mean salaries of faculty in private institutions and public institutions is somewhere between **-121.5 and -25.9**.
+
+
+### Relation Between Hypothesis Tests and CI
+
+- $H_0$ for a two-tailed test is rejected if and only if the $(1-\alpha)$ level CI for $\mu_1 - \mu_2$ does not contain 0.  **Think about why?**
+
+- If you are **reasonably sure that the populations have nearly equal standard deviations**, use a **pooled t-procedure**.  
+
+- Otherwise, use a **non-pooled t-procedure**.
+
+
+## Inferences for Two Population Means for Paired Sample
+
+### Random Paired Sample
+
+Understanding the nature of the data is paramount when deciding on the most suitable statistical methodology. Paired samples, in particular, demand special consideration in statistical analysis.
+	
+**Definition**: Paired samples inherently consist of random pairs, a characteristic determined largely by the scientific inquiry at hand.
+	
+Consider, for instance, an investigation into the change in quality of life before and after graduating from college. In this scenario, an experiment is designed to select a random sample of 100 college seniors and measure their quality of life both during their time at college and one year after graduation. Within this experimental framework, two quality of life variables are at play: "before" and "after." Importantly, these two measurements form a pair for each student, and the primary objective of the scientific inquiry is to compare the changes experienced by each individual from "before" to "after."
+	
+To illustrate further, let's examine another scenario. Imagine a weight loss program with 100 participants. Their body weights are assessed just before initiating the program and again after three months of participation. In this context, the intriguing question centers on the ability of each individual to lose weight. There is no interest in comparing one individual's weight after three months with the weight of another individual just before participating the program.
+	
+In paired comparisons, the scientific inquiry often revolves around the differences within pairs, denoted as $d = After - Before$. Formulating a hypothesis test to determine whether the mean difference is equal to zero transforms the paired comparison problem into a one-sample mean problem. 
+	
+Denote the $n$ paired samples as $(X_i, Y_i)$ for $i = 1, \cdots, n$, and $d_i$ as the ith pair difference $X_i - Y_i$. Then the hypothesis test of $\mu_X = \mu_Y$ is equivalent to $\mu_d = 0$. Since
+$$
+t = \frac{\bar{d}-\mu_d}{s_d/\sqrt{n}} \sim t(df=n-1)
+$$
+where $s_d$ is the sample standard deviation of $d$, the paired t-test can be constructed following the one population t test, and the $(1-\alpha)100\%CI$ can be derived as 
+$$
+	\bar{d} - t_{1-\alpha/2, df=n-1}\cdot \frac{s_d}{\sqrt{n}}.
+$$
+where $t_{1-\alpha/2, df=n-1}$ is the $(1-\alpha/2)$th percentile of t distribution with $n-1$ degrees of freedom.
+
+### Example
+
+Two populations (Husbands population and wives population) are shown below. A paired sample means whenever a husband is randomly selected, the paired wife is also selected. The statistical inference of interest is to compare the paired samples. 
+
+![Husband and wife](https://i.ibb.co/RgDGfWG/485-EX-10-14.png)
+
+Suppose that we want to decide whether, in the U.S., the mean age of married men differs from the mean age of married women. A random sample of 10 couples are shown below.
+
+![Husband and wife](https://i.ibb.co/2Y5VVj7/486-Table-10-13.png)
+
+At a **5% significance level**, do the data provide sufficient evidence to conclude that the mean age of married men **differs** from the mean age of married women?
+
+- **Think carefully**: Are the married husbands and married wives sampled **independently**?
+
+### How Do We Compare the Means of Married Men vs Married Women?
+
+- **Assumption**: Each population is normally distributed.
+
+**Options for Comparison:**
+
+1.    **Pooled or Non-Pooled t-Test**:  
+
+  -   Used when we have **random independent samples**, without considering the "paired" relationship.  
+   
+  -    The total sampling error includes both populations' sampling errors.
+
+2.    **For Paired Samples**:  
+
+   -    The actual sampling error comes only from the **difference in each pair**, making it usually much smaller.  
+   
+   -    **More efficient statistical tests** are needed for paired samples.  
+
+   -    A separate class of statistical methods is required for paired samples to account for their structure and achieve higher efficiency.
+
+
+### Additional Examples
+
+-   Blood pressure before and after medication for the same patients
+
+-   Tumor size before and after treatment for the same patients
+
+-   Anxiety scores before and after therapy for the same patients
+
+**Assumptions:**
+-   Data are paired and differences are independent.
+-   Differences are approximately normally distributed.
+-   The test is applied to the **differences (d)**, not the raw values
+
+
+
+### Distribution of the Paired t-Statistic
+
+For paired samples, suppose each pair's difference $d$ is normally distributed, then the variable 
+$$
+t=\frac{\bar{d}-(\mu_1-\mu_2)}{s_d/\sqrt{n}}
+$$
+
+has the t-distribution with $df = n-1$. Under $H_0: \mu_1=\mu_2$, 
+$$
+t=\frac{\bar{d}}{s_d/\sqrt{n}}
+$$ 
+can be used as the test statistic for hypothesis testing. This is called \textcolor{blue}{paired t-test}.
+
+### Paired t-test Procedure
+
+![Paired t test](https://i.ibb.co/M9sQzxz/Procedure10-6a.png)
+
+![Paired t test](https://i.ibb.co/981tfFs/Procedure10-6b.png)
+
+
+### Paired t-test interval
+
+![Paired t interval](https://i.ibb.co/605SNKy/Procedure10-7.png)
+
+### Example. Perform the paired t-test
+
+**How Do We Compare the Means of Married Men vs Married Women?**
+
+- **Assumption**: Each population is normally distributed.
+
+**Options for Comparison:**
+
+1. **Pooled or Non-Pooled t-Test**:  
+
+   -    Used when we have **random independent samples**, without considering the "paired" relationship.  
+   -    The total sampling error includes both populations' sampling errors.
+
+2. **For Paired Samples**:  
+
+   -    The actual sampling error comes only from the **difference in each pair**, making it usually much smaller.  
+   -    **More efficient statistical tests** are needed for paired samples.  
+
+   -   A separate class of statistical methods is required for paired samples to account for their structure and achieve higher efficiency.
+
+
+**Steps for Testing the Difference in Mean Ages**
+
+Step 1: Hypotheses
+
+-   $H_0: \mu_1 = \mu_2$ (mean ages are equal).  
+-   $H_a: \mu_1 \neq \mu_2$ (mean ages are not equal).
+
+Step 2: Significance Level
+
+-   $\alpha = 0.05$
+
+Step 3: Compute the Test Statistic
+-   Formula:  
+  $$t = \frac{\bar{d}}{s_d / \sqrt{n}}$$
+
+- Calculations:
+
+  -   $$\bar{d} = \frac{\sum d_i}{n} = 3.6$$
+  
+  -   $$s_d = \sqrt{\frac{\sum d_i^2 - (\sum d_i)^2 / n}{n - 1}} = 4.97$$
+
+- Substituting values:  
+
+  $$t = \frac{3.6}{4.97 / \sqrt{n}} = 2.291$$
+
+Step 4: Determine Critical Values
+
+-   For a two-tailed test, the critical values are $\pm t_{1-\alpha/2}$ with $df = n - 1$.  
+
+-   Using R: $t_{1-\alpha/2} = 2.262$, qt(1-alpha, df=n-1)
+
+![Decision](https://i.ibb.co/Gsnj8qF/490-Figure-10-16a.png)
+
+Step 5: Decision
+
+-   The observed value of the test statistic is $t = 2.291$, which falls in the rejection region.  
+
+-   Therefore, we **reject $H_0$**.
+
+Step 4: Compute the P-Value
+
+-   The $P$-value equals $P(|t| > 2.291)$.  
+-   Using Table IV, the $P$-value is estimated to be between **0.02 and 0.05**.  
+-   Alternatively, use software to calculate: $P = 0.0478$.
+
+Step 5: Decision
+
+-   Since $P < 0.05$, we **reject $H_0$**.
+
+
+![Decision](https://i.ibb.co/3rSc058/490-Figure-10-16b.png)
+
+
+### Obtain a 95% Confidence Interval (CI) for the Difference $\mu_1 - \mu_2$
+
+Step 1: Determine $t_{\alpha/2}$
+
+-   $t_{\alpha/2} = 2.262$
+
+Step 2: Compute the Endpoints of the CI
+-   Formula for CI:  
+  $$\bar{d} \pm t_{\alpha/2} \cdot \frac{s_d}{\sqrt{n}}$$  
+
+-   Substituting values:  
+  $$3.6 \pm 2.262 \cdot \frac{4.97}{\sqrt{10}}$$  
+
+Results:
+
+-   The 95% CI is **(0.04, 7.16)**.
+
+
+```{r}
+husband = c(59, 21, 33, 78, 70, 33, 68, 32, 54, 52)
+wife =    c(53, 22, 36, 74, 64, 35, 67, 28, 41, 44)
+t.test(husband, wife, alternative = "two.sided", paired = TRUE, 
+		conf.level = 0.95)
+```
+
+This is equivalent to one-sample t-test when using the difference between husband and wife, comparing the difference to 0.
+
+```{r}
+one.mean.t(x = husband - wife, mu0 = 0,  tail = "two", alpha = 0.05)
+```
+
+
+### Example: Measuring Effect of a New Pain Medication
+
+A study measures the **pain level** (on a scale of 0–10) in 10 patients **before and after** taking a new medication. Is there any difference between before and after?
+
+| Patient | Before | After |
+|---------|--------|-------|
+| 1       | 8      | 5     |
+| 2       | 7      | 4     |
+| 3       | 6      | 3     |
+| 4       | 9      | 6     |
+| 5       | 7      | 5     |
+| 6       | 8      | 6     |
+| 7       | 6      | 4     |
+| 8       | 7      | 5     |
+| 9       | 9      | 7     |
+| 10      | 8      | 6     |
+
+First, calculate the differences:
+
+$$
+d = \text{Before} - \text{After} = \{3, 3, 3, 3, 2, 2, 2, 2, 2, 2\}
+$$
+
+Then find:
+
+-   $\bar{d} = \frac{24}{10} = 2.4$
+-   $s_d = \sqrt{\frac{1}{n-1} \sum (d_i - \bar{d})^2} = \sqrt{\frac{1.6}{9}} \approx 0.42$
+
+Compute the t-statistic:
+
+$$
+t = \frac{2.4}{0.42 / \sqrt{10}} = \frac{2.4}{0.133} \approx 18.05
+$$
+
+With **df = 9**, and $\alpha = 0.05$, the critical value is $\pm 2.262$ (two-tailed). Since **18.05 > 2.262**, we reject $H_0$.
+
+**Conclusion:**
+
+The pain medication caused a statistically significant reduction in pain levels.
+This paired t-test is ideal here because each patient serves as their own control.
+
+
+```{r}
+d= c(3, 3, 3, 3, 2, 2, 2, 2, 2, 2)
+one.mean.t(x = d, mu0 = 0,  tail = "two", alpha = 0.05)
+```
+
+
+
+### Example: Gallbladder
+
+John M. Morton et al. (2022) examined gallbladder function before and after fundoplication--a surgery used to stop stomach contents from flowing back into the esophagus (reflux)- in patients with gastroesophageal reflux disease. The authors measured gallbladder functionality by calculating the gallbladder ejection fraction (GBEF) before and after fundoplication. The goal of fundopli-cation is to increase GBEF, which is measured as a percent. The data are shown below.
+
+Gallbladder Function in Patients with Presentations of Gastrosophageal Reflux Disease Before : After Treatment(%): 22:63.5, 63.3:91.5, 96:59, 9.2:37.8, 3.1:10.1, 50:19.6, 33:41, 69:87.8, 64:86, 18.8:55, 0:88, 34:40.
+
+**Question**: Are these data able to provide sufficient evidence to allow us to conclude that fundoplication increases GBEF functioning at 5\% significance level?
+
+
+The hypothesis procedure is described below.
+
+-   State the null and alternative hypotheses explicitly. $H_0: \mu_d \le 0$ and $H_a: \mu_d > 0$.
+
+-   Determine the test statistic and its distribution. The test statistic is $t$ with $n-1=11$ degrees of freedom, where $n$ is the number of pairs.
+
+-   Determine the rejection region and critical values. The critical value is $t_{1-alpha/2}$. When $\alpha=0.05$, the rejection region is $t \ge 1.795885$.
+
+-   Calculate the test statistic under $H_0$. We usually use $t_0$ to denote the observed value of the random variable $t$. 
+
+$$t_0 = \frac{\bar{d}}{s_d/\sqrt{n}} = \frac{18.075}{32.68/\sqrt{12}}= 1.9159$$.
+
+-   Calculate the p value. The $P-$value is $1-pt(1.9159, df=11)=0.0409 < 0.05$.
+
+-   Make a statistical decision based on the p value or the calculated test statistic. Since $t_0 = 1.9159$ falls in the rejection region, $H_0$ is rejected. Equivalently, $p < 0.05$, so $H_0$ is rejected. 
+
+-   Conclusion: At the 5\% significance level, the data provide sufficient evidence that the fundoplication increases GBEF functioning.
+
+The following R code implements the testing procedure. The solution to the paired comparison is essentially the one-population t test.  The following R code solves this problem based on the existing one population t test.
+
+```{r}
+preop  <- c(22,   63.3, 96,  9.2,  3.1, 50,   33, 69,   64, 18.8, 0, 34)
+postop <- c(63.5, 91.5, 59, 37.8, 10.1, 19.6, 41, 87.8, 86, 55,   88,40)		
+n <- length(preop)		
+d <- postop - preop		
+one.mean.t(x=d, mu0=0, tail="right", alpha=0.05)
+```
+
+In R, there is also a built-in function to perform paired t-test.
+
+```{r}
+t.test(x=postop, y=preop, alternative="greater", paired = TRUE)
+```
+
+### Example: Blood Pressure Before and After Treatment
+
+A study measures **systolic blood pressure** of 12 patients **before and after** a 6-week exercise program.
+
+| Patient | Before | After |
+|---------|--------|-------|
+| 1       | 150    | 140   |
+| 2       | 160    | 147   |
+| 3       | 145    | 138   |
+| 4       | 155    | 150   |
+| 5       | 148    | 139   |
+| 6       | 152    | 144   |
+| 7       | 149    | 137   |
+| 8       | 151    | 143   |
+| 9       | 157    | 150   |
+| 10      | 159    | 145   |
+| 11      | 153    | 140   |
+| 12      | 150    | 139   |
+
+We want to test at $\alpha = 0.05$ whether the **exercise program reduced average systolic BP**.
+
+
+```{r}
+# Before and after BP
+
+before <- c(150, 160, 145, 155, 148, 152, 149, 151, 157, 159, 153, 150)
+after <- c(140, 147, 138, 150, 139, 144, 137, 143, 150, 145, 140, 139)
+
+# Differences
+
+d <- after - before
+
+# Mean and SD of differences
+
+mean_d <- mean(d)
+sd_d <- sd(d)
+n <- length(d)
+
+# Test statistic
+t_stat <- mean_d / (sd_d / sqrt(n))
+
+# Degrees of freedom
+df <- n - 1
+
+# One-tailed p-value (testing if BEFORE > AFTER)
+p_value <- pt(-abs(t_stat), df=n-1)
+
+t_stat
+df
+p_value
+
+```
+Equivalently,
+
+```{r}
+one.mean.t(x = d, mu0 = 0,  tail = "left", alpha = 0.05)
+```
+Equivalently,
+
+```{r}
+t.test(after, before, alternative = "less", paired = TRUE, 
+		conf.level = 0.95)
+```
+
+**Conclusion**
+
+Since **p-value < 0.05**, we reject the null and conclude that the exercise program significantly reduced systolic blood pressure.

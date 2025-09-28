@@ -1,0 +1,915 @@
+
+# Simple Linear Regression
+
+```{r}
+library(IntroStats)
+```
+
+## Motivating Example
+
+Regression is a statistical method employed to elucidate the connection
+between a response variable and one or multiple predictor variables.
+While correlation assesses the relationship between two numerical random
+variables, it falls short in capturing the directional trends when one
+variable undergoes increases or decreases. Various regression models are
+developed to address different questions based on the underlying
+assumptions regarding the trending relationship. Linear regression model
+is the simplest regression where a linear relationship is assumed
+between the response variable $y$ and the predictor variable $x$.
+
+A research study aims to predict intra-abdominal adipose tissue ($y$) in
+men based on waist circumference ($x$). Accurate measurement of
+intra-abdominal adipose tissue requires costly and inconvenient CT
+scans. In contrast, measuring waist circumference is a straightforward
+and cost-effective procedure.
+
+### Data Visualization
+
+The scatter plot displays the data, and the trending line (lowess
+smoother) suggests a reasonable linear relationship between these two
+variables.
+
+Assume a linear regression model is meaningful, how do we assess the
+performance of the linear regression model?
+
+```{r}
+##############################
+#(1) Motivating Example (Adipose Tissue vs waist)
+##############################
+x = c(74.75,72.60,81.80,83.95,74.65,71.85,80.90,
+83.40,63.50,73.20,71.90,75.00,73.10,79.00,
+77.00,68.85,75.95,74.15,73.80,75.90,76.85,
+80.90,79.90,89.20,82.00,92.00,86.60,80.50,
+86.00,82.50,83.50,88.10,90.80,89.40,102.00,
+94.50,91.00,
+103.00,80.00,79.00,83.50,76.00,80.50,86.50,
+83.00,107.10,94.30,94.50,79.70,79.30,89.80,
+83.80,85.20,75.50,78.40,78.60,87.80,86.30,
+85.50,83.70,77.60,84.90,79.80,108.30,119.60,
+119.90,96.50,105.50,105.00,107.00,107.00,
+101.00,97.00,100.00,
+108.00,100.00,103.00,104.00,106.00,109.00,
+103.50,110.00,110.00,112.00,108.50,104.00,
+111.00,108.50,121.00,109.00,97.50,105.50,
+98.00,94.50,97.00,105.00,106.00,99.00,91.00,
+102.50,106.00,109.10,115.00,101.00,100.10,
+93.30,101.80,107.90,108.50)
+
+y<- c(25.72,25.89,42.60,42.80,29.84,21.68,29.08,
+32.98,11.44,32.22,28.32,43.86,38.21,42.48,
+30.96,55.78,43.78,33.41,43.35,29.31,36.60,
+40.25,35.43,60.09,45.84,70.40,83.45,84.30,
+78.89,64.75,72.56,89.31,78.94,83.55,127.00,
+121.00,107.00,
+129.00,74.02,55.48,73.13,50.50,50.88,140.00,
+96.54,118.00,107.00,123.00,65.92,81.29,111.00,
+90.73,133.00,41.90,41.71,58.16,88.85,155.00,
+70.77,75.08,57.05,99.73,27.96,123.00,90.41,
+106.00,144.00,121.00,97.13,166.00,87.99,154.00,
+100.00,123.00,
+217.00,140.00,109.00,127.00,112.00,192.00,
+132.00,126.00,153.00,158.00,183.00,184.00,
+121.00,159.00,245.00,137.00,165.00,152.00,
+181.00,80.95,137.00,125.00,241.00,134.00,
+150.00,198.00,151.00,229.00,253.00,188.00,
+124.00,62.20,133.00,208.00,208.00)
+
+dat <- as.data.frame(cbind(x,y))
+plot(x, y, xlab="Waist Circumference (cm)", ylab="Adipose Tissue (AT)")
+
+#Superimpose the trending smoother line
+lines(lowess(y ~ x), lty=2, lwd=2)
+
+```
+
+### The Linear Regression Line
+
+The linear equation can be written as $$
+    y = \beta_0 + \beta_1 x
+    $$\
+$x$ is the **independent variable** and $y$ is **dependent variable**.
+
+![Linear equations](https://i.ibb.co/hmnNssj/linear-equation1.png)
+
+![Linear equations](https://i.ibb.co/TmNJ2zm/linear-equation2.png)
+
+The key distinction between a linear equation and linear regression is
+that in a linear equation relationship, all data points $(x, y)$ must
+lie on the same straight line, whereas in linear regression, this
+requirement does not apply.
+
+How to find the best line to fit the data points? The method is called
+**ordinal least square**.
+
+![Least Square Estimate (LSE) for Linear
+Regression](https://i.ibb.co/swCNcZ8/LS.png)
+
+### Fit a Linear Regression Line
+
+```{r}
+		####################################
+		# (2) Fit a linear regression line
+		####################################
+		model <- OLR(x, y)
+		model
+```
+
+Let's revisit the motivating example. It's calculated as
+$$S_{xx} = 19855.76$$ and $$S_{xy} = 68678.28$$, and
+$$\beta_0=-215.9815, \beta_1=3.459$$. So the regression line is
+$$\hat{y} = -216 + 3.46x$$.
+
+Figure shows the super imposed fitted line to the scatter plot.
+
+```{r}
+		plot(x, y, xlab="Waist Circumference (cm)", ylab="Adipose Tissue (AT)")
+		#Superimpose the trending smoother line
+		lines(lowess(y ~ x), lty=2, lwd=2)
+		x.LR <- seq(50, 150, by=1)
+		y.LR <- model$beta0+model$beta1*x.LR #Fitted regression line
+		lines(x.LR, y.LR, col=2, lwd=2)
+		legend("topleft", c("Lowess Smoother", "Linear Regression Line"), 
+			   col=1:2, lwd=c(2,2), bty="n")
+```
+
+In R, use the function \\verb\|lm()\| to fit the linear regression.
+
+```{r}
+		####################################
+		# (3) Linear Regression using lm()
+		####################################		
+		LinearReg <- lm(y ~ x) #Create the linear regression		
+		summary(LinearReg)     #Review the results		
+```
+
+### Fitted Values and Regression Line
+
+```{r}
+		y_hat <- LinearReg$fitted.values		
+		plot(x, y)      #Scatter plot
+		lines(x, y_hat, col=2) #Regression line
+```
+
+## Evaluating and Interpreting the Linear Regression
+
+The parameter of most interest in a linear regression model is
+$\beta_1$, which reflects the rate of change in $y$ as $x$ increases.
+When $\beta_1 = 0$, it indicates the slope is 0 and $y$ doesn't change
+with $x$. In other words, $x$ cannot explain or predict $y$.
+
+### Deviations and Sums of Squares
+
+#### The Total Deviation
+
+The Total Deviation is defined as $y_i-\bar{y}$, which is the total
+amount of deviation from the observed value to the sample mean.
+
+#### The Explained Deviation
+
+The Explained Deviation is defined as $\hat{y}_i-\bar{y}$
+
+#### The Unexplained Deviation
+
+The Unexplained Deviation is defined as $y_i-\hat{y}_i$, which is the
+deviation from the observed data to the fitted value which cannot be
+explained by the regression line.
+
+#### Total Deviation = Explained Deviation + Unexplained Deviation\*\*
+
+$$ (y_i-\bar{y}) = (\hat{y}_i-\bar{y})+(y_i-\hat{y}_i)$$
+
+#### Regression Identity
+
+It can also be shown mathematically, the same relationship holds for sum
+of squares.
+
+**Total Sum of Squares (SST) = Explained Sum of Squares (SSR) +
+Unexplained sum of squares (SSE)}**, i.e.,
+$$\sum (y_i-\bar{y})^2 =\sum (\hat{y}_i-\bar{y})^2 + \sum (y_i-\hat{y}_i)^2$$
+$$SST = SSR + SSE$$
+
+This is illustrated in Figure below.
+
+![Regression Identity](https://i.ibb.co/MNLvKfm/LR-SS.png)
+
+SST: the variation of the response variable $y$; SSR: the variation of
+the response variable that is explained by the regression; SSE: the
+variation of the response variable that is NOT explained by the
+regression.
+
+### Coefficient of Determination
+
+The **Coefficient of Determination** $r^2$, is the proportion of
+variation in the observed values of the response variable explained by
+the regression. Thus, $$r^2 = \frac{SSR}{SST}= 1 - \frac{SSE}{SST}$$ \*
+When $r^2 \sim 0$, the regression equation is not very useful. \* When
+$r^2 \sim 1$, the regression model is quite useful for making
+predictions.
+
+In the motivating example,
+$SST = 354530.5, SSR = 237548.5, SSE = 116982, r^2 = 0.670$.
+
+```{r}
+OLR(x, y)
+```
+
+The adjusted $r^2$ is the unbiased estimator of population coefficient
+of determination. Compared to $r^2$, the adjusted $r^2$ accounts for the
+number of parameters fit by the regression, and so can be compared
+between models with different numbers of parameters.
+
+$$
+        \tilde{r}^2 = 1-\frac{SSE / (n-k)}{SST/(n-1)} = 1 - \frac{MSE}{MST}
+$$ where $k$ is the number of parameters in the regression line. For
+simple linear regression with one variable $x$, $k=2$ which includes
+$\beta_0$ and $\beta_1$. It can be shown the adjusted $r^2$ is smaller
+than $r^2$. It penalizes the number of parameters.
+
+#### Example 1: Sums of squares and coefficient of determination
+
+Consider the 3-point problem for illustration.
+
+![Example](https://i.ibb.co/kVdr56sQ/625-Table-14-03.png)
+
+![Example](https://i.ibb.co/DgYVRXDP/625-Figure-14-08.png)
+
+-   (a). Determine the three sums of squares.
+-   (b). Find and interpret the coefficient of determination
+
+**Solution**
+
+![Example](https://i.ibb.co/9kRzBNF2/640-Table-14-07.png)
+
+-   (a).
+
+    $$
+    SST = \sum (y_i-\bar{y})^2 = 8
+    $$
+
+    $$
+    SSR = \sum (\hat{y}_i-\bar{y})^2 = 2 
+    $$
+
+    $$
+    SSE = \sum (y_i-\hat{y}_i)^2 = 6
+    $$
+
+-   (b).
+
+$$r^2 = \frac{SSR}{SST}= 1 - \frac{SSE}{SST} = \frac{2}{8} = 0.25$$
+
+The coefficient of determination is 0.25. Thus, 25% of the variation in
+the observed y-values is explained by the regression, i.e., by the
+linear relationship between the x-values and the y-values.
+
+#### Example 2: Calculating and Interpreting $r^2$
+
+The scatterplot and regression line for the age and price of 11 Orions
+are below.
+
+![Example](https://i.ibb.co/Wp6gSKKf/641-Figure-14-16.png) Find and
+interpret the coefficient of determination.
+
+**Solution:**
+
+![Example](https://i.ibb.co/wZLFfjrr/642-Table-14-08.png)
+$$SST = \sum y_i^2 - (\sum y_i)^2/n = 96129 - 975^2/11=9708.5$$
+
+The regression line of sum of square is
+
+$$
+SSR = \frac{\sum x_iy_i - \sum x_i}{\sum y_i^2 - (\sum y_i)^2/n}=8285
+$$
+
+$$r^2 = \frac{SSR}{SST} = 0.853$$
+
+```{r}
+		####################################
+		# (2) Fit a linear regression line
+		####################################
+		model <- OLR(x, y)
+		model
+```
+
+### Linear Correlation
+
+Find the linear correlation coefficient of x and y.
+
+![Example](https://i.ibb.co/XxC9XZYz/645-Table-14-09.png)
+
+The sample deviations:
+$$s_x = \sqrt{\frac{\sum (x_i-\bar{x})^2}{n-1}}=\sqrt{\frac{2}{3-1}}=1$$
+and $$s_y = \sqrt{\frac{\sum (y_i-\bar{y})^2}{n-1}}=2$$
+
+In addition,
+
+$$
+\frac{1}{n-1}\sum (x_i - \bar{x}) (y_i - \bar{y}) = \frac{1}{3-1}\cdot 2 = 1
+$$
+
+So, we find that $$
+r = \frac{\frac{1}{n-1}\sum (x_i-\bar{x})(y_i-\bar{y})}{s_xs_y} = 0.5
+$$ \### 14.4.2 Understanding the linear correlation coefficient
+
+-   $r$ refelcts the slope of the scatterplot. If the scatterplot shows
+    a positive slope, the data points, on average, will lie either
+    region I or III, i.e. the deviations of $(x_i-\bar{x})$ and
+    $(y_i-\bar{y})$ both negative or both positive.
+
+-   If the scatterplot shows a positive slope, the data points, on
+    average, will lie either region II or IV, i.e. the deviations of
+    $(x_i-\bar{x})$ and $(y_i-\bar{y})$ are in opposite directions.
+
+-   The magnitude of $r$ indicates the strength of the linear
+    relationship.
+
+-   The sign of $r$ and the sign of the regression line's slope are
+    identical.
+
+#### Example
+
+![Example](https://i.ibb.co/N6WbfVr5/646-Figure-14-17.png)
+
+![Example](https://i.ibb.co/wZyFr4tw/647-Figure-14-18.png)
+
+Using algebra, we can show that the linear correlation coefficient $r$
+can be expressed as $$
+r=\frac{S_{xx}}{\sqrt{S_{xx}S_{yy}}}
+$$
+
+#### Inferences in Correlation
+
+In this section, we introduce the hypothesis test for the linear
+correlation $r$.
+
+##### t-Distribution for a Correlation Test
+
+Suppose that the variables $x$ and $y$ satisfy the four assumptions for
+regression inferences and that $\rho = 0$. Then, the variable
+
+$$
+t = \frac{r}{\sqrt{\frac{1-r^2}{n-2}}}
+$$
+
+has the t-distribution with $df=n-2$, where $n$ is the sample size.
+
+This hypothesis testing procedure is called the correlation t-test.
+
+-   STEP 1. The null hypothesis is $$ H_0: \rho = 0$$
+
+and the alternative hypothesis can be either of the following +
+$H_a: \rho \ne 0$ two-sided + $H_a: \rho < 0$ left-sided +
+$H_a: \rho > 0$ right-sided
+
+-   STEP 2. Decide the significance level $\alpha$
+
+-   STEP 3. Compute the observed value of the test statistic $$
+    t_0 = \frac{r}{\sqrt{\frac{1-r^2}{n-2}}}
+    $$
+
+-   STEP 4. The critical values are determined according to
+    t-distribution and the side of the test.
+
+    -   Two-sided test: $\pm t_{1-\alpha/2, df=n-2}$, using R code:
+        qt(1-alpha/2, df=n-2). The rejection region is
+        $t < -t_{1-\alpha/2, df=n-2}$ or $t>t_{1-\alpha/2, df=n-2}$.
+    -   Left-sided test: $t_{\alpha, df=n-2} = -t_{1-\alpha, df=n-2}$,
+        using R code: qt(alpha, df=n-2). The rejection region is
+        $t < -t_{1-\alpha, df=n-2} = t_{\alpha, df=n-2}$.
+    -   Right-sided test: $t_{1-\alpha, df=n-2}$, using R code:
+        qt(1-alpha, df=n-2). The rejection region is
+        $t > t_{1-\alpha, df=n-2}$.
+
+    where $t_{p, df=n-2}$ is the $p$th quantile of t-distribution with
+    $n-2$ degrees of freedom.
+
+-   STEP 5. If the $t_0$ falls in the rejection region, then reject
+    $H_0$; otherwise, do not reject $H_0$.
+
+-   p-value: The p value is calculated accordingly:
+
+    -   Two-sided test: $p = 2P(t > |t_0|)$, using R code:
+        $2*(1-pt(|t_0|, df=n-2))$.
+    -   Left-sided test: $p = P(t < t_0)$, using R code:
+        $pt(t_0, df=n-2)$.
+    -   Right-sided test: $p = P(t > t_0)$, using R code:
+        $1-pt(t_0, df=n-2)$.
+
+    If $p\le \alpha$, reject $H_0$; otherwise, do not reject $H_0$.
+
+-   STEP 6. Interpretation
+
+##### Example
+
+Consider the Orion car problem. At the 5% significance level, do the
+data provide sufficient evidence to conclude that age and price are
+negatively linearly correlated?
+
+**Solution.**
+
+-   STEP 1. The null hypothesis is $$ H_0: \rho = 0$$
+
+and the alternative hypothesis is $H_a: \rho < 0$ left-sided.
+
+-   STEP 2. Decide the significance level $\alpha = 0.05$
+
+-   STEP 3. Compute the observed value of the test statistic $$
+    t_0 = \frac{r}{\sqrt{\frac{1-r^2}{n-2}}} = \frac{-0.924}{\sqrt{\frac{1-(-0.924)^2}{11-2}}}=-7.249
+    $$
+
+-   STEP 4. The critical value is the 5%th quantile:
+    $t_{\alpha, df=n-2} = -1.833$, using R code: qt(0.05, df=11-2). The
+    rejection region is $t < -1.833$.
+
+-   STEP 5. $t_0=-7.249$ falls in the rejection region, so reject $H_0$.
+
+-   p-value: The p value is calculated accordingly:
+
+    -   Left-sided test: $p = P(t < t_0) = 0.000024 < 0.05$, using R
+        code: $pt(t_0, df=n-2)$, so the p-value approach also concludes
+        rejection of $H_0$.
+
+```{r}
+p = pt(-7.249, df=11-2)
+p
+```
+
+-   STEP 6. Interpretation. At the 5% significance level, the data
+    provide sufficient evidence to conclude that age and price are
+    negatively linearly correlated. Price of Orions tend to decrease
+    linearly with increasing age.
+
+### Hypothesis test $H_0: \beta_1=0$ with $F$ test
+
+Similar to ANOVA, the simple linear regression also has an ANOVA table
+according to the analysis of variations from the regression and
+unexplained. $F$ follows $F$ distribution with degrees of freedom 1 and
+$n-2$.
+
+In the motivation example, the ANOVA table is displayed in Table. The
+small $p$ value indicates rejection of $H_0$, i.e., $\beta_1$ is not
+zero.
+
+```{r}
+		##############################
+		#(5) ANOVA table in linear regression
+		##############################
+		
+		LinearReg <- lm(y ~ x) #Create the linear regression
+		anova(LinearReg)
+```
+
+### Hypothesis test $H_0: \beta_1=0$ with $t$ test
+
+The formal linear regression model is $$
+        Y_i = \beta_0+\beta_1x_i + \epsilon_i
+$$\
+where $$\epsilon \sim N(0, \sigma^2)$$ are independent and
+$$Y_i|x_i \sim N(\beta_0+\beta_1x_i, \sigma^2)$$. It's also commonly to
+express the linear regression model as
+$$E[Y_i|x_i] = \beta_0+\beta_1x_i$$.
+
+The LS estimate of $\beta_0$ and $\beta_1$ are
+
+$$
+\hat{\beta}_1 = \frac{\sum_{i=1}^n(x_i-\bar{x})(Y_i-\bar{Y})}{\sum_{i=1}^n(x_i-\bar{x})}
+$$ $$
+    \hat{\beta}_0 = \bar{Y} - \hat{\beta}_1\bar{x}
+$$
+
+$$
+\hat{\sigma}^2 = \frac{1}{n-2} \sum_{i=1}^n (Y_i - \hat{\beta}_0 - \hat{\beta}_1 x_i)^2 = \frac{SSE}{n-2} = MSE
+$$\
+$$
+\frac{\hat{\sigma}^2}{\sigma^2} \sim \frac{\chi^2_{n-2}}{n-2}
+$$ where the right hand side denotes a $\chi^2$ distribution with $n-2$
+degrees of freedom. By some algebra, we can obtain
+
+$$
+\widehat{\beta}_1 \sim N\left(\beta_1, var=\frac{\sigma^2}{\sum_{i=1}^n(X_i-\overline{X})^2}\right)
+$$
+
+$$
+\frac{\widehat{\beta}_1 - \beta_1}{\sigma \sqrt{\frac{1}{\sum_{i=1}^n(X_i-\overline{X})^2}}} \sim N(\
+        0,1)
+$$
+
+Further replace $\sigma$ by $\hat{\sigma}$, then
+
+$$
+SE(\widehat{\beta}_1) = \widehat{\sigma} \sqrt{\frac{1}{\sum_{i=1}^n(x_i-\bar{x})^2}}
+$$
+
+The test statistic is
+$$t = \frac{\widehat{\beta}_1}{\widehat{\sigma} \sqrt{\frac{1}{\sum_{i=1}^n(x_i-\overline{x})^2}}} \sim t_{n-2}
+$$
+
+Reject $H_0$ if the observed value $$|t_0| > t_{1-\alpha/2, df=n-2}$$.
+
+Let's perform this test for the motivating example. The calculations are
+below. The **residual standard error** is $\hat{\sigma}=33.06$ which is
+consistent with the R output. The $SE(\widehat{\beta}_1) = 0.2347$ is
+also consistent with the R output. The value of the test statistic is
+$t_0=14.74$ and $p=0$, so reject $H_0$.
+
+```{r}
+    ##############################
+		#(6) t test for beta1
+		##############################
+		summary(LinearReg)
+		
+```
+
+**Residual standard error**
+
+```{r}
+		sigma.hat = sqrt(sum(resid(LinearReg)^2) / LinearReg$df.resid)
+		sigma.hat
+```
+
+**Standard error of beta1**
+
+```{r}
+		se.beta1.hat = (sigma.hat * sqrt(1 / sum((x - mean(x))^2)))
+		se.beta1.hat
+```
+
+**Estimate of beta1**
+
+```{r}
+		beta1.hat <- coef(LinearReg)[2]
+    beta1.hat
+```
+
+**t-test statistic for testing H0: beta1 = 0**
+
+```{r}
+		t0 = (beta1.hat - 0) / se.beta1.hat
+		t0
+```
+
+**p value for testing H0: beta1 = 0**
+
+```{r}
+p = 2*(1-pt(abs(t0), df= LinearReg$df.resid))
+p
+```
+
+### Confidence Interval
+
+#### Example
+
+Find a 95% CI for the mean price of all 3-year-old Orions.
+
+For 95%CI, alpha is 0.05. Because $n=11$, the corresponding $t$
+distribution has 9 degrees of freedom. The critical value is
+$t_{0.975, df=9} = 2.262$.
+
+```{r}
+qt(0.975, df=9)
+```
+
+The point estimate of the conditional mean (i.e. predicted value) is
+$\hat{\beta}_0+\hat{\beta}_1\times 3 = 134.69$. The 95%CI of the
+conditional mean $\beta_0 + 3\beta_1$ is $$
+\hat{y}_p\pm t_{1-\alpha/2, df=n-2}\hat{\sigma}\sqrt{\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}} = 134.69\pm 16.76.
+$$
+
+#### Confidence interval based on Student's $t$ distribution
+
+Suppose we have a parameter estimate
+$$\widehat{\theta} \sim N(\theta, {\sigma}_{\theta}^2)$$, and standard
+error $SE(\widehat{\theta})$ such that
+
+$$
+    \frac{\widehat{\theta}-\theta}{SE(\widehat{\theta})} \sim t_{\nu}.
+$$
+
+In general, a $(1-\alpha) \cdot 100 \%$ confidence interval is
+
+$$
+    \widehat{\theta} \pm SE(\widehat{\theta}) \cdot t_{\nu, 1-\alpha/2}
+$$
+
+To prove this, expand the absolute value as we did for the one-sample CI
+$$
+    1 - \alpha = \mathbb{P}_{\theta}\left(\left|\frac{\widehat{\theta} - \theta}{SE(\widehat{\theta})} \right| < t_{\nu, 1-\alpha/2}\right)
+$$
+
+Apply to the confidence interval for regression parameter $\beta_1$,
+then a confidence interval is
+$$\hat{\beta}_1 \pm SE(\hat{\beta}_1) \cdot t_{n-2, 1-\alpha/2}.$$
+
+If the $(1-\alpha)100\%$ confidence interval excludes 0, then $H_0$ is
+rejected at the $\alpha$ level. In R, use the function
+\\verb\|confint()\| to calculate the CI.
+
+```{r}
+		##############################
+		#(7) Confidence Interval for beta1
+		##############################		
+		L = beta1.hat - qt(0.975, LinearReg$df.resid) * se.beta1.hat
+		U = beta1.hat + qt(0.975, LinearReg$df.resid) * se.beta1.hat
+		data.frame(L, U)		
+		
+```
+
+In R, use the syntax below to get the CI.
+
+```{r}
+		confint(LinearReg)
+```
+
+Revisit the OLR function to produce all above.
+
+```{r}
+OLR(x, y)
+```
+
+## Model assumptions and diagnostics
+
+#### Model Assumptions
+
+The simple linear regression model is $$
+y = \beta_0 + \beta_1 x
+$$
+
+The linear regression model assumes
+
+-   Normality. For each value of $X$, there is a sub-population of $Y$
+    values, i.e., the conditional distribution $Y|X$ exists and normally
+    distributed. The horizontal band of the residuals should be centered
+    and symmetric about the x-axis.
+
+-   The variances of all subpopulations are the same, i.e.,
+    $var(Y|X) = \sigma^2$ independent of $X$. The residuals should fall
+    roughly in a horizontal band.
+
+-   The linearity between $Y$ and $X$ is linear, i.e.
+    $E(Y|X) = \beta_0+\beta_1X$.
+
+-   The random sample $Y$ is independent condition on $X$, i.e.,
+    $Y|X=x_1$ is independent of $Y|X=x_2$. This means that, in drawing
+    the sample, it is assumed that the values of $Y$ chosen at one value
+    of $X$ in no way depend on the values of $Y$ chosen at another value
+    of $X$.
+
+#### Model Diagnostics
+
+The residuals plot can be used to diagnose the constant variance
+assumption and QQ plot is to diagnose the normality assumption. If the
+assumptions for regression inferences are met, then
+
+-   A plot of the residuals against the observed values of the predictor
+    variable should fall roughly in a horizontal band centered and
+    symmetric about the x-axis.
+-   A normal probability plot of the residuals should be roughly linear.
+
+Failure of either of these two conditions casts doubt on the validity of
+one or more of the assumptions for regression inferences. Figure below
+shows the diagnostics for the example. The residual plot shows a
+potential concern of non-constant variance in this example.
+
+```{r}
+plot(LinearReg)
+```
+
+### Scatter plot with loess smoother
+
+```{r}
+##############################
+#(1) Motivating Example (Adipose Tissue vs waist)
+##############################
+x = c(74.75,72.60,81.80,83.95,74.65,71.85,80.90,
+83.40,63.50,73.20,71.90,75.00,73.10,79.00,
+77.00,68.85,75.95,74.15,73.80,75.90,76.85,
+80.90,79.90,89.20,82.00,92.00,86.60,80.50,
+86.00,82.50,83.50,88.10,90.80,89.40,102.00,
+94.50,91.00,
+103.00,80.00,79.00,83.50,76.00,80.50,86.50,
+83.00,107.10,94.30,94.50,79.70,79.30,89.80,
+83.80,85.20,75.50,78.40,78.60,87.80,86.30,
+85.50,83.70,77.60,84.90,79.80,108.30,119.60,
+119.90,96.50,105.50,105.00,107.00,107.00,
+101.00,97.00,100.00,
+108.00,100.00,103.00,104.00,106.00,109.00,
+103.50,110.00,110.00,112.00,108.50,104.00,
+111.00,108.50,121.00,109.00,97.50,105.50,
+98.00,94.50,97.00,105.00,106.00,99.00,91.00,
+102.50,106.00,109.10,115.00,101.00,100.10,
+93.30,101.80,107.90,108.50)
+
+y<- c(25.72,25.89,42.60,42.80,29.84,21.68,29.08,
+32.98,11.44,32.22,28.32,43.86,38.21,42.48,
+30.96,55.78,43.78,33.41,43.35,29.31,36.60,
+40.25,35.43,60.09,45.84,70.40,83.45,84.30,
+78.89,64.75,72.56,89.31,78.94,83.55,127.00,
+121.00,107.00,
+129.00,74.02,55.48,73.13,50.50,50.88,140.00,
+96.54,118.00,107.00,123.00,65.92,81.29,111.00,
+90.73,133.00,41.90,41.71,58.16,88.85,155.00,
+70.77,75.08,57.05,99.73,27.96,123.00,90.41,
+106.00,144.00,121.00,97.13,166.00,87.99,154.00,
+100.00,123.00,
+217.00,140.00,109.00,127.00,112.00,192.00,
+132.00,126.00,153.00,158.00,183.00,184.00,
+121.00,159.00,245.00,137.00,165.00,152.00,
+181.00,80.95,137.00,125.00,241.00,134.00,
+150.00,198.00,151.00,229.00,253.00,188.00,
+124.00,62.20,133.00,208.00,208.00)
+
+plot(x, y, xlab="Waist Circumference (cm)", ylab="Adipose Tissue (AT)")
+
+#Superimpose the trending smoother line
+lines(lowess(y ~ x), lty=2, lwd=2)
+
+```
+
+###  Model fitting and interpretation
+
+```{r}
+		####################################
+		# (2) Fit a linear regression line
+		####################################
+		model <- OLR(x, y)
+		model
+
+```
+
+Or fit model using lm() function
+
+```{r}
+		LinearReg <- lm(y ~ x) #Create the linear regression
+		summary(LinearReg)
+		anova(LinearReg)
+```
+
+
+
+
+
+
+## Prediction Using Linear Regression
+
+The predicted value of $y$ for $x = x_p$ is
+$\hat{y}_p = \hat{\beta}_0 + \hat{\beta}_1 x_p$. The mean of the
+predicted value is $\mu_{\hat{y}_p} = \beta_0 + \beta_1 x_p$. The
+standard deviation of the predicted value is
+$\sigma_{\hat{y}_p} = \sigma \sqrt{\frac{1}{n}+\frac{(x_p - \bar{x})^2}{S_{xx}}}$.
+$\hat{y}_p$ is normally distributed, and
+
+$$
+\hat{y}_p \sim N(\mu_{\hat{y}_p}, \sigma_{\hat{y}_p}^2)=N\left(\beta_0 + \beta_1 x_p, \sigma^2 \left(\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}\right)\right)
+$$
+
+$$
+t = \frac{\hat{y}_p-(\beta_0+\beta_1x_p)}{\hat{\sigma}\sqrt{\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}}} \sim t_{df=n-2}
+$$
+
+#### CI for the conditional mean
+
+So the **CI for the conditional mean**
+$\mu_{\hat{y}_p}(=\beta_0+\beta_1x_p)$ can be constructed as $$
+\hat{y}_p\pm t_{1-\alpha/2, df=n-2}\hat{\sigma}\sqrt{\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}}
+$$ This is called **the confidence interval of the predicted value**,
+i.e., population mean of $y$ at $x$.
+
+Another similar but commonly confusing concept in regression is
+prediction interval, which is for the individual rather than the
+population mean. The following provides the theoretical clarification.
+
+For an individual's response $y_p$ associated with the covariate $x_p$,
+the mean of $y_p - \hat{y}_p$ equals zero: $\mu_{y_p-\hat{y}_p}=0$, and
+the standard deviation of $y_p - \hat{y}_p$ is
+$$\sigma_{y_p - \hat{y}_p} = \sigma \sqrt{1+\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}}$$
+In addition, $$y_p - \hat{y}_p \sim N(0, \sigma_{y_p - \hat{y}_p}^2)$$.
+As a result, $$
+    y_p - \hat{y}_p \sim N\left(0, \sigma \sqrt{1+\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}}\right)
+$$ $$
+    t = \frac{\hat{y}_p-\hat{y}_p}{\hat{\sigma}\sqrt{1+\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}}}\sim t_{df=n-}
+$$
+
+So the confidence interval for $y_p$ is $$
+    \hat{y}_p\pm t_{1-\alpha/2, df=n-2}\hat{\sigma}\sqrt{1+\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}}
+$$
+
+#### Prediction Interval
+
+This is called **prediction interval**. Compared to the confidence
+interval of the population mean, the prediction interval is wider
+because it takes into account the individual variability.
+
+In short, \* the confidence interval of the conditional mean
+$\beta_0 + \beta_1x_p$ for covariate $x_p$ is conventionally called
+confidence interval. \* the confidence interval of an individual
+response $y_p$ for covariate $x_p$ is conventionally called prediction
+interval.
+
+#### Example 1
+
+Let's revisit the example. $$\hat{\sigma} = \sqrt{MSE} = 33.06$$, which
+is calculated by $$\frac{1}{n-2}\sum e_i^2$$, where
+$$e_i=y_i - \hat{y}_i$$ is the residual.
+$$S_{xx} = \sum (x_i-\bar{x})^2 = 19855.76$$ and $n=109$. For a subject
+with $x=100$, the predicted value of $y$ is 129.90. The 95%CI for the
+population mean is $(122.58, 137.23)$ and the prediction interval is
+$(63.95, 195.86)$. The interpretation of both intervals are as follows.
+
+-   We can be 95% confident that the mean AT of all subjects with waist
+    circumference 100cm is somewhere between 122.58 and 137.23. This is
+    for a population parameter: mean.
+-   We can be 95% confident that the AT of a subject with waist
+    circumference 100cm will be somewhere between 63.95 and 195.86. This
+    is for an individual! Not a population concept.
+
+```{r}
+OLR(x, y, new.x=100)
+```
+
+Using R built-in function, specify as below.
+
+```{r}
+	####confidence interval####
+	#CI for population mean of y when x = 100
+	predict(LinearReg, newdata = list(x=100), interval=c("confidence"), level=0.95)
+	
+	####prediction interval####
+	#CI for individual subject's y when x = 100
+	#Prediction interval
+	predict(LinearReg, newdata = list(x=100), interval=c("prediction"), level=0.95)
+```
+
+#### Example 2
+
+Find a 95% prediction interval for the price of a 3-year-old Orion.
+
+$$
+    \hat{y}_p\pm t_{1-\alpha/2, df=n-2}\hat{\sigma}\sqrt{1+\frac{1}{n}+\frac{(x_p - \bar{x})^2}{\sum (x_i-\bar{x})^2}} = 134.69\pm 2.262\cdot 12.58\sqrt{1+\frac{1}{11}+\frac{(3-58/11)^2}{326-58^2/11}} = 134.69\pm 33.02.
+$$ Interpretation: We can be 95% confident that the price of a
+3-year-old Orion will be somewhere between \$10,167 and \$16,771.
+
+![Confidence interval and prediction
+interval](https://i.ibb.co/CswVwb8s/683-Figure-15-11.png)
+
+## Extension (Not to cover in class): Hypothesis test $H_0: \beta_1=0$ with bootstrap sampling
+
+There are two common methods of bootstrapping for testing
+$H_0: \beta_1=0$ in linear regression model.
+
+### Empirical Bootstrap
+
+Given the original sample pairs $(X_1, Y_1), \cdots, (X_n, Y_n)$,
+randomly sampling the $n$ pairs with replacement to generate a new set
+$(X_1^{*(1)}, Y_1^*(1)), \cdots, (X_n^*(1), Y_n^*(1))$. Note that for
+each $l$, $P(X_l^{*(1)} = X_i, Y_l^{*(1)} = Y_i) =\frac{1}{n}$. Namely,
+we treat $(X_i, Y_i)$ as one object and we sample with replacement $n$
+times from these $n$ objects to form a new bootstrap sample. Thus, each
+time we generate a set of $n$ new observations from the original data.
+
+Repeat the entire process $B$ times, then obtain $B$ bootstrap samples
+$$(X_1^{*(b)}, Y_1^*(b)), \cdots, (X_n^*(b), Y_n^*(b))$$ for
+$b=1,\cdots,B$. Perform a linear regression for each bootstrap sample,
+and obtain the estimates of coefficients
+$(\hat{\beta}_0^{*(b)}, \hat{\beta}_1^{*(b)})$. Then the variance of
+$\hat{\beta}_1$ can be estimated by the $B$ estimates of
+$\hat{\beta}_1^{*(b)}$. The confidence interval can be obtained by the
+empirical distribution of $\hat{\beta}_1$ constructed based on the
+bootstrap samples. $H_0$ is rejected if the CI excludes 0.
+
+The following R code implements the empirical bootstrap linear
+regression. With 10000 bootstrapping samples, the coefficient estimates,
+standard errors and confidence intervals are similar to the linear
+regression.
+
+```{r}
+empirical.boot.lm(x, y)
+```
+
+### Residual Bootstrap
+
+Although the empirical bootstrap works well in theory, in practice it
+might lead to a bad result especially in the presence of influential
+observations (some $X_i$ very far away from the others). When we do an
+empirical bootstrap, if we do not select those points, the regression
+coefficients can be very different. To resolve this problem, we may use
+the residual bootstrap.
+
+First, sample the residuals $(e_1, \cdots, e_n)$ with replacement and
+denote the bootstrap sample as $(e_1^{*(b)}, \cdots, e_n^{*(b)})$ for
+$b=1,\cdots,B$. Then construct the bootstrap samples
+
+$$
+(X_1, \hat{\beta}_0+\hat{\beta}_1X_i+e_1^{*(b)}), \cdots, (X_n, \hat{\beta}_0+\hat{\beta}_1X_n+e_n^{*(b)})
+$$ where $\hat{\beta}_0$ and $\hat{\beta}_1$ are from the original
+fitted coefficients.
+
+Then, for each bootstrap sample, fit a linear regression and obtain the
+coefficients $\hat{\beta}_0^{*(b)}, \hat{\beta}_1^{*(b)}$ for
+$b=1,\cdots,B$.
+
+All the estimate of the variance, MSE, and construction of the CI are
+the same as the empirical bootstrap. The procedure is implemented below.
+
+```{r}
+residual.boot.lm(x,y)
+```

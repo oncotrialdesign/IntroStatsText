@@ -1,0 +1,221 @@
+
+# Organizing Data
+
+```{r}
+library(IntroStats)
+```
+
+## Variables and Data
+
+### Definition
+
+- **Variable**: A characteristic that varies from one person or thing to another. For example, height, eye color.
+- **Quantitative variables**: Numerical variables. Height is a quantitative variable.
+- **Qualitative variables**: non-numerical variables, also called categorical variables. Eye color is a quanlitative variable.
+- **Discrete variable**: a quantitative variable whose possible values can be listed. For example, number of siblings.
+- **Continuous variable**: a quantitative variable whose possible values form some interval of numbers. For example, height of a person.
+
+
+![Figure 1. Classification of Variables](https://i.ibb.co/xsXX1mx/variables.png)
+
+### Definition
+
+- **Data**: Values of a variable
+- **Qualitative data**: Values of a qualitative variable
+- **Quantitative data**: Values of a quantitative variable.
+- **Discrete data**: Values of a discrete variable.
+- **Continuous data**: Values of a continuous variable.
+
+### Example
+
+Human blood types: A, B, AB, O. What kind of data do you receive when you are told your blood type?
+
+**Solution**: Blood type is a qualitative variable. Therefore your blood type is qualitative data.
+
+### Example
+
+The U.S. Census Bureau collects data on household size and publishes the information in Current Population Reports. What kind of data is the number of people in your household?
+
+**Solution**: Household size is a quantitative variable, which is also a discrete variable because its possible values are 1, 2, ...
+
+## Organizing Qualitative Data
+
+### Definition: Frequency Distribution of Qualitative Data
+
+**A frequency distribution** of qualitative data is a listing of the distinct values and their frequencies.
+
+### Example
+
+A class of students have the political party affiliation below. Order them and construct a frequency table.
+
+```{r}
+x = c("Democratic", "Democratic","Republic", "Republic", "Republic", "Democratic", 
+      "Democratic","Democratic","Democratic", "Democratic","Democratic","Democratic",
+      "Democratic","Republic", "Republic", "Republic", "Democratic","Democratic",
+      "Republic", "Republic", "Republic", "Republic", "Republic", "Republic", 
+      "Republic", "Republic", "Democratic", "Republic", "Republic",  "Republic", 
+      "Democratic","Democratic", "Republic", "Republic", "Republic", "Republic", 
+     "Republic", "Republic", "Other", "Other", "Other", "Other", "Other")
+```
+Order the values:
+
+```{r}
+sort(x)
+```
+
+Count frequency:
+
+```{r}
+table(x)
+
+```
+### Relative Frequency
+
+$$
+\text{Relative Frequency} = \frac{\text{Frequency}}{\text{Number of Observations}}
+$$
+```{r}
+freq = table(x)
+Relative_frequency = freq  / sum(freq)
+
+Relative_frequency
+
+```
+Sum of relative frequencies equals 1.
+
+
+### Pie chart
+
+Construct a pie chart for political party affiliations. Use R function `pie()`. Either frequency or relative frequency can be used for drawing pie chart.
+
+```{r}
+pie(Relative_frequency)
+```
+
+Same pie chart here:
+```{r}
+pie(freq)
+```
+All possible party affiliations in a pie chart must add up to 100\%.
+
+### Bar charts
+
+Bar chart of frequency:
+```{r}
+barplot(freq, col = c("blue", "green", "red"), ylab="Frequency")
+```
+
+Bar chart of frequency:
+```{r}
+barplot(Relative_frequency, col = c("blue", "green", "red"), ylab="Relative Frequency")
+```
+
+## Organizing Quantitative Data
+
+### Single-value Grouping
+
+Example. Number of TVs in each of 50 randomly selected households. Group the data by single values.
+
+```{r}
+x = c(1,1,1,2,3,5,2,0,4,5,
+      3,2,3,2,3,2,2,1,1,1,
+      4,4,3,3,4,2,2,2,1,1,
+      6,4,3,2,2,3,4,5,3,2,
+      4,3,3,3,2,2,2,1,1,1)
+
+#single-value grouping
+table(x)
+```
+
+
+### Limit Grouping
+
+Multiple classes are created and each class consists of a range of values. Suppose we create categories 0-1, 2, 3, 4-6, then we can summarize as
+
+- **0-1**: 12
+- **2**: 15
+- **3**: 12
+- **4-6**: 11
+
+### Cutpoint Grouping
+
+- **<=2**: 27
+- **>2**: 23
+
+### Histogram
+
+Histogram is to display the distribution of a sample with relative chance of occurrence. A peak point indicates a value the occurs the most frequently. It is often superimposed with a probability density curve, which indicates the same meaning.
+
+```{r}
+      ########################
+    	#Histgram
+    	########################
+    	x = rnorm(100)
+    	hist(x) 
+    	
+    hist(x, col = 5, main="Default Histogram")
+		hist(x, col = 5, density = 20, main = "Density = 20")
+		hist(x, freq=FALSE, col = 6, main="Relative Frequency")
+		hist(x, freq=FALSE, col = "pink", main = "Curve Overlay")
+		lines(density(x), col = "blue", lwd = 3)
+```
+
+A histogram displays the classes of the quantitative data on a horizontal axis and the frequencies (relative frequencies, percents) of those classes on a vertical axis. The frequency (relative frequency, percent) of each class is represented by a vertical bar whose height is equal to the frequency (relative frequency, percent) of that class. The bars should be positioned so that they touch each other.
+
+To construct a histogram:
+
+- **Step 1** Obtain a frequency (relative-frequency, percent) distribution of the data.
+
+- **Step 2** Draw a horizontal axis on which to place the bars and a vertical axis on which to display the frequencies (relative frequencies, percents).
+
+- **Step 3** For each class, construct a vertical bar whose height equals the frequency (relative frequency, percent) of that class.
+
+- **Step 4** Label the bars with the classes, as explained in Definition 2.9, the horizontal axis with the name of the variable, and the vertical axis with “Frequency” (“Relative frequency,” “Percent”).
+
+```{r}
+hist(x, xlab="Number of TVs at Household", main="Histogram of Number of TVs at Household", col="maroon")
+```
+```{r}
+hist(x, xlab="Number of TVs at Household", main="Histogram of Number of TVs at Household", freq=FALSE, ylab="Relative Frequency", col="turquoise")
+```
+
+### Dotplots
+
+A dotplot is a graph in which each observation is plotted as a dot at an appropriate place above a horizontal axis. Observations having equal values are stacked vertically.
+
+- **Step 1** Draw a horizontal axis that displays the possible values of the quantitative data.
+- **Step 2** Record each observation by placing a dot over the appropriate value on the horizontal axis.
+- **Step 3** Label the horizontal axis with the name of the variable.
+
+
+```{r}
+dotchart(x, col="turquoise", xlab="Number of TVs at Household", 
+         main="Dot Chart of Number of TVs at Household",)
+```
+
+### Stem-leaf diagrams
+
+In a stem-and-leaf diagram (or stemplot), each observation Is separated into two parts, namely, a stem-consisting of all but the rightmost digit- and a leaf, the rightmost digit. 
+
+To Construct a stem-and-leaf diagram 
+
+- **Step 1** Think of each observation as a stem-consisting of all but the rightmost digit-and a leaf, the rightmost digit.
+- **Step 2** Write the stems from smallest to largest in a vertical column to the left of a vertical rule.
+- **Step 3** Write each leaf to the right of the vertical rule in the row that contains the appropriate stem.
+- **Step 4** Arrange the leaves in each row in  ascending order.
+
+```{r}
+x = c(54, 43, 67, 76, 45, 59, 66, 66, 68, 78, 80, 92)
+
+stem(x)
+```
+
+## Summary
+
+In this chapter, we covered the methods for organizing data including
+
+*   **Variables and Data**: Different types of variables and data
+*   **Organizing Qualitative Data**: How to organize qualitative data
+*   **Organizing Quantitative Data**: How to organize quantitative data
+
+

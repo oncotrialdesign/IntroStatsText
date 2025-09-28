@@ -1,0 +1,790 @@
+
+# Descriptive Statistics
+
+```{r}
+library(IntroStats)
+```
+
+**Descriptive Statistics** consists of methods for organizing and summarizing information. Such as graphs, charts, tables and various descriptive measures: average, variation, percentiles.
+
+## Measures of Central Tendency
+
+Descriptive statistics help us summarize and describe the main features of a data set. One of the most important types is the **measure of central tendency**, which describes where the center of the data lies. The most commonly used measures include:
+
+- **Mean**: The arithmetic average of all values. It is sensitive to extreme values (outliers).
+- **Median**: The middle value when the data are sorted in ascending order. It is more robust to outliers.
+- **Mode**: The value that appears most frequently in a data set. It is useful for categorical data.
+
+### Population mean $\mu$ and sample mean $\bar{x}$
+
+The population mean is usually denoted as $\mu$, which is estimated by a sample mean.  
+    
+For a random variable $X$, its mean is also called its expectation 
+$$\mu = E[X] = \int_{-\infty}^{\infty} xf(x)dx$$, 
+where $f(x)$ is the density function of $X$. For any density function,
+
+$$
+\int_{-\infty}^\infty f(x) = 1
+$$
+
+In general, the expectation of $g(X)$ for any function form $g(\cdot)$ is $$E[g(X)] = \int_{-\infty}^{\infty} g(x)f(x)dx$$. For example, the second moment is the expectation of $X^2$, i.e., $$E[X^2] = \int_{-\infty}^{\infty} x^2f(x)dx$$.
+    
+The sample mean is denoted as $\bar{x}$, which is calculated based on a sample data as 
+$$\bar{x} = \frac{\sum_{i=1}^n x_i}{n}$$.  	
+
+#### Example 
+
+Consider a population with a mean of 12 and sd of 2. Draw a sample of size 10 from the population below.
+
+```{r}
+      ########################
+    	#Sample mean
+    	########################
+    	set.seed(2023) #set a fixed seed for random number generator
+
+    	x <- rnorm(10, mean=12, sd=2) #draw 10 random numbers from normal distribution
+    	x
+```
+Then, the sample mean 11.30998 is the average of the 10 data points.
+
+```{r}
+mean(x) #sample mean of x
+```
+
+### Population Mean for a finite population
+
+For a variable $x$, the mean of all possible observations for the entire population is called the population mean, denoted as $\mu_x$ or simply $\mu$ if no confusion.
+
+If a population is finite, then the population mean is
+$$
+\mu = \frac{\sum x_i}{N}
+$$
+where $N$ is the population size.
+
+**Note:** For a population, there is ONLY 1 population mean. However, when we draw multiple samples from the population, there are multiple **sample means**. Recall, a sample mean is $$\bar{x} = \frac{\sum x_i}{n}$$
+
+
+#### Example. 
+
+One golf course has 18 holes and the length of each hole (yd) is listed below.
+
+![Figure 16. Golf Holes](https://i.ibb.co/6Yj8g3r/141-Table-03-17.png)
+What is the population mean for the length of holes?
+
+**Solution.** The population is finite, so the population mean is calculated as
+$$
+\mu =  \frac{\sum x_i}{N} = \frac{445+575+\cdots+465}{18}=413.1
+$$
+```{r}
+golf = c(445, 575, 350, 240, 455, 180, 450, 570, 460, 495, 505, 155, 510, 440, 530, 170, 440, 465)
+
+#calcuate population mean
+
+#Population size
+N <- length(golf)
+N
+
+sum(golf)/N
+
+#Use R function
+mean(golf)
+```
+
+#### Example. Use of a sample mean
+
+U.S. census bureau reports the mean income of U.S. households. Only 57,000 households were sampled from a total of more than 100 million.
+
+-**Variable:** income
+-**Population:** All U.S. households
+-**Population data:** incomes of all U.S. households
+-**Population mean:** mean income $\mu$ of all U.S. households
+-**Sample:** 57,000 U.S. households sampled by the census bureau
+-**Sample data:** incomes of the 57,000 U.S. households sampled
+-**Sample mean:** mean income $\bar{x}$ of the 57,000 U.S. households sampled
+
+The figure below illustrates the population vs sample.
+
+![Population and sample](https://i.ibb.co/9TtXymk/141-Figure-03-17.png)
+
+### Population median and sample median
+
+Median can be referring to a population or a sample. If $m$ is the population median for a variable $X$, this means that $Pr(X \le m) \ge 0.5$ and $Pr(X \ge m) \ge 0.5$. If $X$ is a continuous variable with a density function $f(x)$, then 
+	$$ \int_{-\infty}^{m} f(x)dx =  \int_m^{\infty} f(x)dx = \frac{1}{2}$$
+	
+For sample median, first order the sample increasingly, and denoted as $x_{(1)}<x_{(2)<\cdots<x_{(n)}}$, then the sample median is $m = x_{(n+1)/2}$ if $n$ is odd; and $m = (x_{(n/2)}+x_{(n/2+1)})/2$.
+	
+Compared to the mean, median is not drastically affected by extreme values. It is commonly used in medical research. 
+	
+```{r}
+      ########################
+    	#Sample median
+    	########################
+    	
+    	median(x) #sample median of x
+```
+#### Example
+
+For the above example, the population median is 12, and the sample median is 11.13261.
+
+### Population mode and sample mode
+
+The mode can be referring to a population distribution or a sample. For population, the mode is the point with the maximum density, i.e., $mode = \arg_{x} \max(f(x))$. For a sample, mode is the most frequent value. In the class age example above, the mode age is 23 because its frequency is the largest compared to any other age values.
+	
+```{r}
+      ########################
+      ##Sample mode
+    	########################
+    	
+    	IntroStats::getmode(x) #sample mode of x
+```	
+#### Example
+
+For the above example, the population mode is 12, and there is no sample mode, because there is no data point occurred more than once in the sample.
+
+### Sample mean, sample median, and sample mode
+
+In reality, the population mean, median, and mode are commonly not known. We draw a random sample, then calculate the sample mean, median and mode to estimate the population  mean, population median, and population mode. The following examples show the calculation of sample mean, sample median and sample mode.
+
+### Relative positions of the mean and median
+
+Relative positions of the mean and median for (a) right-skewed, (b) symmetric, and (c) left-skewed distributions.
+
+![Figure 1. Relative positions of the mean and median](https://i.ibb.co/xLv8vrh/mean-median.png)
+
+For a right-skewed distribution, the mean is toward the right because it is driven by the large numbers on the right. So mean is greater than median. Conversely, mean is less than median if the distribution is left skewed.
+
+#### Example. Which measure is appropriate?
+
+
+Example (a). A student takes 4 exams in a biology class and scored: 88, 75, 95, 100. Which measure of center is appropriate?
+
+Example (b). National Association of REALTORS publishes data on resale prices of U.S. homes. Which measure of center is appropriate?
+
+Example (c). The 2014 Boston Marathon had 2 categories of finishers: male and female. There are 19,579 and 16,092 respectively. Which measure of center should be used?
+
+### Three-sd Rule
+
+![Sample standard deviation](https://i.ibb.co/LhNpp65/107-Figure-03-04.png)
+
+Almost all the observations in any data set lie within three standard deviations to either side of the mean.
+
+
+#### Example
+
+![Example](https://i.ibb.co/K5zfb6S/111-Table-03-10.png)
+
+Means and standard deviations
+
+![Example](https://i.ibb.co/b1wXBXN/111-Table-03-11.png)
+![Example. Data Set I. ](https://i.ibb.co/pbwyZsH/111-Figure-03-05.png)
+
+![Example. Data Set II. ](https://i.ibb.co/N9qjcPx/111-Figure-03-06.png)
+
+
+### Chebyshev's Rule 
+
+For any quantitative data set and any real number $k$ greater than or equal to 1, at least
+$1 - 1/k^2$ of the observations lie within $k$ standard deviations to
+either side of the mean, that is, between $\bar{x} -ks$ and $\bar{x} + ks$.
+
+- **k=2**: At least 75\% observations lie within 2 standard deviations.
+- **k=3**: At least 89\% observations lie within 3 standard deviations.
+
+![Figure 8. Chebyshev's Rule with $k=2, 3$](https://i.ibb.co/Zx5P2rM/117-Figure-03-07.png)
+
+### Empirical Rule
+
+
+For any quantitative data set with roughly a bell-shaped distribution, the following properties hold.
+
+- **Property 1**: Approximately 68% of the observations lie within one standard
+deviation to either side of the mean.
+- **Property 2**: Approximately 95% of the observations lie within two standard
+deviations to either side of the mean.
+- **Property 3**: Approximately 99.7% of the observations lie within three standard
+deviations to either side of the mean.
+
+![Figure 9. Empirical Rule with $k=2, 3$](https://i.ibb.co/hMWVFjg/119-Figure-03-09.png)
+
+
+
+
+#### Example: Patients' Heart Rate
+
+We are studying the heart rates of 10 patients. We want to understand what a "typical" heart rate is.
+
+```{r}
+heart_rate <- c(72, 80, 75, 70, 68, 90, 88, 76, 74, 70)
+mean(heart_rate)   # average heart rate
+median(heart_rate) # median heart rate
+IntroStats::getmode(heart_rate)
+```
+
+> Interpretation: The mean and median are close, which suggests a potential symmetric distribution. If there were outliers (e.g., one patient had a heart rate of 200), the median would be more reliable.
+
+#### Example: Length of Hospital Stay (days)
+
+```{r}
+stay_days <- c(3, 5, 4, 6, 3, 2, 8, 4, 4, 3)
+mean(stay_days)
+median(stay_days)
+IntroStats::getmode(stay_days)
+```
+
+> These measures help us understand typical patient recovery times.
+
+
+## Measures of Spread
+
+While central tendency tells us where the data center is, **measures of spread** describe how dispersed or variable the data are. These help researchers assess how consistent or variable their data are.
+
+Key measures include:
+- **Range**: The difference between the maximum and minimum values.
+- **Variance**: The average of the squared deviations from the mean. It is in squared units.
+- **Standard Deviation (SD)**: The square root of the variance. It is in the same units as the data and is more interpretable.
+
+
+### Range
+
+Range is the distance between the largest and smallest value in a sample. $R = x_{max} - x_{min}$. Range is very easy to calculate but it is a poor measure of dispersion. It fails to offer any insights into the data points situated between the minimum and maximum values. 
+	
+```{r}
+      ########################
+    	#Range
+    	########################
+    	y = range(x) 
+      y
+      y[2] - y[1]
+```	
+### Variance and Standard Deviation
+
+Sample variance ($s^2$) is a measure of average dispersion from the sample mean. The notation has $^2$ because it is sample standard deviation ($s$) squared. Sample standard deviation ($s$) has the same unit as the original data. 
+	$$s^2 = \frac{1}{n-1}\sum_{i=1}^n (x_i-\bar{x})^2$$
+
+$$
+s = \sqrt{\frac{1}{n-1} \sum (x_i - \bar{x})^2}.
+$$
+
+For a known population distribution, the variance is denoted as $\sigma^2$, calculated as
+	$$
+	\sigma^2 = E[(X-\mu)^2] = \int_{-\infty}^{\infty} (x-\mu)^2 f(x) dx
+	$$
+where $f(x)$ is the density function. You are not required to perform the calculation in this course.
+	
+```{r}
+    ########################
+		#Sample variance and sd
+		########################
+    var(x) #variance
+    sd(x)  #sd
+    sd(x)^2 #sd^2 = var
+```
+
+### Example: Systolic Blood Pressure
+
+```{r}
+sbp <- c(120, 124, 118, 130, 110, 128, 126, 115, 132, 125)
+range_sbp <- max(sbp) - min(sbp)
+var_sbp <- var(sbp)
+sd_sbp <- sd(sbp)
+range_sbp
+var_sbp
+sd_sbp
+```
+
+> Interpretation: The sd tells us how much the blood pressures vary from the mean. The interval of mean $\pm 2*sd$ includes about 95% data.
+
+### Example: Serum Glucose Levels (mg/dL)
+
+```{r}
+glucose <- c(90, 85, 88, 110, 95, 102, 87, 89, 100, 93)
+sd(glucose)
+```
+
+> This shows the variation in blood glucose among patients.
+
+### Population standard deviation for a finite population
+
+Recall, the sample standard deviation $s$ is
+$$
+s = \sqrt{\frac{\sum (x_i-\bar{x})^2}{n-1}}
+$$
+For a variable $x$, the standard deviation of all possible observations for the entire population is called the **population standard deviation** or standard deviation of the variable $x$. It is denoted as $\sigma_x$, or when no confusion will arise, simply $\sigma$. 
+For a finite population, the defining formula is 
+$$
+\sigma = \sqrt{\frac{\sum (x_i-\mu)^2}{N}}
+$$
+where $N$ is the population size. The **population variance** is
+$$
+\sigma^2 = \frac{\sum (x_i-\mu)^2}{N}
+$$
+
+
+#### Example. 
+
+For the golf problem, calculate the population variance $\sigma^2$ and population standard deviation $\sigma$ for the golf example.
+
+```{r}
+IntroStats::pop.var(golf)
+IntroStats::pop.sd(golf)
+```
+Compare to sample variance and sample sd.
+
+```{r}
+var(golf)
+sd(golf)
+```
+
+## Percentiles and Quartiles
+
+### Sample Percentiles
+
+Given a sample $x_1, \cdots, x_n$, the $p$th percentile, also called quantile, $P$ is the value such that $p\%$ or less of the observations are less than $P$ and $(100-p)\%$ of less of the observations are greater than $P$. Three special percentiles are quartiles $Q_1, Q_2, Q_3$ and calculated as $Q_1 = \frac{n+1}{4}$th ordered observation, $Q_2 = \frac{n+1}{2}$th ordered observation,  $Q_3 = \frac{3(n+1)}{4}$th ordered observation.
+
+-**Step 1**: Arrange the data in increasing order. 
+-**Step 2**: Find the median of the entire data set. This value is the second quartile $Q_2$.
+-**Step 3**: Divide the ordered data set into two halves, a bottom half and a top half; if the number of observations is odd, include the median in both halves.
+-**Step 4**: Find the median of the bottom half of the data set. This value is first quartile $Q_1$.
+-**Step 5**: Find the median of the top half of the data set. This value is the 3rd quartile $Q_3$.
+-**Step 6**: Summarize the results.
+
+
+#### Example
+
+A sample of 20 people reported their TV viewing hours in a week: 5, 15, 16, 20, 21, 25, 26, 27, 30, 30, 31, 32, 32, 34, 35, 38, 38, 41, 43, 66. Determine and interpret the quartile for these data.
+
+
+```{r}
+x = c(5, 15, 16, 20, 21, 25, 26, 27, 30, 30, 31, 32, 32, 34, 35, 38, 38, 41, 43, 66)
+```
+Step 1. Order data
+
+```{r}
+sorted.x <- sort(x)
+sorted.x
+```
+
+Step 2. Find the median, i.e., Q2
+
+Since there are 20 (an even number) observations in the data, the median is the average of 2 middle observations. 
+$$
+Q_2 = \frac{30+31}{2}=30.5
+$$
+
+```{r}
+sorted.x[10]
+sorted.x[11]
+(sorted.x[10]+sorted.x[11])/2 
+```
+
+Step 3. Divide the ordered data into two halves. If the sample size is odd, include the median in both halves.
+
+Bottom half is: 5, 15, 16, 20, 21, 25, 26, 27, 30, 30; top half is: 31, 32, 32, 34, 35, 38, 38, 41, 43, 66.
+
+```{r}
+#Bottom half
+Bottom.half <- sorted.x[1:10]
+Bottom.half
+
+#Top half
+Top.half <- sorted.x[11:20]
+Top.half
+
+```
+
+Step 4. Find the median of bottom half. Since there are 10 numbers, its median is the average of 5th and 6th numbers.
+
+$$
+Q_1 = \frac{21+25}{2}=23
+$$
+```{r}
+#the median of the bottom half
+Q1 <- (Bottom.half[5]+Bottom.half[6])/2
+Q1
+```
+
+Step 5. Find the median of top half, which is $Q_3$. Since there are 10 numbers, its median is the average of 5th and 6th numbers.
+
+$$
+Q_3 = \frac{35+38}{2}=36.5
+$$
+```{r}
+#the median of the bottom half
+Q3 <- (Top.half[5]+Top.half[6])/2
+Q3
+```
+
+Step 6. Summarize the results.
+
+In summary, the three quartiles for the TV-viewing times are $Q_1 = 23$ hours, $Q_2 = 30.5$ hours, $Q_3=36.5$ hours. This means that 25\% TV-viewing times are less than 23 hours, 25\% are between 23 and 30.5 hours, 25\% are between 20.5 hours and 36.5 hours,and 25 \% are greater than 36.5 hours.
+
+```{r}
+#Use R functions
+quantile(x, probs=c(0.25, 0.5, 0.75), type=5)  
+
+```
+
+### Population Percentiles
+
+For a known population distribution, the $p$th percentile $x_p$ is calculated as
+	$$
+    \int_{-\infty}^{x_p} f(x) dx = p 
+	$$
+Equivalent, $P(X < x_p) = p$ and $x_p = F^{-1}(p)$, where $F^{-1}(x)$ is the inverse cumulative distribution function. In this course, you are not required to calculate population percentiles.
+
+In R, use the existing function below.
+
+```{r}
+		########################
+		#Sample Percentile and quartiles
+		########################
+		#Percentile and quartiles
+		set.seed(2023)
+
+    x <- rnorm(10)
+    x
+		quantile(x)
+		
+		#10% and 20% quantiles of a sample drawn from a standard normal distribution
+		quantile(x, probs = c(0.1, 0.2)) 
+```		
+
+## Interquartile Range (IQR)
+
+IQR is defined as the difference between $Q_3$ and $Q_1$. Since quartiles indicate distribution of data, the IQR can reply the dispersion of the data distribution. A large IQR indicates a large variability in the middle 50\% data. 
+
+```{r}
+		########################
+		#Sample IQR
+		########################
+		
+		IQR(x)
+```
+The IQR is especially useful when dealing with skewed distributions or outliers.
+
+```{r}
+iqr_sbp <- IQR(sbp)
+iqr_sbp
+```
+> Interpretation: The difference between Q1 and Q3 is 9.
+
+## Bar plot
+
+Bar plot is commonly used to visualize values of a categorical variable in science journals. It is also used to provide comparison between two or more groups by each value of the categorical variable. It is not suitable to display values of a continuous variable, eg, CD4 blood counts. In this section, we incorporate programming codes that generate various standard bar plots.
+	
+The survival status of each class in Titanic is shown below. 
+```{r}
+    ########################
+		#11. Bar Plot
+		########################
+		#install.packages("knitr") #install if not yet
+		class1 <- c(122, 203) #deaths, survivals
+		class2 <- c(167, 118) #deaths, survivals
+		class3 <- c(528, 178) #deaths, survivals
+		crew <- c(673, 212) #deaths, survivals
+		
+		classSurv <- cbind(class1, class2, class3, crew)
+		classSurv
+		par(mfrow=c(1,1))  
+		people <- cbind(sum(class1), sum(class2), sum(class3), sum(crew))  
+		barplot(people, main = "People by Class",
+		col= 3,
+		names.arg=c("Class 1","Class 2","Class 3","Crew"))
+		
+		barplot(classSurv, main = "Survival by Class",
+		col = c("red","green"),
+		names.arg=c("Class 1","Class 2","Class 3","Crew"))
+		legend("topleft", c("Not survived","Survived"),
+		fill = c("red","green"), bty="n", cex=0.8)
+		
+		barplot(people, main = "People by Class",
+		col= 3,horiz = TRUE,
+		names.arg=c("Class 1","Class 2","Class 3","Crew"))
+		barplot(classSurv, main = "Survival by Class",
+		col = c("red","green"),horiz = TRUE,
+		names.arg=c("Class 1","Class 2","Class 3","Crew"))
+		legend("bottomright", c("Not survived","Survived"),
+		fill = c("red","green"), bty="n", cex=0.8)
+		barplot(classSurv, main = "Survival by Class",
+		col = c("red","green"), beside=TRUE)
+		legend("topleft", c("Not survived","Survived"),
+		fill = c("red","green"), bty="n")
+		barplot(classSurv, main = "Survival by Class",
+		col = c("red","green"), beside=TRUE, horiz=TRUE)
+		legend("bottomright", c("Not survived","Survived"),
+		fill = c("red","green"), bty="n")
+```
+
+## Boxplot
+
+Boxplots are graphical summaries that show:
+- The median (middle line)
+- The IQR (box) with the lower and upper box edges indicate the Q1 and Q3 respectively. 50\% data are included in the box.
+- Possible outliers (points outside the whiskers). 
+
+*R’s boxplot uses Tukey’s 1.5 × IQR rule** for whiskers and outliers, with quartiles defined by **Hyndman-Fan type 7 quantile definition**.
+
+**Whiskers (Fences)**
+
+By default, R defines the whiskers as the **most extreme values within 1.5 × IQR** of the quartiles:
+
+* **Lower Whisker:**
+
+  $$
+  LW = \min\{x \in X : x \geq Q_1 - 1.5 \times IQR\}
+  $$
+* **Upper Whisker:**
+
+  $$
+  UW = \max\{x \in X : x \leq Q_3 + 1.5 \times IQR\}
+  $$
+**Outliers**
+
+Any observations **outside the whiskers** are plotted as **outliers**:
+
+* **Lower Outliers:**
+
+  $$
+  x < Q_1 - 1.5 \times IQR
+  $$
+* **Upper Outliers:**
+
+  $$
+  x > Q_3 + 1.5 \times IQR
+  $$
+
+**Box Boundaries**
+
+* **Lower Bound of the Box:** $Q_1$
+* **Upper Bound of the Box:** $Q_3$
+* **Middle Line (inside the box):** $Q_2$ (Median)
+
+![Boxplot interpretation](https://i.ibb.co/7dpdYrDg/boxplot.png) 
+
+### Example in R
+
+```{r}
+boxplot.stats(sbp)
+```
+
+This will return:
+
+* `$stats`: Q1, Median, Q3, and whisker bounds
+* `$n`: sample size
+* `$conf`: confidence interval around the median (for notch plots)
+* `$out`: the outliers
+
+
+```{r}
+boxplot(sbp, main = "Boxplot of Systolic BP",
+        ylab = "Systolic BP (mmHg)", col = "lightgreen")
+```
+
+
+
+### Example: Cholesterol Levels
+
+```{r}
+cholesterol <- c(190, 185, 210, 220, 175, 205, 198, 230, 215, 200)
+boxplot(cholesterol, main = "Boxplot of Cholesterol",
+        ylab = "mg/dL", col = "lightblue")
+```
+
+
+### Definition: Five-number summary
+
+The five-number summary of a data set is Min, Q1, Q2, Q3, Max.
+
+```{r}
+#Use R function for 5-number summary directly
+summary(x, quantile.type=5)
+```
+
+The `summary()` function gives a convenient overview of descriptive statistics in R. This is helpful for quickly getting a snapshot of your data.
+
+```{r}
+summary(sbp)
+```
+
+It includes:
+- Minimum and Maximum
+- 1st Quartile (Q1)
+- Median (Q2)
+- 3rd Quartile (Q3)
+- Mean
+
+### Example: Serum Cholesterol
+
+Suppose we collect serum cholesterol levels (mg/dL) from a sample of patients in a cardiovascular study:
+
+```{r}
+cholesterol <- c(190, 185, 210, 220, 175, 205, 198, 230, 215, 200)
+summary(cholesterol)
+
+sd(cholesterol)
+
+boxplot(cholesterol, main = "Serum Cholesterol Levels",
+        ylab = "Cholesterol (mg/dL)", col = "lightblue")
+
+```
+
+> Interpretation: The mean gives the average cholesterol level, while the SD and boxplot tell us how variable it is. This helps identify whether patients are within a healthy range or at cardiovascular risk.
+
+### Example: Body Temperature by Sex
+
+```{r}
+temp <- c(97.6, 98.7, 97.2, 98.0, 97.9, 99.4, 98.8, 99.1, 99.5, 99.3)
+sex <- c(rep("Male", 5), rep("Female", 5))
+
+data.temp <- data.frame(temp, sex)
+data.temp
+
+#summary for all
+summary(temp)
+
+#summary for male only
+summary(temp[sex=="Male"])
+
+#summary for female only
+summary(temp[sex=="Female"])
+
+#boxplot for all together
+boxplot(temp, main = "Body Temperature",
+        ylab = "Fahrenheit", col = "pink")
+
+#boxplot by sex separately
+boxplot(temp ~ sex, main = "Body Temperature",
+        ylab = "Fahrenheit", col = c("pink", "turquoise"))
+
+```
+```{r}
+	########################
+		#Box Plot
+		########################
+		set.seed(2023)
+		height_f <- rnorm(100, mean=5.2, sd=0.3)
+		height_m <- rnorm(100, mean=5.8, sd=0.5)
+		height <- c(height_f, height_m)
+		group <- c(rep(1, 100),rep(2, 100))
+		
+		data.ht <- as.data.frame(cbind(height, group))
+		data.ht[1:5,]
+		
+		par(mfrow=c(1,2))
+		
+		#boxplot for all
+		boxplot(data.ht$height, col="green", ylab="Height", names = "All")
+		
+		#boxplot for all - horizontal
+		boxplot(data.ht$height, col="green", ylab="Height", names = "All", 
+		horizontal = TRUE)
+		
+		#boxplot by group
+		boxplot(data.ht$height[group==1], data.ht$height[group==2],  
+		ylab="Height", names = c("Female", "Male"), col=c("purple", "skyblue"))
+		
+		boxplot(data.ht$height ~ data.ht$group,  
+		ylab="Height", names = c("Female", "Male"), col=c("purple", "skyblue"))
+		
+		#boxplot by group - horizontal
+		boxplot(data.ht$height[group==1], data.ht$height[group==2], 
+		col=c("purple", "skyblue"),
+		ylab="Height", names = c("Female", "Male"), horizontal = TRUE)
+```
+
+
+### Skewness
+
+![Boxplot and skewness](https://i.ibb.co/F6zDD5b/133-Figure-03-16.png)
+
+
+
+
+### Definition: Parameter and Statistic
+
+-   **Parameter**: A descriptive measure for a population.
+-   **Statistic**: A descriptive measure for a sample.
+
+## Standardized variable
+
+For a variable $x$, the variable 
+$$
+z = \frac{x-\mu}{\sigma}
+$$
+is called the standardized version of $x$ or the standardized variable corresponding to the variable $x$. 
+
+### z-Score
+
+For an observed value of a variable $x$, the corresponding value of the standardized variable z is called the z-score of the observation. The term standard score is often used instead of z-score.
+
+### Properties of a standardized variable
+
+A standardized variable always has mean 0 and standard deviation 1.
+
+A negative value indicates below the mean and positive $z$ indicates greater than the mean.
+
+### Example
+
+Consider a variable $x$ has the observations in a finite population: 
+$$-1, 3, 3, 3, 5, 5$$
+(1) Determine the standardized version of $x$. (2) Find the observed value of $z$ corresponding to an observed value of $x$ of 5.
+(3) Calculate all possible values of $z$
+(4) Find the mean and standard deviation of $z$
+(5) Show dotplots of both $x$ and $z$. Interpret the results.
+
+
+**Solution.** 
+
+(a). We calculate the population mean and standard deviation as
+$\mu = 3$ and $\sigma=2$. The standardized version of $x$ is
+$$
+z = \frac{x-3}{2}
+$$
+
+(b) When $x=5$, the standardized value of $z$ is 
+$$
+z = \frac{x-3}{2} = \frac{5-3}{2} = 1
+$$
+
+```{r}
+x <- c(-1, 3, 3, 3, 5, 5)
+#Use R function to calculate z score
+IntroStats::z.score(x)
+```
+![Population and sample](https://i.ibb.co/3ygn3wx/145-Figure-03-19.png)
+
+After standardization, the distribution has a shift, so the new sd is 0.
+
+
+```{r}
+#If we now the population mean and standard deviation
+IntroStats::z.score(x, mu=3.2, sigma=2)
+```
+
+## Histogram
+
+Histogram is to display the distribution of a sample with relative chance of occurrence. A peak point indicates a value the occurs the most frequently. It is often superimposed with a probability density curve, which indicates the same meaning.
+
+```{r}
+      ########################
+    	#Histgram
+    	########################
+    	x = rnorm(100)
+    	hist(x) 
+    	
+    hist(x, col = 5, main="Default Histogram")
+		hist(x, col = 5, density = 20, main = "Density = 20")
+		hist(x, freq=FALSE, col = 6, main="Relative Frequency")
+		hist(x, freq=FALSE, col = "pink", main = "Curve Overlay")
+		lines(density(x), col = "blue", lwd = 3)
+```
+
+
+## Summary
+
+In this chapter, we covered key descriptive statistics including
+
+*   **Measures of central tendency**: mean, median, mode
+*   **Measures of spread**: range, variance, standard deviation, IQR
+*   **Boxplot**: Visualizing the data and detecting outliers
+

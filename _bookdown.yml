@@ -1,0 +1,37 @@
+book_filename: "StatsTB" # Output file name, NOT an Rmd source file
+delete_merged_file: true
+rmd_files: [
+  "index.Rmd",
+  "Chapter_1.Rmd",
+  "Chapter_2.Rmd",
+  "Chapter_3.Rmd",
+  "Chapter_4.Rmd",
+  "Chapter_5.Rmd",
+  "Chapter_6.Rmd",
+  "Chapter_6a.Rmd",
+  "Chapter_7.Rmd",
+  "Chapter_7a.Rmd",
+  "Chapter_8.Rmd",
+  "Chapter_9.Rmd",
+  "Chapter_10.Rmd",
+  "Chapter_11.Rmd",
+  "Chapter_12.Rmd",
+  "Chapter_13.Rmd",
+  "Chapter_14.Rmd",
+  "Chapter_15.Rmd",
+  "Chapter_16.Rmd",
+  "Chapter_17.Rmd",
+  "Chapter_18.Rmd",
+  "Chapter_19.Rmd",
+  "Chapter_20.Rmd",
+  "Chapter_21.Rmd", 
+  "Chapter_22.Rmd", 
+  "Chapter_23.Rmd", 
+  "Chapter_24.Rmd", 
+  "Chapter_25.Rmd",
+  "Chapter_26.Rmd"
+  ]
+language:
+  ui:
+    chapter_name: "Chapter "
+split_by: "chapter" # This line was added to fix the error.

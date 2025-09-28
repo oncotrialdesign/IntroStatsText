@@ -1,0 +1,318 @@
+
+# Multiple Linear Regression
+
+```{r}
+library(IntroStats)
+```
+
+
+## Multiple Linear Regression Model
+
+### Model specification and assumptions
+
+#### Model specification
+
+For subject $j$, 
+$$
+y_j =  \beta_0 + \beta_1 x_{1j} + \beta_2 x_{2j} + \cdots + \beta_k x_{kj} + \epsilon_j
+$$
+
+#### Model assumptions
+
+-   For each set of $x_j$, there is a subpopulation of $Y$ values, The
+    subpopulations must be normally distributed.
+-   The variances of the subpopulations of $Y$ are all equal and denoted
+    by $\sigma^2$.
+-   The means of the subpopulations of $Y$ all lie on the same straight
+    line. This is known as the assumption of linearity, i.e., $$
+    \mu_{y|x_j} = \beta_0+\beta_1 x_{1j} + \beta_2 x_{2j} + \cdots + \beta_k x_{kj}
+    $$
+-   The $Y$ values are statistically independent. This means that, in
+    drawing the sample, it is assumed that the values of $Y$ chosen at
+    one value of $X$ in no way depend on the values of $Y$ chosen at
+    another value of $X$.
+
+#### Coefficient Estimation via Least Squares
+
+This section shows how to derive $\hat{\beta}$ using the least squares
+criterion.
+
+The estimates of coefficients $\beta_0, \cdots, \beta_k$ can be obtained
+by least squares approach minimizing the sum square of error.
+
+$$
+\sum \epsilon_j^2 = \sum (y_j - \beta_0 - \beta_1 x_{1j} - \cdots - \beta_k x_{kj})^2
+$$
+
+The solution to the coefficients is:
+
+$$
+\hat{\beta} = (X^\prime X)^{-1}X^\prime y
+$$
+
+where $X$ is the covariate matrix, organized as the collection of
+covariates.
+
+$$
+X = 
+\left(\begin{array}{ccccc} 
+1 & x_{11} & x_{21} & \cdots & x_{k1}\\
+1 & x_{12} & x_{22} & \cdots & x_{k2}\\
+\cdots & \cdots & \cdots & \cdots & \cdots\\
+1 & x_{1n} & x_{2n} & \cdots & x_{kn}\\
+\end{array}\right)
+$$
+
+The $j$th row in the covariate matrix represents subject $j$'s covariate
+data.
+
+For the special case when $k=1$, then $\hat{beta}$ reduces to the SLR.
+
+
+### Exploratory Data Analysis (EDA) visualization
+
+#### Example
+
+Researchers would like to use age and education level to predict the
+capacity of direct attention (CDA) in elderly subjects. CDA refers to
+neural inhibitory mechanisms that focus on the mind on what is
+meaningful while blocking out distractions. The study collected 71 older
+women with normal mental status.
+
+```{r}
+##############################
+#(1) Motivating Example 
+#Age and Education level to predict CDA
+##############################
+
+Age <- c(72,68,65,85,84,90,79,74,69,87,84,79,71,76,
+         73,86,69,66,65,71,80,81,66,76,70,76,67,72,
+         68,102,79,87,71,81,66,81,80,82,65,73,85,83,
+         83,76,77,83,79,69,66,75,77,78,83,85,76,75,70,
+         79,75,94,67,66,75,91,74,90,76,84,79,78,79)
+
+Ed.Level <- c(20,12,13,14,13,15,12,10,12,15,12,12,12,
+             14,14,12,17,11,16,14,18,11,14,17,12,12,
+             12,20,18,12,12,12,14,16,16,16,13,12,13,
+             16,16,17,8,20,12,12,14,12,14,12,16,12,
+             20,10,18,14,16,16,18,8,12,14,18,13,15,
+             15,18,18,17,16,12)
+
+CDA <- c(4.57,-3.04,1.39,-3.55,-2.56,-4.66,-2.70,0.30,
+         -4.46,-6.29,-4.43,0.18,-1.37,3.26,-1.12,-0.77,
+         3.73,-5.92,5.74,2.83,-2.40,-0.29,4.44,3.35,-3.13,
+         -2.14,9.61,7.57,2.21,-2.30,3.17,-1.19,0.99,-2.94,
+         -2.21,-0.75,5.07,-5.86,5.00,0.63,2.62,1.77,-3.79,1.44,
+         -5.77,-5.77,-4.62,-2.03,-2.22,0.80,-0.75,-4.60,
+         2.68,-3.69,4.85,-0.08,0.63,5.92,3.63,-7.07,1.73,
+         6.03,-0.02,-7.65,4.17,-0.68,6.39,-0.08,1.07,5.31,0.30)
+
+dat <- as.data.frame(cbind(CDA, Age, Ed.Level))
+
+#Draw matrix scatter plot
+pairs(dat[,1:3], pch = 19)
+
+#Install the package if not yet
+#install.packages("psych")
+psych::pairs.panels(dat[,1:3], 
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = TRUE # show correlation ellipses
+             )
+
+```
+
+### Fit regression model and interpretation
+
+```{r}
+##############################
+#(2) Regression Line and prediction
+##############################
+		X <- cbind(rep(1, length(Age)), Age, Ed.Level)
+		Y <- matrix(CDA, ncol=1)
+		beta <- solve(t(X)%*%X)%*%t(X)%*%Y
+    
+		beta 
+```
+
+Use R built-in function lm().
+
+```{r}
+		LinearReg <- lm(CDA ~ Age + Ed.Level) #Create the linear regression
+		summary(LinearReg)    #Review the results
+		
+		y_hat <- LinearReg$fitted.values #fitted values y_hat
+```
+
+### Model interpretation and ANOVA
+
+```{r}
+anova(LinearReg)
+```
+
+### Adding interaction term
+
+Use R built-in function lm().
+
+```{r}
+#Create the linear regression
+		LinearReg2 <- lm(CDA ~ Age + Ed.Level + Age:Ed.Level) 
+
+		summary(LinearReg2)    #Review the results
+		
+		y_hat <- LinearReg2$fitted.values #fitted values y_hat
+```
+
+The interaction term is not significant and can be removed. Check the
+ANOVA table with interaction.
+
+```{r}
+anova(LinearReg2)
+```
+
+### Confidence Interval and Prediction Interval
+
+In the context of multiple linear regression, the **confidence
+interval** and **prediction interval** are used to quantify the
+uncertainty in the estimation of a response variable $Y$.
+
+#### Confidence Interval for the Mean Response
+
+A confidence interval provides a range of values that estimate the mean
+response $Y$ for a given set of predictor values.
+
+$$
+\hat{Y} \pm t_{\alpha/2, n-k-1} \sqrt{\frac{\text{MSE}}{n} + (\mathbf{x}_0^\top (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{x}_0)}
+$$
+
+-   $\hat{Y}$: Predicted mean response for the given set of predictors.
+-   $t_{\alpha/2, n-k-1}$: Critical value from the t-distribution with
+    $n - k - 1$ degrees of freedom.
+-   $\text{MSE}$: Mean Squared Error of the regression model.
+    $MSE = SSE / (n-k-1)$.
+-   $n$: Number of observations.
+-   $k$: Number of predictors in the model.
+-   $\mathbf{x}_0$: Vector of the given predictor values (including an
+    intercept term if necessary).
+-   $\mathbf{X}$: Design matrix of the predictors (including an
+    intercept term if necessary).
+
+The term
+$\mathbf{x}_0^\top (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{x}_0$
+accounts for the variability in the prediction of the mean response.
+
+#### Prediction Interval for a New Observation
+
+A prediction interval provides a range within which a future observation
+is likely to fall, for the same set of predictor values.
+
+$$
+\hat{Y} \pm t_{\alpha/2, n-k-1} \sqrt{\text{MSE} \left( 1 + \frac{1}{n} + (\mathbf{x}_0^\top (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{x}_0) \right)}
+$$
+
+-   The key difference from the confidence interval formula is the
+    additional term $1$ inside the square root. This term accounts for
+    the extra variability associated with predicting an individual
+    observation rather than the mean response.
+
+#### Comparison: Confidence vs. Prediction Interval
+
+-   **Confidence Interval**: Estimates the mean response at given
+    predictor values. It is narrower because it does not account for the
+    random error term $\varepsilon$ associated with individual
+    observations.
+
+-   **Prediction Interval**: Estimates a range for a single new
+    observation. It is wider because it accounts for both the
+    uncertainty in the mean response and the random error.
+
+```{r}
+		#Confidence interval
+    cat("Confidence Interval:\n")
+		predict(LinearReg, newdata = list(Age=70, Ed.Level=12), 
+		        interval=c("confidence"), level=0.95)
+		
+		#Prediction interval
+		cat("\nPrediction Interval:\n")
+		predict(LinearReg, newdata = list(Age=70, Ed.Level=12), 
+		        interval=c("prediction"), level=0.95)
+```
+
+### Hypothesis test for coefficients
+
+To test the null hypothesis that $\beta_i$ is equal to some particular
+value, say $\beta_{i0}$, use the t statistic, $$
+t = \frac{\hat{\beta}_i - \beta_{i0}}{se(\hat{\beta}_i)}
+$$ where the degrees of freedom are $n-k-1$ and $se(\hat{\beta}_i)$ is
+standard deviation of $\hat{\beta}_i$. A special case of
+$\beta_{i0} = 0$ is to test whether the $i$th covariate is not
+significant.
+
+```{r}
+##############################
+#(3) Hypothesis test for coefficient
+##############################
+		LinearReg <- lm(CDA ~ Age + Ed.Level) #Create the linear regression
+		summary(LinearReg)    #Review the results
+```
+
+In this example, the t value for Age is -3.379 which falls in the
+rejection region of 5% significance level, so we conclude that Age is
+statistically significant for CDA.
+
+### Confidence interval for coefficient
+
+The Confidence interval for coefficient $\beta_i$ is 
+$$
+\hat{\beta}_i \pm t_{1-\alpha/2, \text{ } df=n-k-1} \cdot se(\hat{\beta}_i)
+$$
+
+```{r}
+##############################
+#(4) Confidence Interval for beta1
+##############################
+se <- summary(LinearReg)$coeff[,2]
+L = beta - qt(0.975, LinearReg$df.resid) * se
+U = beta + qt(0.975, LinearReg$df.resid) * se
+data.frame(L, U)
+
+confint(LinearReg)
+```
+
+### Model Diagnostics
+
+```{r}
+##############################
+	#(5) Diagnostics of linear regression
+  ##############################
+  plot(LinearReg)
+```
+
+### The coefficient of multiple determination $R^2$
+
+In MLR, the regression identify still holds.
+
+$$
+SST = SSR + SSE
+$$
+
+where 
+$$
+SST = \sum (y_j - \bar{y})^2\\
+SSR = \sum (\hat{y}_j - \bar{y})^2\\
+SSE = \sum (y_j - \hat{y}_j)^2
+$$
+
+#### **Definition and interpretation of** $R^2$
+
+The coefficient of multiple determination $R^2$ is
+
+$$
+R^2 = \frac{SSR}{SST}
+$$
+
+-   $R^2 = 1$: The model perfectly explains the data.
+-   $R^2 = 0$: The model explains none of the variability in $Y$.
+-   Typically, the higher the $R^2$, the better the model fits the data.
+

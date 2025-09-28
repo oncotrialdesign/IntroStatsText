@@ -1,0 +1,291 @@
+
+# Inference for Comparing One Population Proportion to a Threshold
+
+```{r}
+library(IntroStats)
+```
+
+## Hypothesis Testing: One Population Proportion $p$
+
+### Example 
+
+Wagenknecht et al. collected data on a sample of 301 Hispanic women living in San Anto-no, Texas. One variable of interest was the percentage of subjects with impaired fasting glucose (IFG). IFG refers to a metabolic stage intermediate between normal glucose homeostasis and diabetes. In the study, 24 women were classified in the IF stage. The article cites population estimates for IF among Hispanic women in Texas as 6.3 percent. 
+	
+**Question**. Is there sufficient evidence to indicate that the population of Hispanic women in San Antonio has a prevalence of IF higher than 6.3 percent?
+	
+### Distribution of One-Sample Proportion
+
+The sample proportion $\hat{p}$ approximately follows a **normal distribution** with:  
+  - Mean: $p$  
+  - Variance: $\frac{p(1-p)}{n}$  
+
+**Standardized Test Statistic**
+
+The test statistic for hypothesis test of one population proportion is
+$$z = \frac{\hat{p}-p}{\sqrt{p(1-p)/n}}$$
+approximately follows $N(0, 1)$ distribution. 
+
+### One-proportion z-test
+
+The hypothesis testing of $H_0: p \le p_0$ can be carried out as follows.
+	
+-   State the null and alternative hypotheses explicitly. $$H_0: p \le p_0$$ and $$H_a: p > p_0$$.
+
+-   Determine the test statistic and its distribution. The test statistic is $$z=\frac{\hat{p}-p}{\sqrt{p(1-p)}/n}$$
+
+-   Determine the rejection region and critical values. The critical value is $z_{1-alpha}$. When $\alpha=0.05$, the rejection region is $Z \ge 1.645$.
+
+-   Calculate the test statistic under $H_0$. We usually use $z_0$ to denote the observed value of the test statistic $z$. Note: $\hat{p}=0.08$. 
+
+$$z_0 = \frac{\hat{p}-p_0}{p_0(1-p_0)/\sqrt{n}} = \frac{0.080-0.063}{\sqrt{0.063(0.937)/301}}= 1.19$$
+-   Calculate the p value. The $P-$value is $1-pnorm(1.19)=0.116 > 0.05$.
+
+-   Make a statistical decision based on the p value or the calculated test statistic. Since $z_0 = 1.19$ does not fall in the rejection region, $H_0$ is not rejected. Equivalently, $p > 0.05$, so $H_0$ is not rejected. 
+
+-   Conclusion: At the 5\% significance level, the data do not provide sufficient evidence to indicate that the population of Hispanic women in San Antonio has a prevalence of IF higher than 6.3 percent.
+	
+The above procedure is implemented below.
+
+```{r}
+one.p.z(phat=24 / 301, n = 301, p0=0.063, tail="right", alpha=0.05, conflev=0.95)
+```
+
+It also works by directly taking sample data.
+
+```{r}
+x <- c(rep(1, 24), rep(0, 301-24))
+one.p.z(x=x, p0=0.063, tail="right", alpha=0.05, conflev=0.95)
+```	
+
+
+![One-Proportion z-Test](https://i.ibb.co/HGLbjt5/Procedure12-2a.png)
+
+
+![One-Proportion z-Test](https://i.ibb.co/Sx7hfKP/Procedure12-2b.png)
+
+
+### Example
+
+**Problem**
+Suppose $n = 1015$, $p_0 = 0.5$, and among 1015 samples, 538 are successes.  
+Perform a hypothesis test to determine whether the population proportion $p$ is greater than 0.5 (majority) at a 5% significance level.
+
+**Solution**
+
+**Step 1: State the Hypotheses**
+- $H_0: p = 0.5$  
+- $H_a: p > 0.5$ (right-tailed test).
+
+**Step 2: Significance Level**
+- $\alpha = 0.05$
+
+**Step 3: Compute the Test Statistic**
+- Formula:  
+  $$z = \frac{\hat{p} - p_0}{\sqrt{\frac{p_0(1-p_0)}{n}}}$$  
+
+- Calculations:  
+  - $\hat{p} = \frac{538}{1015} = 0.5301$  
+  - $z = \frac{0.5301 - 0.5}{\sqrt{\frac{0.5(1-0.5)}{1015}}} = 1.91$
+
+**Step 4: Determine Critical Value**
+- For a right-tailed test, $z_{\alpha} = z_{0.05} = 1.645$.  
+- **P-Value**:  
+  $P(Z > 1.91) = 0.0281$
+
+**Step 5: Decision**
+- Since the test statistic $z = 1.91$ falls in the rejection region ($z > 1.645$), **reject $H_0$**.  
+- Alternatively, since $P < 0.05$, reject $H_0$ based on the P-value method.
+
+```{r}
+one.p.z(p0=0.5, phat=538/1015, n=1015, tail="right", conflev=0.95, alpha=0.05)
+```
+
+### Equivalent to one-mean z-test
+
+With normal approximation, the one population proportion problem can be turned into a one population mean problem, so the z test can be used. In addition, $\hat{p}$ is the mean of 301 Bernoulli variables, the population standard deviation is the standard deviation of each Bernoulli variable $\sqrt{p(1-p)}$. The following R code implements the testing procedure. Under $H_0$, the population standard deviation is $\sqrt{p_0(1-p_0)}$. 
+
+```{r}
+phat <- 24 / 301
+p0 <- 0.063
+sig <- sqrt(p0*(1-p0))
+
+one.mean.z(xbar=phat, n=301, sigma=sig, mu0=0.063, 
+		tail="right", alpha=0.05)
+```
+This is equivalent to the one-proportion z-test:
+
+```{r}
+one.p.z(phat=24 / 301, n = 301, p0=0.063, tail="right", alpha=0.05, conflev=0.95)
+```
+
+
+
+## Confidence Interval of a Proportion
+
+Confidence Intervals for One Population Proportion
+
+### Definitions: Population Proportion and Sample Proportion
+
+- **Population proportion $p$**:  
+  The proportion of the entire population that has the specified attribute.  
+  Example: The proportion of females among U.S. residents.
+
+- **Sample proportion $\hat{p}$**:  
+  The proportion of a sample from the population that has the specified attribute.  
+  Example: The proportion of females in a random sample of 1000 U.S. residents.
+
+
+### Definitions: Computing Sample Proportion
+
+- $\hat{p}$ is computed as $\hat{p} = \frac{x}{n}$, where:
+  - $x$ is the number of observations in the sample.
+  - $n$ is the sample size.
+
+|                     | Parameter | Statistic |
+|---------------------|-----------|-----------|
+| Means              | $\mu$     | $\bar{x}$ |
+| Proportions        | $p$       | $\hat{p}$ |
+| Standard Deviations | $\sigma$  | $s$       |
+
+
+### The Sampling Distribution of Sample Proportion
+
+- For $\hat{p} = \frac{x}{n}$:
+  - $x$ is the sum of binary Bernoulli variables: $x = \sum x_i$.
+  - $E(x_i) = p$ implies $E(\hat{p}) = E(x)/n = p$.
+  - $\text{Var}(x_i) = p(1-p)$ implies $\text{Var}(\hat{p}) = \frac{p(1-p)}{n}$.
+
+- The standard deviation of $\hat{p}$ is:  
+  $\sigma_{\hat{p}} = \sqrt{\frac{p(1-p)}{n}}$
+
+- For large $n$, $\hat{p}$ is normally distributed:  
+  $\hat{p} \sim N\left(p, \frac{p(1-p)}{n}\right)$.
+
+
+### Example: The Sampling Distribution of Sample Proportion
+
+**Problem**
+
+Suppose that 20% of all U.S. employees play hocky, i.e., $p = 0.2$.  
+Draw random samples of size $n = 100$ and compute the mean and standard deviation for $\hat{p}$.
+
+**Solution**
+
+- Mean: $\mu_{\hat{p}} = p = 0.2$
+- Standard deviation:  
+  $\sigma_{\hat{p}} = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.2(1-0.2)}{100}} = 0.04$
+
+### Example: Simulating the Sampling Distribution of $\hat{p}$
+
+**Steps**
+
+1. **Draw Random Samples**:  
+   Generate random samples of size 100 from a Bernoulli distribution with $p = 0.2$.  
+   `xi = rbinom(100, size = 1, prob = 0.2)`
+
+2. **Calculate Sample Proportion**:  
+   Compute $\hat{p}$.  
+   `x = sum(xi)/100`
+
+3. **Repeat Sampling**:  
+   Repeat Steps 1 and 2 for a large number of times, e.g., 2000 iterations.
+
+4. **Visualize Distribution**:  
+   Plot a histogram of the 2000 $\hat{p}$ values.
+
+5. **Superimpose Normal Curve**:  
+   Overlay the histogram with a normal curve having mean 0.2 and standard deviation $\sqrt{0.2\cdot 0.8/100}$.
+
+```{r}
+N = 2000 #Number of replications in the simulation
+		x = rep(NA, N) #Save each replication here
+		for (j in 1:N){
+  		     #(1) Draw random 1010 Bernoulli samples p=0.191.
+  		  	 xi = rbinom(100, size = 1, prob=0.2)
+  		  	 #(2) Calculate the sample proportion. 
+  		  	 x[j] = sum(xi)/100	
+		} 
+	    #Draw the historgram of 2000 p_hat
+	    hist(x, freq=FALSE)
+	    
+	    #Superimpose the normal curve with mean 0.191 and sd 0.012
+	    lines(seq(-3, 3, by=0.001), dnorm(seq(-3,3,by=0.001), mean=0.2, sd=sqrt(0.2*0.8/100)), lwd=3, col="blue")
+	    legend( "topleft", c("Histogram", "N(0.2, sd=sqrt(0.2*0.8/100))"), cex=0.8, bty="n")
+```	    
+	    
+### The CI and the Margin of Error (Large Samples)
+
+![The CI and the Margin of Error (Large Samples)](https://i.ibb.co/RH3M39Y/Procedure12-1.png)
+
+### The Required $n$ to Achieve the Margin of Error $E$
+
+From the Margin of Error formula, solve for $n$, then the required sample size to achieve the desired margin of error can be determined as 
+
+$$ n = \hat{p}(1-\hat{p})\left(\frac{z_{\alpha/2}}{E}\right)^2.$$
+
+**Question**: Can we calculate $n$ from this formula? What are the issues?
+
+What if we don't know $p$?
+
+![$p(1-p)$](https://i.ibb.co/PhZkpT8/549-Figure-12-01.png)
+
+The largest value of $p(1-p)$ is 0.25 when $p=0.5$. One solution is to pick the largest possible $p(1-p)$, which is 0.5*0.5=\tb{0.25}, which is a conservative planning with the largest $n$.
+
+
+Sometimes it is expensive to obtain a sample, so may consider more reasonable guess-estimate $\hat{p}_g$ for $\hat{p}$.
+![Required sample size](https://i.ibb.co/ZY2pQVG/Formula12-3.png)
+
+### Example: Sample Size for Estimating $p$
+
+**Problem**
+
+Consider estimating the proportion $p$:
+1. (a) Obtain $n$ to ensure a margin of error at most 0.01 for a 95% CI.
+2. (b) Find the 95% CI for $p$ if the estimated proportion of those who play hooky is $\hat{p} = 0.194$.
+3. (c) Calculate the margin of error in (b) and compare it to the specified 0.01 in (a).
+4. (d) Repeat (a)–(c) if the proportion of those who play hooky can reasonably be assumed between 0.1 and 0.3.
+5. (e) Compare the results in (d) with (a)–(c).
+
+#### Solution
+
+**(a) Sample Size to Ensure $E \leq 0.01$**
+
+- Since $\hat{p}(1 - \hat{p}) \leq 0.25$, the sample size can be calculated as:  
+  $$n = 0.25\left(\frac{z_{\alpha/2}}{E}\right)^2 = 0.25\left(\frac{1.96}{0.01}\right)^2 = 9604$$  
+
+**(b) 95% CI for $p$ with $\hat{p} = 0.194$**
+
+- The 95% CI is:  
+  $$(0.194 - 1.96\sqrt{\frac{0.194(1 - 0.194)}{9604}}, 0.194 + 1.96\sqrt{\frac{0.194(1 - 0.194)}{9604}}) = (0.186, 0.202)$$  
+
+**(c) Margin of Error**
+- Margin of error:  
+  $$E = 1.96\sqrt{\frac{0.194(1 - 0.194)}{9604}} = 0.008$$  
+- Since $E = 0.008 < 0.01$, the actual margin of error is smaller than the required margin of error.
+
+**(d) Repeat Calculation of $n$ for $\hat{p}$ Between 0.1 and 0.3**
+- Pick the value closer to 0.5 (i.e., 0.3):  
+  $$n = 0.3(1 - 0.3)\left(\frac{1.96}{0.01}\right)^2 = 8068$$  
+- The 95% CI for n=8068 becomes:  
+  $$(0.194 - 1.96\sqrt{\frac{0.3(1 - 0.3)}{8068}}, 0.194 + 1.96\sqrt{\frac{0.3(1 - 0.3)}{8068}}) = (0.185, 0.203)$$  
+- Margin of error: $E = 0.009$.
+
+**(e) Comparison**
+- Using a reasonable estimate for $\hat{p}$ reduces the required sample size by more than 1500.  
+- The margin of error ($E = 0.009$) still satisfies the requirement ($E \leq 0.01$).
+
+
+```{r}
+#Part (a). No knowledge of p
+n.p.CI(E=0.01, conflev = 0.95)
+
+#Part (b). phat = 0.194. Find 95%CI
+ci.p(r=0.194*9604, n=9604, method="Asymptotic Normal", conflev = 0.95)
+
+#Part (d). n for p in (0.1, 0.3)
+n.p.CI(E=0.01, conflev = 0.95, g=c(0.1, 0.3))
+
+#CI for p with n=8068 and phat = 0.194
+ci.p(r=0.194*8068, n=8068, conflev = 0.95)
+```
+

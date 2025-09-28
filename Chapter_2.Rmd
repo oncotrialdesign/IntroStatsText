@@ -1,0 +1,408 @@
+# Population and Sample
+
+```{r}
+library(IntroStats)
+```
+
+## Definition: Population and Sample
+
+-   **Population:** The collection of all individuals or items under
+    consideration in a statistical study.
+
+-   **Sample:** That part of the population from which information is
+    obtained.
+
+### Example
+
+-   How would you predict who will win the presidency? Trump or Harris?
+-   What is the population to address the question? It is the entire US
+    population, but it is unrealistic to gauge the sentiment of the population. 
+    But we would like to get information as representative as possible for the entire population.
+-   A group of a few thousands people are interviewed and their voting
+    are collected. This group is called a sample.
+
+![Population and Sample](https://i.ibb.co/bR3TN81f/population-sample.png)
+
+### Example
+
+![Misleading Title](https://i.ibb.co/r8wP1vs/100pct.png)
+What's Your Reaction?
+
+The objective of this class is to address the key aspects when reading the scientific report with statistical perspective.
+
+### A typical clinical research with intent of statistical inference
+
+![A typical clinical research](https://i.ibb.co/RGdv9vTH/BRAF.png)
+### Scientific Method
+
+![Scientific Method](https://i.ibb.co/zTpD6MLG/Scientific-Method.png)
+
+### Westin et al (2023) Study
+
+![Westin et al (2023) Study](https://i.ibb.co/PvD1nKpy/westin1.png)
+
+![Westin et al (2023) Study](https://i.ibb.co/7JPZFgy3/westin2.png)
+
+
+![Westin et al (2023) Study](https://i.ibb.co/CsnZ3B2P/westin3.png)
+
+
+**Questions:**
+
+1. What is the population in this study?
+2. What is the sample in the study?
+3. What is the variable of interest?
+4. What is the conclusion?
+5. Is the conclusion intended for the patients included in the study or the designated population?
+6. What is the limitation of this clinical study as described by the researchers?
+7. Do you think the limitation describes the concerns of sampling? Why?
+8. It's known that whether patients responded to the first line treatment (i.e., the previous treatment before coming to this study) may impact their outcome in this study. How would you randomize patients to account for the effect?
+
+## Defintion: Descriptive and Inferential
+
+### Inferential Statistics
+
+-   **Inferential Statistics** consists of methods for drawing and
+    measuring the reliability of conclusions about a **population**
+    based on information obtained from a **sample** of the population.
+
+
+### Descriptive Study and inferential study
+
+-   **Descriptive Study:** If the purpose of the study is to examine and
+    explore information for its own intrinsic interest only, the study
+    is descriptive.
+
+-   **Inferential Study:** If the information is obtained from a sample
+    of a population and the purpose of the study is to use that
+    information to draw conclusions about the population, the study is
+    inferential.
+
+#### Example. Is the study descriptive or Inferential?
+
+-   The 1948 presidential election results are displayed in table below.
+-   The study is descriptive. It is a summary of votes and no inference
+    is made.
+    
+    
+| Ticket                          | Votes       | Percentage |
+|---------------------------------|-------------|------------|
+| Truman–Barkley (Democratic)     | 24,179,345  | 49.7%      |
+| Dewey–Warren (Republican)       | 21,991,291  | 45.2%      |
+| Thurmond–Wright (States Rights) | 1,176,125   | 2.4%       |
+| Wallace–Taylor (Progressive)    | 1,157,326   | 2.4%       |
+| Thomas–Smith (Socialist)        | 139,572     | 0.3%       |
+
+```{r}
+
+df <- data.frame(
+  Ticket = c("Truman–Barkley (Democratic)",
+             "Dewey–Warren (Republican)",
+             "Thurmond–Wright (States Rights)",
+             "Wallace–Taylor (Progressive)",
+             "Thomas–Smith (Socialist)"),
+  Votes = c("24,179,345",
+            "21,991,291",
+            "1,176,125",
+            "1,157,326",
+            "139,572"),
+  Percentage = c("49.7%", "45.2%", "2.4%", "2.4%", "0.3%")
+)
+
+knitr::kable(df, align = "lrr", caption = "1948 U.S. Presidential Election Results")
+```
+
+#### Example. Is Rawlings baseball livelier?
+
+Spalding company had made baseballs for 101 years preceding 1977 for
+major league baselines. Then the company stopped making major league
+baseballs, and the league bought baseballs from the Rawling Company.
+
+-   Pictchers complained that the Rawling baselineballs are livelier.
+    Sports Illustrated sponsored a study to address the livelier
+    question.
+
+-   In this study, an independent testing company randomly selected 85
+    balls and measured bounce, weight, and hardness, and compared to
+    baseballs in 1952, 1953, 1061, 1963, 1970, and 1973.
+
+-   Is this study descriptive or inferential?
+
+
+#### Example. Is the poll an inferential or descriptive study?
+
+-   1948 Presidential Election: Truman (D) vs Dewey (R).
+
+-   The Gallup Poll predicted that Truman would win only 44.5% of the
+    vote and be defeated by Thomas Dewey. But the statistician predicted incorrectly.
+
+### Definition: Observational Studies vs Designed Experiments
+
+-   In an **observational study**, researchers simply observe
+    characteristics and take measurements, as in a sample survey.
+
+-   In a **designed experiment**, researchers impose treatments and/or
+    controls, and then observe characteristics and take measurements.
+
+-   Observational studies can reveal only association, whereas designed
+    experiments can help establish causation.
+
+#### Example. Vasectomies and Prostate Cancer
+
+-   Approximately 450, 000 vasectomies are performed each year in the
+    US. It's a surgical procedure for contraception. The tube carrying
+    sperm from the testicles is cut and tied.
+
+-   A retrospective study was performed to understand the relationship
+    between vasectomy and prostate cancer, published at J. Ame. Med.
+    Assoc.
+
+-   Results: 113 prostate cancers among 22,000 men who had a vasectomy,
+    vs 70 prostate cancers among 22,000 men who didn't have vasectomy.
+
+-   Study reveals 60% increase of risk for men who had vasectomy,
+    thereby an association.
+
+-   **Having vasectomy causes an increased risk of prostate cancer?
+    Why?**
+
+#### Example. Folic Acid and Birth Defects
+
+-   Drs. Czeizel and Dudas published a study at New Eng. J. of Med.
+    about birth defects.
+
+-   4,753 women prior to conception enrolled to the study, and are
+    divided randomly into 2 groups. One group took daily multivatimins
+    containing 0.8 mg falic acid, whereas the other group received only
+    trace elements.
+
+-   13 per 1000 women had major birth defects who took folic acid vs 23
+    per 1000 women had major birth defects who di not take folic acid.
+
+-   **Do you think this study can be used to establish causality between
+    folic acid and birth defects? Why?**
+
+
+## Simple Random Sampling
+
+### Definition: census, sampling and experimentation
+
+-   **Census**: Conducting a census to obtain information for the entire
+    population of interest.
+
+-   **Sampling and experimentation**: are common approaches to obtain
+    information.
+
+-   **Representative sample**: should reflect as closely as possible the
+    relevant characteristics of the entire population.
+
+-   **Probability Sampling**: a random device is used to decide which
+    members of the population will constitute the sample rather than
+    human judgement.
+
+-   **Can human judgement / brain generate representative randomness?**
+    Let's do a small experiment.
+
+### Definition: Simple Random Sampling
+
+-   **Simple Random Sampling:** A sampling procedure for which each
+    possible sample of a given size is equally likely to be the one
+    obtained.
+
+-   **Simple random sample:** A sample obtained by simple random
+    sampling.
+
+-   There are two types of simple random sampling.
+
+    -   One is **simple random sampling with replacement**, whereby a
+        member of the population can be selected more than once;
+
+    -   the other is **simple random sampling without replacement**,
+        whereby a member of the population can be selected at most once.
+
+#### Example. Sampling 27 NJ State Officials from Governor Phil Murphy's cabinet
+
+```{r}
+
+nj.cabinet <- data.frame(
+  cabinet = c("Phil Murphy", 
+              "Tahesha Way",
+             "Ed Wengryn",
+             "Justin Zimmerman",
+             "Christine Guhl-Sadovy",
+             "Christine Norbut Beyer",
+             "Allison Chris Myers",
+             "Jacquelyn A. Suarez",
+             "Kevin Walsh",
+             "Victoria Kuhn",
+             "Tim Sullivan",
+             "Kevin Dehmer",
+             "Shawn LaTourette",
+             "Jeff Brown",
+             "Dr. Brian Bridges",
+             "Laurie Doran",
+             "Sarah Adelman",
+             "Christopher J. Rein",
+             "Dave Cole",
+             "Robert Asaro-Angelo",
+             "Matt Platkin",
+             "Lisa Asare",
+             "Brigadier General Yvonne L. Mays",
+             "Latrecia Littles-Floyd",
+             "Colonel Patrick J. Callahan",
+             "Elizabeth Maher Muoio",
+             "Francis K. OConnor"),
+  Role = c("Governor", 
+           "Lt. Governor and Secretary of State", 
+           "Secretary, Department of Agriculture", 
+           "Commissioner, Department of Banking and Insurance", 
+           "President, Board of Public Utilities", 
+           "Commissioner, Department of Children and Families", 
+           "Chair and Chief Executive Officer, 
+           Civil Service Commission", 
+           "Commissioner, Department of Community Affairs", 
+           "Acting Comptroller, Office of the State Comptroller", 
+           "Commissioner, Department of Corrections", 
+           "Chief Executive Officer, Economic Development Authority", 
+           "Commissioner, Department of Education", 
+           "Commissioner, Department of Environmental Protection", 
+           "Commissioner, Department of Health", 
+           "Secretary, Office of the Secretary of Higher Education", 
+           "Director, Office of Homeland Security", 
+           "Commissioner, Department of Human Services", 
+           "Chief Technology Office, Office of Information Technology", 
+           "Chief Innovation Officer, Office of Innovation", 
+           "Commissioner, Department of Labor and Workforce Development", 
+           "Attorney General, Department of Law and Public Safety", 
+           "President and CEO, NJ Maternal and Infant Health Innovation Authority", 
+           "Adjutant General and Commissioner, Department of Military and Veteran Affairs", 
+           "Acting Chair and Chief Administrator, Motor Vehicle Commission", 
+           "Superintendent, New Jersey State Police", 
+           "State Treasurer, Department of the Treasury", 
+           "Commissioner, Department of Transportation"))
+
+knitr::kable(nj.cabinet, align = "ll", caption = "NJ Governor's Cabinet, 2025")
+```
+
+
+
+-   List all possible samples without replacement of two officials. A total of $2_C_{27} = 27*26/2 = 351$ options.
+
+- Answer: (Phil Murphy, Tahesha Way), (Phil Murphy, Ed Wengryn), $\cdots$, 
+
+-   What is the probability of obtaining any particular sample of 2
+    officials?
+- Answer: There are a total of 351 options, so the probability of obtaining one particular option is 1/351.
+
+### Random Sampling in R
+
+#### Sampling from a finite population
+
+Draw a random sample of 2 NJ state cabinet members. The population here is defined as the 27 NJ state cabinet members in 2025.
+
+```{r}
+sample(x=nj.cabinet$cabinet, size=2, replace=FALSE)
+```
+
+#### Sampling from a distribution from an infinite population
+
+Random Number Generator is referring to a process that can be invoked to produce a sequence of random numbers. 
+-   Type runif(10, min=0, max=1) in R will generate 10 random numbers between 0 and 1. These are called pseudo random numbers because the sequence is actually controlled by a seed.
+
+```{r}
+#try the following multiple times
+runif(10, min=0, max=1)
+```
+The pseudo random numbers are very critical for investigating complex statistical modeling methods. To reproduce the random numbers, we can set a seed. 
+
+```{r}
+set.seed(2024)
+
+#try the following multiple times
+runif(10, min=0, max=1)
+```
+The same numbers are generated every time because the seed is set to the same number. This is important for generating reproducible results when using random numbers in statistics.
+
+## Stratified Sampling with proportional allocation
+
+1.  Step 1. Divide the population into sub-populations (strata)
+
+2.  Step 2. From each stratum, obtain a simple random sample of size
+    proportional to the size of the stratum.
+
+3.  Step 3. Use all the members obtained in Step 2 as the sample.
+
+### Example
+
+A population of 100 is divided into 3 strata of sizes 40, 40, and 20. Use stratified sampling method with proportional allocation to obtain a sample of size 10 from the population. **Solution:**
+
+-   Step 1. Divide population into 3 strata and number them as 1-40,
+    41-80, 81-100.
+
+-   Step 2. From each stratum, obtain a simple random sample of size
+    proportional to the size of the stratum. $$\begin{aligned}
+        \text{Stratum 1 Sample Size} &=& \text{Total Sample Size}\times \frac{\text{Stratum 1 size}}{\text{Population size}} \nonumber\\
+        &=& 10\times \frac{40}{100} = 4.\nonumber
+        \end{aligned}$$
+
+-   Similarly, stratum 2 and 3 have sizes 4 and 2 respectively.
+
+- In summary, 4 numbers drawn from 1-40, 4 numbers drawn from 41-80, and 2 numbers drawn from 81-100.
+
+```{r}
+s100 <- data.frame(x = 1:100, strata = c(rep(1, 40), rep(2, 40), rep(3, 20)))
+
+knitr::kable(s100, align = "lr", caption = "Numbers 1-100 with 3 strata")
+
+```
+The following code can perform the job. Please install the R packages devtools and IntroStats if not yet.
+
+```{r}
+#Install devtools if not installed yet
+if (!require("devtools")) install.packages("devtools")
+
+#Install IntroStats if not installed yet
+if (!require("IntroStats")) devtools::install_github("phe9480/IntroStats")
+
+#Draw a sample of 10 numbers according to the proportion of strata size.
+
+IntroStats::strat.sample(x=s100$x, size= 10, strata = s100$strata)
+
+```
+### Example
+
+A town has 250 homeowners of which 25, 175, and 50 are upper income,
+middle income, and low income, respectively. Explain how we can obtain a
+sample of 20 homeowners, using stratified sampling with proportional
+allocation, stratified by income group.
+
+-   Step 1. Divide 250 homeowners into 3 income classes: upper, middle, low.
+
+```{r}
+homeowners = data.frame(x = 1:250, strata = c(rep("Upper", 25), rep("Middle", 175), rep("Low", 50)))
+homeowners
+```
+
+-   Step 2. From each stratum, obtain a simple random sample of size
+    proportional to the size of the stratum. For a sample with a total size of 20, the sample size for 1st stratum according to the proportion is $20*25/250 = 2$. Similarly, the 2nd stratum and 3rd stratum have sample sizes: $20*175/250=14$ and $20*50/250=4$.
+
+-   Step 3. Combine all sample random samples together.
+
+```{r}
+IntroStats::strat.sample(x=homeowners$x, size=20, strata=homeowners$strata)
+```
+**Discussion**: Why is it useful to perform stratified sampling with
+proportional allocation?
+
+
+## Summary
+
+In this chapter, we discussed the fundamental statistical concepts including 
+
+-   population and sample, 
+-   descriptive and inferential statistics, 
+-   simple random sampling, 
+-   stratified random sampling with allocation proportional to stratum size, and 
+-   their implementation in R. 
+
+

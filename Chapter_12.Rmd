@@ -1,0 +1,149 @@
+
+# Introduction to Hypothesis Testing
+
+```{r}
+library(IntroStats)
+```
+
+## Research Hypothesis and Statistical Hypotheses
+
+Hypothesis testing is a fundamental concept in statistics, and it involves a set of terms and procedures to describe the statistical methodology. 
+
+### Research Hypothesis
+
+A **research hypothesis** is a conjecture or supposition that motivates the research.
+
+### Null Hypothesis (H0)
+
+**Statistical hypotheses** include **null hypothesis**, denoted as $H_0$, and **alternative hypothesis**, denoted as $H_a$ or $H_1$, which are framed in a particular way that can be evaluated by suitable statistical techniques.
+
+Null Hypothesis (H0) is the initial assumption or hypothesis that there is no significant difference or effect in the population. It is often a statement of no effect or no relationship.
+
+### Alternative Hypothesis (Ha or H1)
+
+Alternative Hypothesis, often denoted as $H_a$ or $H_1$, is the opposite of the null hypothesis, representing the hypothesis that there is a significant difference or effect in the population.
+
+### Example
+
+A pre-clinical laboratory scientist has observed the potential of a novel agent to suppress tumor progression in an animal model. This finding serves as the foundation for further research into its potential application in human cancer treatment, forming the basis of a **research hypothesis**.
+
+The **statistical hypothesis** can be formulated based on the research hypothesis and subsequently tested using data collected through an appropriately designed experiment, assuming reasonable conditions.
+
+In this particular example, the **null hypothesis** could be structured as follows: "The novel agent does not possess the ability to suppress tumor progression in lung cancer patients," implying that the tumor size over time for patients treated with the novel agent is indistinguishable from those who receive no treatment.
+
+Conversely, the **alternative hypothesis** would be: "The novel agent has the capacity to inhibit tumor progression in lung cancer patients," indicating a reduction in tumor size among those treated with the novel agent compared to those receiving no treatment.
+
+The rejection of the null hypothesis, or equivalently, the acceptance of the alternative hypothesis ($H_a$), would signify that the novel agent can indeed suppress tumor progression in lung cancer patients. 
+
+## Hypothesis Test
+
+The set of terms related to hypothesis testing is described below.
+
+### Test Statistics
+
+Test Statistics is a mathematical formula or statistic that summarizes the information from the sample data and is used to make a decision about whether to reject the null hypothesis.
+
+### Significance Level
+
+Significance Level is the predetermined level of significance that determines the threshold for rejecting the null hypothesis. Common values include 0.05 and 0.01, indicating a 5% and 1% chance of making a Type I error, respectively.
+
+### Type I Error
+
+**Type I Error** Occurs when the null hypothesis is incorrectly rejected when it is actually true. This is often denoted as ($\alpha$), the significance level.
+
+### Type II Error
+
+**Type II Error** Occurs when the null hypothesis is incorrectly not rejected when it is actually false. It is often denoted as ($\beta$).
+
+### One-Tailed (One-Sided) Test
+
+There are 3 types of tests: two-sided (also called two-tailed), left-sided and right-sided.
+
+One-sided test is to test a **specific direction** (greater than or less than) according to the question of interest. For example, if we are interested in testing whether a blood pressure drug can reduce the blood pressure at least 10 mmHg after 1 month. The question of interest is reduction of blood pressure. So the alternative hypothesis is framed as $H_a: \mu \le 10$ mmHg, where $\mu$ denotes the mean change of blood pressure after 1 month. 
+
+-   **right-sided**: $H_a$ has key word "greater". The corresponding p-value and alpha are also right-sided. There is only 1 critical value, which is on right.
+
+-   **left-sided**: $H_a$ has key word "smaller". The corresponding p-value and alpha are also left-sided. There is only 1 critical value, which is on left
+
+![Figure 4.  Left-sided](https://i.ibb.co/qpXjNfw/left-sided-test.png)
+
+![Figure 5.  right-sided](https://i.ibb.co/VYGVMKF/right-sided-test.png)
+
+### Two-Tailed (Two-Sided) Test
+
+Two-Sided test is to test **difference** without a specific direction. For example, if we are interested in testing whether a blood pressure drug A has any difference in reducing the blood pressure after 1 month compared to another drug B. The question of interest is difference of blood pressure reduction. So the alternative hypothesis is framed as $H_a: \mu_A \ne \mu_B$, where $\mu_A$ and $mu_B$ denote the mean change of blood pressure after 1 month for those who received drug A and drug B, respectively.
+
+-   **two-sided**: $H_a$ has key word "differ". The corresponding p-value and alpha are also two-sided. There are 2 critical values on both sides.
+
+![Figure 3.  Two-sided](https://i.ibb.co/VWvgwWN/2-sided-test.png)
+The choice between one-tailed and two-tailed depends on the **research question**.
+
+### P value
+
+P value is the probability associated with the test statistic, indicating the likelihood of obtaining such extreme results if the null hypothesis were true. A smaller p-value suggests stronger evidence against the null hypothesis. Since the calculation of p-value depends on the type of test (one-sided or two-sided), the p-value should be reported as one-sided or two-sided as well for clarity.
+
+### Critical Value(s)
+
+A critical value is a point on the scale of a test statistic beyond which we reject the null hypothesis. It separates the region where the null hypothesis is rejected (the rejection region) from the region where it is not. One-sided test has one critical value, while two-sided test has two critical values.
+
+In hypothesis testing, critical values are used to determine the thresholds for statistical significance. They vary depending on: the chosen significance level $\alpha$, the type of test (one-tailed or two-tailed), and the sampling distribution of the test statistic (e.g., normal, t-distribution). 
+
+### Rejection Region
+
+Rejection Region is the range of values of the test statistic that, if observed, leads to the rejection of the null hypothesis. The rejection region is determined by critical value(s). 
+
+## Hypothesis testing approaches
+
+When performing hypothesis testing, there are two main methods to decide whether to reject the null hypothesis: critical value(s) approach and p-value approach.
+
+### Critical value(s) approach
+
+Calculate a test statistic (like $z$ or $t$) from the sample data. Then determine whether the test statistic falls in the rejection region. If yes, reject the null hypothesis; otherwise do not reject. 
+
+### p-value Approach
+
+Compute a p-value from the test statistic based on assumed sampling distribution of the test statistic under null hypothesis. Then determine whether the p-value is less than or equal to the prespecified significance level $\alpha$. If yes, reject the null hypothesis; otherwise do not reject.
+
+Both methods lead to the **same statistical conclusion**, but the p-value approach is more common in scientific research because it gives more flexibility and precision.
+
+### Example: Testing an Iron Supplement
+
+Suppose a health researcher believes that a new iron supplement increases hemoglobin levels in women. The changes of hemoglobin level after receiving 1 month of the iron supplement for 15 women diagnosed with anemia are 0.3, 2.1, 1.5, 2.9, 5.2, 0, -0.5, 2.6, 2.7, 2.0, 2.1, 3.3, 1.6, 2.5, 2.2. At 5\% significance level, is this sample suggesting the iron supplement can increase hemoglobin level?
+
+1.    Statistical Hypotheses:
+
+$$
+H_0: \mu = 0 \quad \text{(no change in hemoglobin level from supplement)}
+$$
+
+$$
+H_a: \mu > 0 \quad \text{(supplement increases hemoglobin)}
+$$
+
+2.    Significance level (one-sided): 0.05
+
+3.    The critical value is 1.76 based on t-test. The method to determine the critical value will be described in the next chapter.
+
+```{r}
+x=c(0.3, 2.1, 1.5, 2.9, 5.2, 0, -0.5, 2.6, 2.7, 2.0, 2.1, 3.3, 1.6, 2.5, 2.2)
+qt(0.95, df=length(x)-1)
+```
+4.    The rejection region is $t > 1.76$. The direction of the rejection region is always consistent with the alternative hypothesis $H_a$.
+
+5.    The test statistic is $t$ value 5.63, using t-test. The method to determine the $t$ value will be described in the next chapter.
+
+6.    Using the critical value approach, the $t$ value 5.63 falls in the rejection region, so reject the null hypothesis.
+
+7.    The p-value is 0.00005, which is less than the significance level $\alpha = 0.05$, so reject the null hypothesis. Both the critical value approach and p-value approach are consistent. The method to determine the $p$ value will be described in the next chapter, calculated as $p = P(t>5.63)$, where $t$ is a random variable with $n-1=14$ degrees of freedom.
+
+```{r}
+1-pt(5.63, df=length(x)-1)
+```
+8.    Conclusion. At 5\% significance level, there is sufficient evidence that the new iron supplement is able to increase hemoglobin level for anemia women.
+
+The hypothesis testing process is implemented in the function below:
+
+```{r}
+one.mean.t(x=x, mu0=0, tail = "right", alpha=0.05)
+```
+

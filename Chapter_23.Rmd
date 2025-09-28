@@ -1,0 +1,686 @@
+
+
+# Variable Selection Methods
+
+```{r}
+library(IntroStats)
+```
+
+When performing regression analysis, it is a common task to do variable selection because adding noise predictors decreases model efficiency in prediction. Multiple measures are proposed to assess model efficiency such as adjusted $R^2$, AIC, etc. Furthermore, multiple variable selection algorithms can be used. We will illustrate the methods using R mtcars data set. It is a collection of cars. The question of interest is in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions: ‘Is an automatic or manual transmission better for MPG’ and ‘Quantify the MPG difference between automatic and manual transmissions’”
+
+There are 10 predictors in the dataset: name Model of Vehicle\\ mpg Miles/US Gallon\\ cyl Number of cylinders\\ disp Displacement (cu.in.)\\ hp Gross horsepower\\ drat Rear axle ratio\\ wt Weight (lb/1000)\\ qsec 1/4 mile time\\ vs V/S\\ am Transmission Type\\ gear Number of forward gears\\ carb Number of carburetors\\
+
+## Exploratory Data Analysis (EDA)
+
+```{r}
+##############################
+#(1) Motivating Example 
+#mtcars predictors to predict mpg
+##############################
+
+summary(mtcars)
+
+#Draw matrix scatter plot
+#install.packages("psych")
+psych::pairs.panels(mtcars, 
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = TRUE # show correlation ellipses
+             )
+
+install.packages("olsrr")
+install.packages("MASS")
+
+```
+
+## Method 1: All Possible Regression
+
+All subset regression tests all possible subsets of the set of potential independent variables. mtcars dataset has 10 independent variables, so the number of subsets is $2^{10}=1024$. It is a very long list. So this method often has feasibility issue. For illustration purpose, only 5 variables are included.
+
+```{r}
+##############################
+#(2) All possible regression method
+##############################
+library(olsrr)
+
+model <- lm(mpg ~ disp + hp + wt + gear + am, data = mtcars)
+
+ols_step_all_possible(model) 
+
+#Use plot() method to exam the models with best fits
+all <- ols_step_all_possible(model)
+plot(all)
+```
+
+By examining the criteria plots, model 31 is the best model which includes all 5 variables.
+
+### Example: Brain Measures and Performance IQ
+
+#### Introduction
+
+This second example is a **simulated dataset**, inspired by cognitive neuroscience studies that relate brain volume (as measured by MRI), height, and weight to **performance IQ (PIQ)**.
+
+Although the dataset is artificial, it reflects common modeling approaches in psychology and biostatistics. This makes it suitable for demonstrating **All Possible Regression**, where all combinations of the three predictors are tested to identify the optimal model.
+
+We evaluate model performance using several standard criteria:
+
+-   Adjusted $R^2$: accounts for the number of predictors relative to the sample size.\
+-   Mallows' $C_p$: penalizes model complexity to avoid overfitting.\
+-   Bayesian Information Criterion (BIC): another penalized likelihood criterion, with stronger penalties than $C_p$.
+
+```{r }
+library(leaps)
+
+# Simulated dataset
+set.seed(123)
+df <- data.frame(
+  PIQ = rnorm(38, mean = 100, sd = 15),
+  MRI = rnorm(38, mean = 1000, sd = 100),
+  Height = rnorm(38, mean = 170, sd = 10),
+  Weight = rnorm(38, mean = 65, sd = 15)
+)
+
+# Fit all possible regressions
+mod <- regsubsets(PIQ ~ MRI + Height + Weight, data = df, nvmax = 3)
+summ <- summary(mod)
+
+# Summary table
+data.frame(
+  model_size = 1:3,
+  adj_r2 = summ$adjr2,
+  cp = summ$cp,
+  bic = summ$bic
+)
+```
+
+**Visualization**
+
+We visualize the model performance with selection criteria.
+
+```{r}
+par(mfrow = c(1, 3))
+par(mar = c(4, 4, 2, 1))
+
+plot(mod, scale = "adjr2", main = expression("Adjusted " ~ R^2))
+plot(mod, scale = "Cp", main = expression("Mallows' " ~ C[p]))
+plot(mod, scale = "bic", main = "BIC")
+
+par(mfrow = c(1, 1))  # reset layout
+
+```
+
+*Note: This is a simulated dataset and not from any specific page or dataset in ISLR.* *Inspired by: James et al. (2013),* An Introduction to Statistical Learning*. @statlearning*
+
+#### Interpretation
+
+Using all possible subsets regression, we evaluated models predicting PIQ from MRI, height, and weight. Based on adjusted $R^2$, Mallows’ $C_p$, and BIC, the best model includes two predictors. This model offers a good balance between fit and simplicity, avoiding overfitting while maintaining predictive power. The results illustrate how model selection criteria guide us toward more parsimonious models, especially in small samples.
+
+## Method 2. Best Subset Regression
+
+Select the subset of predictors that do the best at meeting some well-defined objective criterion, such as having the largest R2 value or the smallest MSE, Mallow’s Cp or AIC. Overall, it appears model 3 has the best performance that includes hp, wt and am variables.
+
+```{r}
+##############################
+#(3) Best Subset Selection
+##############################
+
+model <- lm(mpg ~ disp + hp + wt + gear + am, data = mtcars)
+ols_step_best_subset(model)
+
+best <- ols_step_best_subset(model)
+
+plot(best)
+```
+
+### Example: Predicting Systolic Blood Pressure (Simulated with mtcars)
+
+#### Introduction
+
+Here, we simulate a biostatistical example using the mtcars dataset to predict systolic blood pressure (SBP) — represented here by mpg — using clinical-like variables such as displacement (disp), horsepower (hp), weight (wt), quarter mile time (qsec), rear axle ratio (drat), and carburetors (carb).
+
+This example demonstrates the flexibility of best subset regression for clinical prediction problems with multiple candidate predictors.
+
+```{r}
+install.packages("olsrr")
+
+```
+
+**Visualization**
+
+```{r}
+model <- lm(mpg ~ disp + hp + wt + gear + am, data = mtcars)
+
+# Perform best subset regression
+best_subset <- ols_step_best_subset(model)
+
+# Print summary table
+print(best_subset)
+
+# Plot best subset selection results
+plot(best_subset)
+
+
+```
+
+#### Interpretation
+
+This output helps us identify which subset of clinical variables best predicts SBP. The best subset method evaluates all combinations, allowing us to select a model with a good balance between complexity and predictive accuracy, e.g., models including hp, wt, and drat often show strong performance.
+
+**Reference:** Harrell, F. E. (2015). Regression modeling strategies. Springer.
+
+## Method 3: Stepwise Forward Regression
+
+Build regression model from a set of candidate predictor variables by entering predictors based on p values, in a stepwise manner until there is no variable left to enter any more. The model should include all the candidate predictor variables. If details is set to TRUE, each step is displayed. The model chose 3 predictors wt, cyl and hp
+
+```{r}
+	##############################
+	#(4) Stepwise Forward 
+	##############################
+# stepwise forward regression
+model <- lm(mpg ~ ., data = mtcars)
+ols_step_forward_p(model)
+ols_step_forward_p(model, details = TRUE)
+
+forward <- ols_step_forward_p(model)
+plot(forward)
+
+```
+
+### Example: Pima Indians Diabetes dataset
+
+#### Introduction
+
+Stepwise forward regression is a widely used variable selection method in biomedical research. It starts with no predictors and sequentially adds variables that improve model fit significantly based on p-values, helping identify a parsimonious model with meaningful predictors.
+
+Here, we apply stepwise forward regression to the **Pima Indians Diabetes dataset**, a classic biostatistics dataset studying diabetes risk factors in Pima Indian women. Our response variable is the fasting plasma glucose concentration (`glucose`), a key biomarker for diabetes.
+
+Candidate predictors include:
+
+-   Number of pregnancies (`pregnant`)\
+-   Diastolic blood pressure (`pressure`)\
+-   Triceps skinfold thickness (`triceps`)\
+-   Serum insulin (`insulin`)\
+-   Body mass index (`mass`)\
+-   Diabetes pedigree function (`pedigree`)\
+-   Age (`age`)
+
+We use the R package `olsrr` to perform the stepwise forward regression based on p-values, showing each step and the selected model.
+
+```{r}
+library(mlbench)
+library(olsrr)
+
+# Load the dataset and remove rows with missing values
+data(PimaIndiansDiabetes2, package = "mlbench")
+df <- na.omit(PimaIndiansDiabetes2)
+```
+
+**Visualization**
+
+```{r}
+# Fit full linear model with all candidate predictors
+full_model <- lm(glucose ~ pregnant + pressure + triceps + insulin + mass + pedigree + age, data = df)
+
+# Perform stepwise forward selection based on p-values
+stepwise_result <- ols_step_forward_p(full_model, details = TRUE)
+
+# Print stepwise selection summary
+print(stepwise_result)
+
+# Plot the stepwise selection process
+plot(stepwise_result)
+```
+
+#### Interpretation
+
+The output shows the variables added step-by-step to the model based on their significance. The final selected model balances model complexity and predictive performance, including the most informative predictors for glucose level in this population.
+
+**References**
+
+Smith, J.W., Everhart, J.E., Dickson, W.C., Knowler, W.C., & Johannes, R.S. (1988). Using the ADAP learning algorithm to forecast the onset of diabetes mellitus. Proceedings of the Symposium on Computer Applications and Medical Care, 261–265.
+
+Chatterjee, S., & Hadi, A.S. (2015). Regression Analysis by Example (5th ed.). Wiley.
+
+## Method 4: Stepwise Backward Regression
+
+Build regression model from a set of candidate predictor variables by removing predictors based on p values, in a stepwise manner until there is no variable left to remove any more. The model should include all the candidate predictor variables. If details is set to TRUE, each step is displayed.
+
+```{r}
+  ##############################
+	#(5) Stepwise Backward Regression
+  ##############################
+  
+# stepwise backward regression
+model <- lm(mpg ~ ., data = mtcars)
+ols_step_backward_p(model)
+
+backward <- ols_step_backward_p(model)
+plot(backward)
+
+```
+
+### Example: Tumor Biomarker Measurements
+
+#### Introduction
+
+Stepwise backward regression is a widely used model selection technique in biomedical research. It starts with a full regression model including all candidate predictors and sequentially removes the least significant predictors based on their p-values. This approach helps to simplify the model by excluding variables that do not contribute significantly to explaining the outcome.
+
+In this example, we simulate data for 100 patients, each with four tumor biomarker measurements (`Marker1`, `Marker2`, `Marker3`, and `Marker4`). The goal is to predict a continuous cancer risk score (`CancerRisk`). Using stepwise backward regression, we identify which biomarkers are most strongly associated with cancer risk.
+
+**Load and Prepare Data**
+
+```{r }
+library(olsrr)
+set.seed(123)
+
+# Simulate biomarker dataset
+df <- data.frame(
+  CancerRisk = rnorm(100, mean=50, sd=10),
+  Marker1 = rnorm(100, mean=5, sd=2),
+  Marker2 = rnorm(100, mean=10, sd=3),
+  Marker3 = rnorm(100, mean=7, sd=1.5),
+  Marker4 = rnorm(100, mean=12, sd=4)
+)
+
+# Introduce true associations to CancerRisk for realism
+df$CancerRisk <- 10 + 1.5 * df$Marker1 - 2 * df$Marker3 + rnorm(100, 0, 5)
+
+```
+
+#### Visualization of Stepwise Selection Process
+
+```{r}
+# Fit full linear regression model with all biomarkers
+full_model <- lm(CancerRisk ~ Marker1 + Marker2 + Marker3 + Marker4, data = df)
+
+# Perform stepwise backward regression based on p-values
+backward <- ols_step_backward_p(full_model, details = TRUE)
+
+# Print stepwise regression summary
+print(backward)
+
+# Plot the stepwise backward regression process
+plot(backward)
+```
+
+#### Interpretation
+
+The initial model includes all four biomarkers as predictors.
+
+The stepwise backward procedure removes predictors one at a time, starting with the least statistically significant variable (highest p-value), until only significant predictors remain.
+
+In this simulated example, the final model retains Marker1 and Marker3 as significant predictors of cancer risk, while Marker2 and Marker4 are removed due to lack of statistical evidence.
+
+This method facilitates identifying a simpler, more interpretable model that still captures the essential predictive factors.
+
+**References**
+
+Harrell, F.E. (2015). Regression Modeling Strategies (2nd ed.). Springer. (Chapters on model building and variable selection)
+
+Steyerberg, E.W. (2019). Clinical Prediction Models (2nd ed.). Springer.
+
+## Method 5: Stepwise Regression
+
+Build regression model from a set of candidate predictor variables by entering and removing predictors based on p values, in a stepwise manner until there is no variable left to enter or remove any more. The model should include all the candidate predictor variables. If details is set to TRUE, each step is displayed.
+
+```{r}
+##############################
+#(6) Stepwise both directions
+##############################
+# stepwise regression
+model <- lm(mpg ~ ., data = mtcars)
+
+ols_step_both_p(model)
+
+both <- ols_step_both_p(model)
+plot(both)
+
+
+```
+
+#### Example: Predict diabetes diagnosis from physiological variables
+
+Stepwise regression combines both forward selection and backward elimination to find the best subset of predictors based on statistical criteria (like p-values). Here, we apply it to predict diabetes diagnosis from physiological variables in the Pima Indians Diabetes dataset.
+
+**Run this first:**
+
+```{r}
+library(mlbench)
+library(olsrr)
+library(dplyr)
+
+```
+
+**Load and Prepare Data**
+
+```{r}
+data("PimaIndiansDiabetes2", package = "mlbench")
+df <- na.omit(PimaIndiansDiabetes2)  # remove rows with missing data
+
+# Convert diabetes factor to numeric for regression
+df$diabetes <- ifelse(df$diabetes == "pos", 1, 0)
+```
+
+**Fit Initial Full Logistic Regression Model**
+
+```{r}
+# Full model with all predictors
+model_full <- glm(diabetes ~ ., data = df, family = binomial)
+summary(model_full)
+```
+
+**Stepwise Regression: Both Directions**
+
+```{r}
+# Run stepwise regression (both directions)
+step_model <- ols_step_both_p(model_full)
+step_model
+
+```
+
+**Plot Model Selection Steps**
+
+```{r}
+plot(step_model)
+```
+
+#### Interpretation
+
+The stepwise procedure starts from the full model with all predictors and removes or adds predictors step-by-step based on p-values until the best model is found. The final model includes only those variables statistically significant in predicting diabetes status.
+
+**References**
+
+Kuhn, M. & Johnson, K. (2013). Applied Predictive Modeling. Springer.
+
+Smith et al. (1988). Pima Indians Diabetes Dataset. [mlbench package].
+
+## Method 6: Stepwise AIC Forward Regression
+
+Build regression model from a set of candidate predictor variables by entering predictors based on Akaike Information Criteria, in a stepwise manner until there is no variable left to enter any more. The model should include all the candidate predictor variables. If details is set to TRUE, each step is displayed.
+
+```{r}
+##############################
+#(7) Stepwise AIC Forward 
+##############################
+
+# stepwise aic forward regression
+ols_step_forward_aic(model)
+
+aic.forward <- ols_step_forward_aic(model)
+
+plot(aic.forward)
+```
+
+### Exmaple: Cholesterol Level
+
+Stepwise AIC Forward Regression builds a model by sequentially adding variables that most reduce the Akaike Information Criterion (AIC), a metric that balances model fit and complexity. It stops when no additional variables improve the AIC.
+
+In this example, we simulate a biomedical dataset where **cholesterol level** depends on various body and lifestyle variables.
+
+```{r }
+library(MASS)   # for stepAIC
+set.seed(123)
+```
+
+**Simulated Biomedical Dataset**
+
+```{r}
+n <- 100
+simdata <- data.frame(
+  Cholesterol = rnorm(n, mean = 200, sd = 25),
+  Age = rnorm(n, mean = 50, sd = 10),
+  BMI = rnorm(n, mean = 25, sd = 4),
+  HeartRate = rnorm(n, mean = 75, sd = 12),
+  Smoker = sample(c(0, 1), n, replace = TRUE),
+  Exercise = sample(1:5, n, replace = TRUE),
+  BloodPressure = rnorm(n, mean = 120, sd = 15)
+)
+
+# Add true associations
+simdata$Cholesterol <- 180 + 1.5 * simdata$BMI +
+  0.7 * simdata$Age - 5 * simdata$Exercise +
+  8 * simdata$Smoker + rnorm(n, 0, 10)
+```
+
+**AIC Forward Slection Model**
+
+```{r}
+library(MASS)
+null_mod <- lm(Cholesterol ~ 1, data = simdata)
+full_mod <- lm(Cholesterol ~ ., data = simdata)
+
+step_aic_forward <- stepAIC(null_mod,
+                            scope = list(lower = null_mod, upper = full_mod),
+                            direction = "forward",
+                            trace = FALSE)
+
+summary(step_aic_forward)
+```
+
+**AIC Value Plot**
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+aic_data <- step_aic_forward$anova
+aic_data$Step <- seq_len(nrow(aic_data))
+
+ggplot(aic_data, aes(x = Step, y = AIC)) +
+  geom_line(color = "#0072B2", size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Stepwise AIC Forward Selection",
+       x = "Step",
+       y = "AIC Value") +
+  theme_minimal()
+```
+
+**Final Model Coefficients**
+
+```{r}
+install.packages("broom")
+library(broom)
+coef_df <- tidy(step_aic_forward)
+
+ggplot(coef_df[-1, ], aes(x = reorder(term, estimate), y = estimate)) +
+  geom_col(fill = "#D55E00") +
+  coord_flip() +
+  labs(title = "Final Model Coefficients",
+       x = "Predictor",
+       y = "Coefficient Estimate") +
+  theme_minimal()
+```
+
+**Interpretation** The AIC plot helps you visualize how the model improves with each added predictor.
+
+The coefficient plot shows which variables are most strongly associated with cholesterol in the final model.
+
+This is helpful in biomedical research when identifying key risk factors from multiple candidate variables.
+
+## Method 7: Stepwise AIC Backward Regression
+
+Build regression model from a set of candidate predictor variables by removing predictors based on Akaike Information Criteria, in a stepwise manner until there is no variable left to remove any more. The model should include all the candidate predictor variables. If details is set to TRUE, each step is displayed.
+
+```{r}
+##############################
+#(7) Stepwise AIC Backward 
+##############################
+
+# stepwise aic backward regression
+
+ols_step_backward_aic(model)
+aic.backward <- ols_step_backward_aic(model)
+
+plot(aic.backward)
+```
+
+### Example: Disease Risk based on health indicators
+
+Build regression model from a set of candidate predictor variables by removing predictors based on Akaike Information Criterion (AIC), in a stepwise manner until there is no variable left to remove. The model begins with all predictors and selects the model with the lowest AIC. AIC balances model fit and complexity.
+
+In this example, we simulate data commonly seen in biomedical research, where we want to model DiseaseRisk based on five health indicators: age, BMI, systolic blood pressure (SBP), cholesterol, and physical activity.
+
+```{r}
+library(MASS)    # for stepAIC
+library(ggplot2) # for plots
+library(broom)   # for tidy model output
+
+set.seed(123)
+
+# Simulate a biomedical dataset
+biomed_df <- data.frame(
+  DiseaseRisk = rnorm(150, mean = 60, sd = 10),
+  Age = rnorm(150, mean = 50, sd = 12),
+  BMI = rnorm(150, mean = 25, sd = 4),
+  SBP = rnorm(150, mean = 120, sd = 15),
+  Cholesterol = rnorm(150, mean = 200, sd = 30),
+  Activity = rnorm(150, mean = 5, sd = 2)
+)
+
+# Introduce associations
+biomed_df$DiseaseRisk <- 20 + 0.6 * biomed_df$Age + 1.2 * biomed_df$BMI +
+  0.05 * biomed_df$SBP - 0.3 * biomed_df$Activity + rnorm(150, 0, 5)
+
+# Fit full model
+full_model <- lm(DiseaseRisk ~ Age + BMI + SBP + Cholesterol + Activity, data = biomed_df)
+
+# Run backward AIC selection
+backward_aic <- stepAIC(full_model, direction = "backward", trace = TRUE)
+```
+
+#### Final Model Coefficients
+
+```{r}
+coef_df <- tidy(backward_aic)
+
+ggplot(coef_df[-1, ], aes(x = reorder(term, estimate), y = estimate)) +
+  geom_col(fill = "#0072B2") +
+  coord_flip() +
+  labs(
+    title = "Final Model Coefficients (AIC Backward Selection)",
+    x = "Predictor",
+    y = "Coefficient Estimate"
+  ) +
+  theme_minimal()
+```
+
+#### AIC Change Across Steps
+
+```{r}
+trace_lines <- capture.output(stepAIC(full_model, direction = "backward", trace = TRUE))
+
+aic_lines <- grep("AIC=", trace_lines, value = TRUE)
+
+aic_values <- sapply(aic_lines, function(line) {
+  match <- regmatches(line, regexpr("AIC=\\s*[-]?[0-9.]+", line))
+  as.numeric(sub("AIC=\\s*", "", match))
+})
+
+aic_df <- data.frame(Step = seq_along(aic_values), AIC = aic_values)
+
+ggplot(aic_df, aes(x = Step, y = AIC)) +
+  geom_line(color = "#D55E00", size = 1.2) +
+  geom_point(size = 3, color = "#D55E00") +
+  labs(title = "AIC Change Across Backward Selection Steps",
+       x = "Step Number",
+       y = "AIC Value") +
+  theme_minimal()
+```
+
+**Interpretation**
+
+The stepwise backward regression begins with all candidate predictors and removes the least important ones based on AIC.
+
+A lower AIC indicates a better balance between goodness-of-fit and model simplicity.
+
+In the AIC change plot, we can observe how the AIC decreases as variables are removed from the model.
+
+**Reference**
+
+This method is based on the Stepwise model selection using AIC approach described in Modern Applied Statistics with S by W.N. Venables and B.D. Ripley (2002). The stepAIC() function used here is part of the MASS package, which is widely used in statistical modeling.
+
+## Method 8: Stepwise AIC Regression
+
+Build regression model from a set of candidate predictor variables by entering and removing predictors based on Akaike Information Criteria, in a stepwise manner until there is no variable left to enter or remove any more. The model should include all the candidate predictor variables. If details is set to TRUE, each step is displayed.
+
+```{r}
+##############################
+#(7) Stepwise AIC  
+##############################
+# stepwise aic regression
+
+ols_step_both_aic(model)
+aic.both <- ols_step_both_aic(model)
+
+plot(aic.both)
+```
+
+### Example: Predicting Tumor Malignancy from Biopsy Measurements
+
+We use the `BreastCancer` dataset from the `mlbench` package. This dataset contains digitized biopsy measurements for breast tumors, with the outcome variable `Class` indicating whether the tumor is malignant or benign.
+
+Our goal is to build a logistic regression model to predict malignancy based on cell features, and apply stepwise AIC to select relevant variables.
+
+```{r }
+library(mlbench)
+library(dplyr)
+
+data("BreastCancer")
+
+bc <- BreastCancer %>% dplyr::select(-Id)
+
+bc$Class <- ifelse(bc$Class == "malignant", 1, 0)
+
+bc[, -which(names(bc) == "Class")] <- lapply(bc[, -which(names(bc) == "Class")], function(x) as.numeric(as.character(x)))
+
+bc <- na.omit(bc)
+
+str(bc$Class)
+table(bc$Class)
+
+
+```
+
+**Fit the Full Logistic Regression Model**
+
+```{r}
+model <- glm(Class ~ ., data = bc, family = binomial)
+summary(model)
+
+```
+
+#### Stepwise AIC Variable Selection
+
+```{r}
+step_model <- stepAIC(model_full, direction = "both", trace = TRUE)
+summary(step_model)
+
+```
+
+#### Model Diagnostics and AIC Plot
+
+```{r}
+# Capture stepwise output
+step_trace <- capture.output(
+  step_model <- stepAIC(model_full, direction = "both", trace = TRUE)
+)
+
+# Extract AIC values from output
+aic_lines <- grep("AIC=", step_trace, value = TRUE)
+aic_values <- as.numeric(sub(".*AIC=\\s*([0-9\\.]+).*", "\\1", aic_lines))
+steps <- seq_along(aic_values)
+
+library(ggplot2)
+ggplot(data.frame(Step = steps, AIC = aic_values), aes(x = Step, y = AIC)) +
+  geom_line(color = "blue") +
+  geom_point(color = "red") +
+  labs(title = "Stepwise AIC Selection Process",
+       x = "Step",
+       y = "AIC") +
+  theme_minimal()
+```
+
+**Interpretation**
+
+The stepwise AIC method iteratively selects predictors to optimize the model's trade-off between goodness-of-fit and complexity. The final logistic regression model provides a parsimonious and interpretable prediction of malignancy status in breast cancer patients.
+

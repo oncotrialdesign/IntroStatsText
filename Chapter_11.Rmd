@@ -1,0 +1,258 @@
+
+
+# Random Sampling
+
+```{r}
+library(IntroStats)
+```
+
+## Random Number Generators
+
+The `runif()` function generates random numbers from a **uniform distribution** over the interval [0, 1] by default.
+
+```{r}
+set.seed(123)
+uniform_sample <- runif(100)
+hist(uniform_sample, col = "skyblue", main = "Uniform(0,1) Distribution", xlab = "Value")
+```
+
+You can also generate numbers from any interval [a,b]:
+
+```{r}
+runif(5, min = 10, max = 20)
+
+```
+
+### Random Numbers Sampling Using a Seed
+
+To ensure reproducibility, use set.seed() before generating random numbers. This ensures the same output each time.
+
+```{r}
+set.seed(2025)
+runif(3)
+```
+
+### Random Numbers from a Normal Distribution
+
+```{r}
+set.seed(42)
+normal_sample <- rnorm(1000, mean = 0, sd = 1)
+hist(normal_sample, col = "salmon", main = "Standard Normal Distribution", xlab = "Value")
+
+```
+
+### Random Numbers from a Binomial Distribution
+
+```{r}
+set.seed(10)
+binomial_sample <- rbinom(1000, size = 10, prob = 0.5)
+hist(binomial_sample, col = "lightgreen", main = "Binomial(n=10, p=0.5)", xlab = "Successes")
+
+```
+
+### Random Numbers from a Poisson Distribution
+
+Use rpois(n, lambda) where lambda is the average rate of occurrence.
+
+```{r}
+poisson_sample <- rpois(1000, lambda = 5)
+hist(poisson_sample, col = "lightblue", main = "Poisson(λ = 5)", xlab = "Count")
+
+```
+
+### Random Numbers from a t Distribution
+
+Use rt(n, df) for random values from a Student's t distribution.
+
+```{r}
+t_sample <- rt(1000, df = 10)
+hist(t_sample, col = "orange", main = "t-distribution (df=10)", xlab = "Value")
+```
+
+### Random Numbers from an F Distribution
+
+Use rf(n, df1, df2) to generate values from an F-distribution.
+
+```{r}
+f_sample <- rf(1000, df1 = 5, df2 = 10)
+hist(f_sample, col = "plum", main = "F(5,10) Distribution", xlab = "Value", xlim = c(0,5))
+```
+
+### Random Numbers from a Chi-square Distribution
+
+Use rchisq(n, df) for Chi-square distributed values.
+
+```{r}
+chi_sample <- rchisq(1000, df = 4)
+hist(chi_sample, col = "khaki", main = "Chi-square(df=4)", xlab = "Value")
+```
+
+### Examples
+
+**Example 1**
+
+```{r}
+#Sample from population
+officials = c("G", "L", "S", "A", "T")
+
+#Draw a sample of 2 officials without replacement
+sample(officials, size = 2, replace = FALSE)
+
+#Draw a sample of 4 officials without replacement
+sample(officials, size = 4, replace = FALSE)
+
+#Draw a sample of 4 officials with replacement
+sample(officials, size = 4, replace = TRUE)
+
+```
+**Example2**
+
+```{r}
+
+#Stratified sampling proportional allocation
+
+stratum1 = 1:400 #a set of integers from 1 to 400
+stratum2 = 401:1000 #a set of integers from 401 to 1000
+stratum3 = 1001:1800
+stratum4 = 1801:2000
+
+#Total sample size
+N = 10
+
+#size by each stratum
+
+n1 = N * 400 / 2000
+n2 = N * 600 / 2000
+n3 = N * 800 / 2000
+n4 = N * 200 / 2000
+
+#sample by each stratum
+s1 = sample(stratum1, size=n1, replace=FALSE)
+s2 = sample(stratum2, size=n2, replace=FALSE)
+s3 = sample(stratum3, size=n3, replace=FALSE)
+s4 = sample(stratum4, size=n4, replace=FALSE)
+
+#combine stratum samples together
+s = c(s1, s2, s3, s4)
+s1
+s2
+s3
+s4
+
+s
+```
+
+**Example3**
+
+```{r}
+
+#Stratified sampling proportional allocation
+
+stratum1 = 1:25 #a set of integers from 1 to 25
+stratum2 = 26:200 #a set of integers from 26 to 200
+stratum3 = 201:250
+
+#Total sample size
+N = 20
+
+#size by each stratum
+
+n1 = N * 25 / 250
+n2 = N * 175 / 250
+n3 = N * 50 / 250
+
+#sample by each stratum
+s1 = sample(stratum1, size=n1, replace=FALSE)
+s2 = sample(stratum2, size=n2, replace=FALSE)
+s3 = sample(stratum3, size=n3, replace=FALSE)
+
+#combine stratum samples together
+s = c(s1, s2, s3)
+s1
+s2
+s3
+
+s
+```
+
+## Random Sampling from a Sample
+
+Random sampling is often used to estimate population quantities or build simulations.
+
+### Bootstrap Sampling with Replacement
+
+Bootstrap is a resampling technique that involves repeatedly drawing samples with replacement from the original dataset. This method allows us to estimate the sampling distribution of a statistic, such as the mean.
+
+```{r}
+data <- c(5, 7, 8, 10, 13)
+set.seed(1)
+bootstrap_sample <- sample(data, size = 5, replace = TRUE)
+bootstrap_sample
+```
+In the code below, we generate a single bootstrap sample and then repeat this process 1,000 times to compute the mean of each sample. The histogram displays the distribution of these bootstrap means.
+
+```{r}
+data <- c(5, 7, 8, 10, 13)
+set.seed(1)
+B <- 1000
+means <- replicate(B, mean(sample(data, size = 5, replace = TRUE)))
+length(means) 
+head(means)   
+
+hist(means,
+     breaks = 30,
+     col = "gray",
+     main = "Bootstrap Sampling Distribution of Mean",
+     xlab = "Sample Mean")
+```
+
+
+### Random Sampling without Replacement
+Use sample() without the replace=TRUE argument to select unique items.
+
+```{r}
+
+set.seed(123)
+sample(data, size = 3, replace = FALSE)
+```
+
+
+## Stratified sampling with proportional allocation
+
+The following R function is to sample data with proportional allocation
+```{r}
+strat.sample = function(x, strata, size, proportional = TRUE){
+  #x: an array that represents the entire population
+  #strata: stratum indicator
+  #size: sample size
+  #proportional: TRUE or FALSE. If true, the sample is proportional to the strata size.
+  
+  n = length(x)
+  u.strata = unique(strata)
+  n.strata = length(u.strata)
+  m = rep(NA, n.strata) #size of each stratum
+  
+  for (i in 1:n.strata){m[i] = length(strata[strata == u.strata[i]])}
+  ni = round(size*m/n)
+  if (sum(ni) > size) {ni[n.strata] = ni[n.strata] - (sum(ni) - size)} else if (sum(ni) < size) {ni[n.strata] = ni[n.strata] + (size-sum(ni))}
+  
+  if(proportional){
+      s = NULL
+      for (i in 1:n.strata){
+        s = c(s, sample(x[strata == strata[i]], size=ni[i], replace=FALSE))
+      }
+  } else {
+    s= sample(x, size=size, replace=FALSE)
+  }
+  return(s)
+}
+
+strat.sample(x=rnorm(100), strata=c(rep(1, 20), rep(2, 40), rep(3, 40)), size=10, proportional = TRUE)
+
+strat.sample(x=rnorm(100), strata=c(rep(1, 20), rep(2, 40), rep(3, 40)), size=12, proportional = TRUE)
+```
+
+
+
+
+

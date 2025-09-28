@@ -1,0 +1,689 @@
+
+
+# Chi-Square Tests
+
+```{r}
+library(IntroStats)
+```
+
+## Chi-Square Distribution
+
+If a random variable $Y$ is normally distributed with mean $\mu$ and variance $\sigma^2$, then the standardized variable $z = \frac{Y - \mu}{\sigma}$ follows a standard normal distribution, $N(0,1)$. 
+
+The square of this standardized variable, $\chi^2_{(1)} = z^2$, follows a chi-square distribution with 1 degree of freedom.
+
+More generally, if $z_1, z_2, \dots, z_n$ are independent standard normal variables, then their sum of squares 
+$$
+\chi^2_{(n)} = z_1^2 + z_2^2 + \dots + z_n^2
+$$
+follows a chi-square distribution with $n$ degrees of freedom.
+
+
+### Properties of Chi-Square Distribution
+
+
+The chi-square distribution has the following key characteristics:
+
+- It is right-skewed, especially for low degrees of freedom.
+- As degrees of freedom increase, it approaches a normal distribution.
+- The total area under the chi-square curve is 1.
+
+The R code below demonstrates the shape of the distribution at various degrees of freedom.
+
+
+```{r}
+x <- seq(0, 50, by = 0.01)
+plot(x, dchisq(x, df = 1), type = "l", main = "Chi-Square Density (df = 1)")
+lines(x, dchisq(x, df = 5), col = 2, lwd = 2)
+lines(x, dchisq(x, df = 15), col = 3, lwd = 2)
+lines(x, dchisq(x, df = 30), col = 4, lwd = 2)
+legend("topright", legend = c("df=1", "df=5", "df=15", "df=30"),
+       col = c(1, 2, 3, 4), lwd = 2)
+```
+
+
+We can also calculate specific quantiles using the `qchisq()` function.
+
+Example: Compute the 2.5th and 97.5th percentiles for 20 degrees of freedom.
+
+```{r}
+qchisq(p = 0.025, df = 20)   # Lower 2.5% quantile
+qchisq(p = 0.975, df = 20)   # Upper 2.5% quantile (97.5%)
+```
+
+## Example: Quantiles for df = 22
+
+Determine the chi-square values (quantiles) for different areas under the curve for 22 degrees of freedom.
+
+
+```{r}
+# (a) 0.01 area to the right (99th percentile)
+qchisq(p = 0.99, df = 22)
+```
+
+```{r}
+# (b) 0.005 area to the right (99.5th percentile)
+qchisq(p = 0.995, df = 22)
+```
+
+```{r}
+# (c) 0.01 area to the left (1st percentile)
+qchisq(p = 0.01, df = 22)
+```
+
+
+These quantiles are commonly used in hypothesis testing for determining critical values when using the chi-square distribution.
+
+
+### General Formulation of the Chi-Square Test
+
+
+Chi-square tests are used with categorical data to compare observed frequencies ($O_i$) to expected frequencies ($E_i$).
+
+The test statistic is calculated as:
+$$
+\chi^2 = \sum \frac{(O_i - E_i)^2}{E_i}
+$$
+
+Under the null hypothesis, this test statistic follows approximately a chi-square distribution with $(k - r)$ degrees of freedom, where:
+- $k$ is the number of categories
+- $r$ is the number of constraints (e.g., parameters estimated)
+
+This test is widely used for:
+- Testing goodness-of-fit
+- Testing independence in contingency tables
+- Testing homogeneity of proportions across groups
+
+
+### Types of Chi-Square Tests and Decision Rules
+
+
+There are three main types of chi-square tests:
+
+1. Goodness-of-Fit Test:
+   - Compares observed frequencies to expected frequencies from a known distribution.
+
+2. Test of Independence:
+   - Determines if two categorical variables are independent in a contingency table.
+
+3. Test of Homogeneity:
+   - Compares the distribution of a categorical variable across different populations.
+
+**Decision Rule:**
+- If the observed and expected values are close, the $\chi^2$ statistic will be small, and we fail to reject the null hypothesis.
+- If the observed values deviate significantly from the expected, the $\chi^2$ statistic will be large, and we may reject the null hypothesis.
+
+**Applicability Conditions:**
+- Common rule: All expected cell counts should be at least 5.
+- Cochran (1952, 1954) noted that for unimodal distributions (e.g., normal), expected frequencies as low as 1 may be acceptable.
+- If expected frequencies are too small, categories should be combined to meet the assumptions of the test.
+
+References:
+- Cochran, W.G. (1952). The chi-square test of goodness-of-fit. *Annals of Mathematical Statistics*, 23, 315–345.
+- Cochran, W.G. (1954). Some methods for strengthening the common chi-squared test. *Biometrics*, 10, 417–451.
+
+## Chi-Square Test of Goodness-of-Fit
+
+### Example: Testing for Normal Distribution
+
+
+Researchers studied 47 diabetic patients to see whether their cholesterol levels followed a normal distribution. The observed frequency data for different cholesterol intervals is shown below.
+
+We want to test whether this data provides enough evidence to say it *does not* come from a normal distribution. Use significance level $\alpha = 0.05$.
+
+
+```{r}
+freq <- c(1, 3, 8, 18, 6, 4, 4, 3)
+barplot(freq, 
+        col = rep("lightblue", length(freq)), 
+        ylab = "Frequency", 
+        main = "Observed Cholesterol Frequencies")
+```
+
+
+
+#### Step 1: Hypotheses
+
+- $H_0$: The cholesterol levels follow a normal distribution.
+- $H_a$: The cholesterol levels do **not** follow a normal distribution.
+
+#### Step 2: Assumptions
+
+We estimate the mean and standard deviation from the sample:  
+- Sample mean: $\bar{x} = 198.67$  
+- Sample standard deviation: $s = 41.31$
+
+We then compute the probability of each interval under the assumed normal distribution, convert it to expected frequency by multiplying by $n = 47$.
+
+This gives us the following expected values for each cholesterol category:
+
+
+![Expected frequencies](https://i.ibb.co/jHd3K5t/table12-3-2.png)
+
+
+#### Step 3: Test Statistic
+
+Using the formula
+$$
+\chi^2 = \sum \frac{(O_i - E_i)^2}{E_i}
+$$
+we compute the test statistic using the observed and expected frequencies.
+
+The calculated test statistic is: $\chi^2 = 10.566$
+
+
+
+#### Step 4: Degrees of Freedom
+
+We have 8 cholesterol intervals (groups), and 3 constraints:
+- 2 parameters estimated (mean, standard deviation)
+- 1 constraint that total observed = total expected
+
+So degrees of freedom = $8 - 3 = 5$
+
+#### Step 5: Critical Value
+
+At $\alpha = 0.05$ and df = 5, the critical value is:
+
+```{r}
+qchisq(p = 0.95, df = 5)
+```
+
+Result: `11.070`
+
+
+
+#### Step 6: Conclusion
+
+Since the test statistic (10.566) is less than the critical value (11.070), we **fail to reject the null hypothesis**.
+
+There is **not enough evidence** to say the cholesterol data is *not* normally distributed.
+
+We conclude that the data **could reasonably come from a normal population**.
+
+
+![Comparing observed and expected frequencies](https://i.ibb.co/nwB5cV5/table12-3-3.png)
+
+
+
+### Example: Testing a Uniform Distribution
+
+
+In genetics, a trait is believed to follow a 1:2:1 distribution:
+- 25% homozygous dominant
+- 50% heterozygous
+- 25% homozygous recessive
+
+In a study of 200 individuals, the observed counts were:
+- Dominant: 43
+- Heterozygous: 125
+- Recessive: 32
+
+We want to test whether this sample fits the 1:2:1 distribution.
+
+
+#### Step 1: Hypotheses
+
+
+- $H_0$: The data follows the 1:2:1 genetic distribution.
+- $H_a$: The data does **not** follow the 1:2:1 genetic distribution.
+
+
+#### Step 2: Expected Frequencies
+
+
+Expected counts under 1:2:1 distribution:
+- Dominant = 0.25 × 200 = 50
+- Heterozygous = 0.50 × 200 = 100
+- Recessive = 0.25 × 200 = 50
+
+
+#### Step 3: Compute the Chi-Square Statistic
+
+
+Observed:     [43, 125, 32]  
+Expected:     [50, 100, 50]
+
+$$
+\chi^2 = \frac{(43-50)^2}{50} + \frac{(125-100)^2}{100} + \frac{(32-50)^2}{50}
+= \frac{49}{50} + \frac{625}{100} + \frac{324}{50} = 0.98 + 6.25 + 6.48 = 13.71
+$$
+
+
+#### Step 4: Degrees of Freedom
+
+
+df = Number of categories – 1 = 3 – 1 = 2
+
+
+#### Step 5: Critical Value
+
+```{r}
+qchisq(p = 0.95, df = 2)
+```
+
+Result: `5.991`
+
+#### Step 6: Conclusion
+
+
+The test statistic (13.71) is much greater than the critical value (5.991).  
+**Reject the null hypothesis.**
+
+There is **strong evidence** that the trait **does not follow** the expected 1:2:1 distribution.
+
+
+
+
+### Other Applications of the Goodness-of-Fit Test
+
+
+The chi-square goodness-of-fit test is not limited to normal or uniform distributions. It can also be applied to test whether observed data matches any theoretical distribution, including:
+
+- Binomial distributions
+- Poisson distributions
+- Geometric distributions
+
+The method is always the same:
+1. Determine expected frequencies using the theoretical distribution
+2. Compute $\chi^2$ statistic
+3. Compare to critical value at appropriate df
+4. Conclude whether the data fits the distribution
+
+
+
+
+### Step-by-Step Procedure (Summary)
+
+
+Use the following checklist when performing a chi-square goodness-of-fit test:
+
+1. **State Hypotheses**
+   - $H_0$: The data follows the specified distribution
+   - $H_a$: The data does not follow the specified distribution
+
+2. **Find Observed and Expected Frequencies**
+   - Observed: Count from data
+   - Expected: Calculate using the assumed distribution
+
+3. **Compute Test Statistic**
+   $$
+   \chi^2 = \sum \frac{(O_i - E_i)^2}{E_i}
+   $$
+
+4. **Determine Degrees of Freedom**
+   - df = Number of categories – Number of estimated parameters – 1
+
+5. **Find Critical Value**
+   - Use `qchisq()` with your $\alpha$ level and df
+
+6. **Compare and Decide**
+   - If $\chi^2$ is greater than critical value: reject $H_0$
+   - If $\chi^2$ is less than critical value: fail to reject $H_0$
+
+![Chi-square Goodness-of-fit](https://i.ibb.co/XXcjsZ6/Procedure13-1a.png)
+![Chi-square Goodness-of-fit](https://i.ibb.co/885Jm5y/Procedure13-1b.png)
+
+
+## Chi-Square Test of Independence
+
+### Example: Race and Preconceptional Use of Folic Acid
+
+In 1992, the U.S. Public Health Service and the CDC recommended that women of childbearing age take 400 µg of folic acid daily to reduce neural tube birth defects.
+
+To evaluate whether race is associated with folic acid use, a study was conducted involving 693 pregnant women who called a teratology information service.
+
+The researchers recorded whether each woman took folic acid before pregnancy and their race (White, Black, Other). We want to test whether **folic acid use and race are independent**.
+
+#### Step 1: Observed Frequencies
+
+```{r}
+# Contingency table of observed counts
+M <- as.table(rbind(c(260, 299), 
+                    c(15, 41), 
+                    c(7, 14)))
+dimnames(M) <- list(Race = c("White", "Black", "Other"),
+                    Folic = c("Yes", "No"))
+
+# View the contingency table
+M
+```
+
+This table shows counts of women by race and whether they used folic acid before conception.
+
+We will now test for independence using a chi-square test.
+
+![Observed Frequencies Table](https://i.ibb.co/M1HTpMm/table12-4-3.png)
+
+
+
+#### Step 2: Hypotheses
+
+- $H_0$: Race and folic acid use are independent.  
+- $H_a$: Race and folic acid use are associated.
+
+
+
+#### Step 3: Compute Expected Frequencies
+
+```{r}
+Xsq <- chisq.test(M)   # Run test
+Xsq$expected           # View expected frequencies under independence
+```
+
+Expected frequencies are calculated using:
+
+$$
+E_{r,c} = \frac{(row\ total) \times (column\ total)}{n}
+$$
+
+Example: For White women who used folic acid,
+$$
+E_{1,1} = \frac{559 \times 282}{636} = 247.86
+$$
+
+
+
+#### Step 4: Test Statistic and Degrees of Freedom
+
+```{r}
+Xsq$statistic   # Chi-square value
+Xsq$parameter   # Degrees of freedom
+```
+
+Test statistic: $\chi^2 = 9.0896$  
+Degrees of freedom: $(3 - 1)(2 - 1) = 2$
+
+
+
+#### Step 5: Critical Value
+
+```{r}
+qchisq(p = 0.95, df = 2)
+```
+
+Result: `5.991`
+
+
+
+#### Step 6: Conclusion
+
+Since the test statistic (9.09) > critical value (5.991),  
+we **reject the null hypothesis**.
+
+There is **significant evidence** of an association between race and folic acid use before pregnancy.
+
+![Test Results Summary](https://i.ibb.co/TM6j2tb/table12-4-4.png)
+
+
+
+### Yates’s Correction for 2×2 Tables
+
+When using a 2×2 contingency table with small sample sizes, the chi-square test may **overestimate significance**. To correct this, Yates (1934) introduced a continuity correction.
+
+The corrected formula is:
+
+$$
+\chi^2_{corrected} = \frac{n(|ad - bc| - 0.5n)^2}{(a + c)(b + d)(a + b)(c + d)}
+$$
+
+This correction reduces the absolute value of the difference between observed and expected, making the test more conservative.
+
+```{r}
+# With Yates correction (default = TRUE)
+chisq.test(M, correct = TRUE)
+
+# Without correction
+chisq.test(M, correct = FALSE)
+```
+
+In R, the correction is applied by default for 2×2 tables. For larger tables like 3×2 (our current case), the correction is not used.
+
+Use the correction only when **both** conditions are met:
+- It’s a 2×2 table
+- Some expected frequencies are small (e.g., < 5)
+
+
+
+### Step-by-Step Procedure (Summary)
+
+Use the following procedure when conducting a chi-square test of independence:
+
+1. **State Hypotheses**
+   - $H_0$: The row and column variables are independent.
+   - $H_a$: There is an association between them.
+
+2. **Create the Contingency Table**
+   - Record observed counts across categories.
+
+3. **Calculate Expected Counts**
+   - Use: $E_{r,c} = \frac{(row\ total)(column\ total)}{n}$
+
+4. **Compute Chi-Square Statistic**
+   - Use: $\chi^2 = \sum \frac{(O_i - E_i)^2}{E_i}$
+
+5. **Degrees of Freedom**
+   - $(\text{#rows} - 1)(\text{#columns} - 1)$
+
+6. **Compare to Critical Value**
+   - Use `qchisq(p, df)` to get critical value.
+
+7. **Make a Decision**
+   - If $\chi^2 >$ critical value → reject $H_0$
+   - Otherwise, fail to reject $H_0$
+
+![Procedure Image 1](https://i.ibb.co/nfh45Rm/Procedure13-2a.png)  
+![Procedure Image 2](https://i.ibb.co/vV9MSbn/Procedure13-2b.png)
+
+## Chi-square Test of Homogeneity
+
+### Case Study: Are Migraine Rates Different in People with Narcolepsy?
+
+Suppose a neurologist wants to know whether migraine headaches occur at different rates in people with narcolepsy compared to healthy individuals. A sample of 96 people with narcolepsy and 96 healthy controls were surveyed.
+
+We want to test whether migraine frequency is the same across the two groups — in other words, whether the groups are homogeneous regarding migraine experience.
+
+#### Hypotheses
+
+- $H_0$: The two groups have the same migraine distribution (homogeneous).
+- $H_A$: The groups differ in migraine rates (not homogeneous).
+
+#### Observed Data
+
+| Group         | Migraine | No Migraine | Total |
+|---------------|----------|-------------|--------|
+| Narcolepsy    | 35       | 61          | 96     |
+| Healthy       | 32       | 64          | 96     |
+| **Total**     | 67       | 125         | 192    |
+
+```{r}
+migraine_tbl <- as.table(rbind(c(35, 61),
+                               c(32, 64)))
+dimnames(migraine_tbl) <- list(Group = c("Narcolepsy", "Healthy"),
+                               Migraine = c("Yes", "No"))
+chisq.test(migraine_tbl, correct = FALSE)
+```
+
+#### Result & Interpretation
+
+The Chi-square test returns a statistic of 0.126 with 1 degree of freedom. At the 5% level, the cutoff is 3.841. Since 0.126 is much smaller than 3.841, we do not reject the null hypothesis. This means we have no strong evidence that migraine patterns are different in the two groups — their distributions appear similar.
+
+
+
+### Example: Comparing Two Independent Proportions with a Medical Test
+
+Let’s say we’re testing whether a new diagnostic test shows different positive rates across two hospitals.
+
+- **Hospital A:** 100 patients tested, 60 positive  
+- **Hospital B:** 120 patients tested, 48 positive
+
+We want to compare whether the proportion of positives is the same in both places.
+
+#### Hypotheses
+
+- $H_0$: The proportion of positives is the same in both hospitals.
+- $H_A$: The proportions are different.
+
+Instead of doing separate tests for each proportion, we compare them simultaneously.
+
+#### Contingency Table
+
+| Hospital | Positive | Negative | Total |
+|----------|----------|----------|--------|
+| A        | 60       | 40       | 100    |
+| B        | 48       | 72       | 120    |
+| **Total**| 108      | 112      | 220    |
+
+```{r}
+test_tbl <- as.table(rbind(c(60, 40),
+                           c(48, 72)))
+dimnames(test_tbl) <- list(Hospital = c("A", "B"),
+                           Result = c("Positive", "Negative"))
+
+chisq.test(test_tbl, correct = FALSE)
+chisq.test(test_tbl, correct = TRUE)
+```
+
+#### Why This Works
+
+The Chi-square test is comparing the difference between observed and expected counts under the assumption that the two proportions are the same. This test is mathematically equivalent to a z-test for proportions — in fact, the Chi-square statistic is just the square of the z-score.
+
+#### Interpretation
+
+The test statistic is around 8.73. This is larger than the critical value (3.841), so we reject the null hypothesis. This means there’s a statistically significant difference in test positivity between the two hospitals.
+
+
+
+### McNemar’s Test: Rash Before and After Treatment in the Same Patients
+
+Let’s shift focus to a paired comparison. In this case, we measure the same group of patients before and after giving them a treatment for a skin rash.
+
+#### Study Setup
+
+- 100 patients were checked at Time 1 (before treatment) and again at Time 2 (after treatment).
+- We only care about changes in rash status (yes/no), not severity.
+
+#### Data
+
+|               | Rash After | No Rash After | Total |
+|---------------|------------|----------------|--------|
+| Rash Before   | 38         | 12             | 50     |
+| No Rash Before| 5          | 45             | 50     |
+| **Total**     | 43         | 57             | 100    |
+
+Here, we only focus on discordant pairs:
+- 12 improved (rash → no rash)
+- 5 worsened (no rash → rash)
+
+McNemar’s test uses:
+
+$$
+\chi^2 = \frac{(b - c)^2}{b + c}
+$$
+
+Where:
+- $b$ = count of patients who improved (12)
+- $c$ = count who worsened (5)
+
+So:
+
+$$
+\chi^2 = \frac{(12 - 5)^2}{12 + 5} = \frac{49}{17} \approx 2.88
+$$
+
+```{r}
+rash_tbl <- as.table(rbind(c(38, 12),
+                           c(5, 45)))
+dimnames(rash_tbl) <- list(Time1 = c("Rash", "No Rash"),
+                           Time2 = c("Rash", "No Rash"))
+
+mcnemar.test(rash_tbl, correct = FALSE)
+mcnemar.test(rash_tbl, correct = TRUE)
+```
+
+#### Interpretation
+
+The test statistic is 2.88 with 1 degree of freedom. This is less than the cutoff of 3.841, so we do not reject the null hypothesis. That means the treatment didn’t cause a statistically significant change in rash status — though more people improved than worsened, the difference could just be due to chance in this sample.
+
+
+### Procedure for Conducting a Chi-square Test of Homogeneity
+
+![Chi-square Homogeneity test](https://i.ibb.co/wM9rQPZ/Procedure13-3a.png)  
+![Chi-square Goodness-of-fit](https://i.ibb.co/rvQqGmq/Procedure13-3b.png)
+
+
+## Example: Infection Type vs Antibiotic Response
+
+```{r}
+# Biomedical Example: Infection Type vs Antibiotic Response
+
+# A hospital wants to assess whether the effectiveness of three antibiotics (A, B, C)
+# depends on the type of infection: respiratory, urinary, or skin infection.
+# The observed data shows the number of patients who responded positively
+# to each antibiotic by infection type.
+
+# Construct the contingency table:
+infection_data <- matrix(c(30, 20, 10,   # Antibiotic A
+                           25, 30, 15,   # Antibiotic B
+                           20, 25, 25),  # Antibiotic C
+                         nrow = 3, byrow = TRUE)
+
+colnames(infection_data) <- c("Respiratory", "Urinary", "Skin")
+rownames(infection_data) <- c("Antibiotic A", "Antibiotic B", "Antibiotic C")
+
+infection_data <- as.table(infection_data)
+infection_data
+```
+
+### Hypotheses
+
+```{r}
+# Null hypothesis (H0): The response to antibiotics is independent of infection type.
+# Alternative hypothesis (Ha): The response to antibiotics depends on the infection type.
+```
+
+### Chi-Square Test of Independence
+
+```{r}
+# Perform the chi-square test of independence:
+test_result <- chisq.test(infection_data)
+
+# Print observed and expected counts:
+test_result$observed
+test_result$expected
+```
+
+### Interpretation
+
+```{r}
+# Print test statistic, degrees of freedom, and p-value:
+test_result
+```
+
+```{r}
+# Interpretation:
+# The Chi-square test statistic is compared to a critical value from the Chi-square distribution,
+# or we use the p-value approach.
+
+# If p-value < 0.05, we reject the null hypothesis and conclude
+# that there is a significant association between infection type and antibiotic response.
+```
+
+### Visualizing the Results
+
+```{r}
+# Create a mosaic plot to visualize the relationship:
+mosaicplot(infection_data,
+           main = "Antibiotic Response by Infection Type",
+           color = TRUE,
+           xlab = "Infection Type",
+           ylab = "Antibiotic",
+           las = 1)
+```
+
+### Conclusion
+
+Suppose the p-value from the test is 0.037.Since 0.037 < 0.05, we reject the null hypothesis.
+
+Conclusion: There is a statistically significant association between infection type and antibiotic response. Certain antibiotics may be more effective for specific types of infections, and treatment plans should consider this interaction.
+

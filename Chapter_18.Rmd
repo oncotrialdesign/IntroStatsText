@@ -1,0 +1,674 @@
+
+# One-Way ANOVA
+
+```{r}
+library(IntroStats)
+```
+
+## Introduction to ANOVA
+
+The statistical technique known as Analysis of Variance (ANOVA) was primarily developed by the pioneering statistician R.A. Fisher. ANOVA plays a critical role in experimental data analysis, particularly when researchers aim to compare the means of three or more populations simultaneously.
+
+When the goal is to compare the means of two populations, several methods are typically employed. A pooled t-test, used when the population variances are assumed equal ($\sigma_1 = \sigma_2$). An unpooled (Welch’s) t-test, applied when the variances are not assumed equal ($\sigma_1 \ne \sigma_2$). A Wilcoxon Rank-Sum test, a nonparametric alternative when normality cannot be assumed for the populations.
+
+However, when the comparison involves more than two population means, these pairwise methods are insufficient. Instead, ANOVA provides a framework to test the following hypotheses:
+
+$$H_0: \mu_1 = \mu_2 = \cdots = \mu_k$$  
+$$H_a: \text{At least one } \mu_j \text{ differs from the others}.$$
+
+In such cases, ANOVA helps determine whether any of the group means are statistically significantly different from each other, without inflating the Type I error rate that would result from conducting multiple pairwise comparisons.
+
+
+### Why Do Variances Matter When Comparing Means?
+
+![Figure. Analysis of variances is essential for comparing means. The top figure is unlikely to indicate difference in $\mu_1$ and $\mu_2$, because it is unclear whether the difference is due to the difference in population means ($\mu_1, \mu_2$) or to the variation within the populations.](https://i.ibb.co/p0ggLw7/ANOVA-illustration.png)
+
+When we compare the means of two groups, simply observing that the sample means are different isn't enough to claim a meaningful difference exists between the populations. The observed gap between $\bar{x}_1$ and $\bar{x}_2$ might reflect a true difference in the population means ($\mu_1 \ne \mu_2$), or it might just be due to natural variability within the data.
+
+This idea is important in statistical inference: we want to know if the difference between the sample means is big enough, compared to the variability in the data, to suggest that it’s not just due to random chance.If the variability within each group is high, even a moderate difference in sample means might not be convincing. But if the variability is low, that same difference might be strong evidence of a true effect.
+
+This reasoning is captured in the pooled two-sample *t*-test, where the test statistic is:
+\[
+t = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}
+\]
+Here:
+- $\bar{x}_1$ and $\bar{x}_2$ are the sample means,  
+- $s_p$ is the pooled standard deviation,  
+- $n_1$ and $n_2$ are the sample sizes.
+
+The *t*-value tells us how large the difference in sample means is **relative to** the pooled variation, adjusted for sample size. If this ratio is large, it indicates strong evidence that the population means are different — and we would reject the null hypothesis. But if the ratio is small, the difference may just be due to random chance, and we fail to reject $H_0$.
+
+This is why variation within groups must always be taken into account when comparing means.
+
+
+## Key Assumptions of ANOVA
+
+To ensure the validity of ANOVA results, the following assumptions must be satisfied:
+
+1. **Independence**  
+   - Observations within and across groups must be independent of one another.
+   - This is typically ensured through proper experimental design, such as random assignment.
+
+2. **Normality**  
+   - The distribution of the residuals (errors) within each group should be approximately normal.
+   - This assumption becomes less critical with larger sample sizes due to the Central Limit Theorem.
+
+3. **Homogeneity of Variance (Homoscedasticity)**  
+   - All groups should have approximately equal variances.
+   - This can be checked using tests like Levene’s test or by examining residual plots.
+
+Violations of these assumptions can affect the accuracy of p-values and the validity of conclusions drawn from ANOVA. When assumptions are not met, alternative methods like the Welch’s ANOVA (for unequal variances) or nonparametric tests (e.g., Kruskal-Wallis test) may be more appropriate.
+
+## One- Way ANOVA Procedure
+
+1. **Description of Data**  
+   Identify the response (dependent) variable and the factor (independent variable) under consideration. Determine how many groups or treatment levels are being compared and ensure the data is appropriately structured (e.g., each observation is linked to a specific group).
+
+2. **Assumptions**  
+   ANOVA requires several key assumptions:
+   - **Independence**: Observations are independently and randomly sampled.
+   - **Normality**: The residuals (errors) in each group are approximately normally distributed.
+   - **Homogeneity of Variances**: The variances across the groups are roughly equal (also known as homoscedasticity). This can be checked using Levene’s Test or Bartlett’s Test.
+
+3. **Hypotheses**  
+   Let $\mu_1, \mu_2, \dots, \mu_k$ represent the population means of the $k$ groups.
+   - Null hypothesis ($H_0$): $\mu_1 = \mu_2 = \dots = \mu_k$ (all group means are equal)
+   - Alternative hypothesis ($H_a$): At least one group mean is different
+
+4. **Test Statistic**  
+   The ANOVA test statistic is the **F-ratio**:
+   \[
+   F = \frac{\text{Mean Square Between Groups (MSB)}}{\text{Mean Square Within Groups (MSW)}}
+   \]
+
+5. **Distribution of Test Statistic**  
+   Under the null hypothesis, the F-statistic follows an **F-distribution** with:
+   - Degrees of freedom numerator: $df_1 = k - 1$
+   - Degrees of freedom denominator: $df_2 = N - k$  
+   where $k$ is the number of groups and $N$ is the total number of observations.
+
+6. **Decision Rule**  
+   - Choose a significance level $\alpha$ (commonly 0.05).
+   - Reject $H_0$ if the calculated F-statistic is greater than the critical value from the F-distribution, or if the **p-value < α**.
+
+7. **Calculation of Test Statistic**  
+   - Compute the group means and overall mean.
+   - Calculate the **Sum of Squares Between (SSB)** and **Sum of Squares Within (SSW)**.
+   - Compute:
+     \[
+     MSB = \frac{SSB}{k - 1}, \quad MSW = \frac{SSW}{N - k}
+     \]
+     \[
+     F = \frac{MSB}{MSW}
+     \]
+
+8. **Statistical Decision**  
+   Based on the F-statistic and the critical value (or p-value), decide whether or not to reject the null hypothesis.
+
+9. **Conclusion**  
+   Interpret the results in the context of the problem. For example:  
+   *“There is sufficient evidence at the 5% significance level to conclude that at least one group mean is significantly different.”*
+
+10. **Determination of p-value**  
+   - The p-value is the probability of observing an F-statistic as extreme as the one calculated, assuming $H_0$ is true.
+   - Use R (or software) to compute it:
+   
+```
+     summary(aov(response ~ group, data = dataset))
+```
+   - If **p-value < α**, reject the null hypothesis.
+
+## ANOVA table 
+
+### One-Way ANOVA Definition:
+
+Suppose we want to compare the effectiveness of four different drugs. We randomly assign 16 patients into four groups, where each group receives one of the drugs. Since patients are assigned completely at random, this setup is known as a completely randomized design, and it is analyzed using a one-way ANOVA.
+
+One-way ANOVA (Analysis of Variance) is the most basic type of ANOVA model, used when there is only one factor or variable of interest—typically a treatment group or category. It generalizes the pooled t-test to situations where there are more than two groups.
+
+In this setup:
+- There are $k$ treatment groups.
+- Each group $j$ contains $n_j$ observations.
+- The outcome or response for the $i$th subject in group $j$ is denoted as $X_{ij}$.
+
+The one-way ANOVA model can be written in the form of a linear model:
+
+$$
+X_{ij} = \mu + \tau_j + \epsilon_{ij} = \mu_j + \epsilon_{ij}
+$$
+
+Where:
+- $\mu$ is the grand mean, or the average across all groups.
+- $\tau_j$ is the treatment effect for group $j$, which reflects how much the mean of group $j$ ($\mu_j$) deviates from the grand mean ($\mu$), so $\tau_j = \mu_j - \mu$.
+- $\epsilon_{ij}$ is the random error term, representing individual variation within each group.
+
+This model assumes that:
+- All errors $\epsilon_{ij}$ are independent and normally distributed with mean 0 and constant variance.
+- The only systematic difference between groups is due to the treatment effect $\tau_j$.
+
+The goal of one-way ANOVA is to test whether all group means are equal, which corresponds to the null hypothesis:
+
+$$
+H_0: \tau_1 = \tau_2 = \cdots = \tau_k = 0 \quad \text{(i.e., all group means are the same)}
+$$
+
+If the null hypothesis is rejected, we conclude that at least one group mean differs significantly from the others. 
+
+
+### Description of Data & The ANOVA table
+
+![Figure 18.4.2a Completely randomized design](https://i.ibb.co/DRv99Ls/completely-randomized-design.png)
+
+Let $x_{ij}$ be the ith observation resulting from the jth treatment, where $i= 1, 2, \cdots, n_j$.
+
+![Figure 18.4.2b Table of sample values for the completely randomized design](https://i.ibb.co/NnPFBsB/one-way-ANOVA.png)
+
+1.    Sample sum of the jth group: 
+$$T_{.j} = \sum_{i=1}^{n_j} x_{ij}$$
+
+2.    Sample mean of the jth group
+$$\bar{x}_{.j} = T_{.j}/n_j$$
+3.    Grand sample sum
+$$T_{..}= \sum_{j=1}^k T_{.j} = \sum_{j=1}^k\sum_{i=1}^{n_j}x_{ij}$$
+
+4.  Grand sample mean  
+$$\bar{x}_{..} = T_{..}/N $$
+5.    Total sum of squares
+$$SST = \sum_{j=1}^k\sum_{i=1}^{n_j}(x_{ij}-\bar{x}_{..})^2$$
+6.   Within groups sum of squares
+$$SSE = \sum_{j=1}^k\sum_{i=1}^{n_j}(x_{ij}-\bar{x}_{.j})^2$$
+7.   Between groups sum of squares
+$$SSTr = \sum_{j=1}^k n_j (\bar{x}_{.j}-\bar{x}_{..})^2$$
+
+### ANOVA Identity
+
+![Figure 18.4.3 ANOVA Identity](https://i.ibb.co/d5h42vs/ANOVA-identity.png)
+
+$$SST = SSTr + SSE$$
+
+Below is the ANOVA ttable for reference:
+
+![Figure 18.4.3 ANOVA Table](https://i.ibb.co/hB9wC51/ANOVA-table.png)
+
+## Model Checking
+
+Before we can trust the results from a one-way ANOVA, we need to check whether its core model assumptions hold. This process is called model checking. ANOVA relies on several key assumptions about the data structure and variability. If these are not met, the conclusions drawn from ANOVA may be invalid.
+
+Here are the assumptions we aim to check:
+
+1. **Group Independence**  
+   The $k$ treatment groups must be independent. That is, observations in one group should not influence those in another. This is typically ensured by proper randomization in the study design.
+
+2. **Normality of the Response Variable**  
+   For each group, the response variable $X_{ij}$ is assumed to follow a normal distribution:  
+   $$
+   X_{ij} \sim N(\mu_j, \sigma^2) = N(\mu + \tau_j, \sigma^2)
+   $$
+
+3. **Equal Variances Across Groups (Homoscedasticity)**  
+   All treatment groups should have approximately the same variability. In other words,  
+   $$
+   \sigma_1^2 = \cdots = \sigma_k^2 = \sigma^2
+   $$
+
+4. **Random and Normally Distributed Errors**  
+   The residuals (errors) from the model are assumed to be normally distributed and independent, with a mean of zero and constant variance:  
+   $$
+   \epsilon_{ij} \sim N(0, \sigma^2), \quad \sum \tau_j = 0
+   $$
+
+
+
+### Visualizing the Assumptions
+
+The following plot demonstrates a situation where three treatment groups have different means but equal standard deviations. This visual supports the equal variance assumption required by the ANOVA model — which is something we look for when checking if the model fits the data.
+
+```{r}
+x <- seq(-10, 20, by=0.01)
+d1 <- dnorm(x, mean=3, sd=2)
+d2 <- dnorm(x, mean=6, sd=2)
+d3 <- dnorm(x, mean=9, sd=2)
+
+plot(x, d1, type = "n", ylab="", xlab="", 
+     main="3 Populations with Same Standard Deviation (ANOVA Model Assumption)")
+lines(x, d1, col="green", lwd=3)
+lines(x, d2, col="red", lwd=3)
+lines(x, d3, col="blue", lwd=3)
+```
+
+This figure shows that while each population has a different average, the spread is identical, which aligns with the equal variance assumption we check in model diagnostics.
+
+### F-test statistic
+
+$$
+\text{Variance Ratio (V.R.)} = \frac{\text{Among groups mean square}}{\text{Within groups mean square}} = \frac{MSTr}{MSE} = \frac{SSTr / (k-1) }{SSE / (N-k)}
+$$
+where
+$$MSE = SSE / (N-k) = \frac{\sum_{j=1}^k\sum_{i=1}^{n_j}(x_{ij}-\bar{x}_{.j})^2}{k-1} \\
+		MSTr = SSTr / (k-1) = \frac{\sum_{j=1}^k n_j (x_{.j}-\bar{x}_{..})^2}{k-1}$$
+		
+When $H_0$ is true, $V.R.$ tends to be 1 and the two mean squares are equal. When V.R. much greater than 1, the mean square difference observed among groups cannot be explained by the within groups mean square (i.e. variability). So we tend to reject $H_0$.
+
+Under $H_0$, 		
+$$F = \frac{MSTr}{MSE} \sim F(k-1, N-k)$$
+
+There are two types of degrees of freedom: numerator and denominator, in $F$ distribution.
+
+
+
+### Summary
+
+Although ANOVA assumes normality, equal variance, and independence, we never blindly accept these. Instead, we check them using diagnostic tools such as:
+
+- Residual plots (random scatter around zero)
+- Q-Q plots (check for normality)
+- Levene’s or Bartlett’s test (for equal variance)
+
+This model checking step helps ensure that the results of our F-test are trustworthy and based on valid model behavior.
+
+### Equal Variance Check: Levene’s Test
+
+One key assumption of ANOVA is that all treatment groups have the same variance. We check this using Levene’s Test. If the p-value is small (typically less than 0.05), we reject the assumption of equal variances. 
+
+
+```{r}
+# Load required package
+library(car)
+
+# Create sample data for 3 groups
+group <- factor(rep(c("A", "B", "C"), each = 10))
+values <- c(
+  rnorm(10, mean = 5, sd = 1),   # Group A
+  rnorm(10, mean = 5, sd = 1),   # Group B
+  rnorm(10, mean = 5, sd = 3)    # Group C (larger variance)
+)
+
+# Run Levene’s Test
+leveneTest(values ~ group)
+```
+
+**Interpretation:**  
+- Look at the p-value in the output.  
+- If p < 0.05, it suggests that variances are significantly different across groups → ANOVA assumption violated.  
+- If p ≥ 0.05, then equal variance assumption is reasonable.
+
+**Formula for Levene’s Test**: 
+Levene’s Test works by comparing the absolute deviations of each observation from its group mean (or median):
+
+$$
+W = \frac{(N - k)}{(k - 1)} \cdot \frac{\sum_{j=1}^k n_j (Z_{.j} - Z_{..})^2}{\sum_{j=1}^k \sum_{i=1}^{n_j} (Z_{ij} - Z_{.j})^2}
+$$
+
+Where:
+- \( Z_{ij} = |X_{ij} - \tilde{X}_j| \), the absolute deviation from the group mean or median  
+- \( Z_{.j} \) is the mean of deviations in group \( j \)  
+- \( Z_{..} \) is the grand mean of all deviations  
+- \( N \) is the total sample size, and \( k \) is the number of groups
+
+This test statistic follows an approximate **F-distribution** with \( k - 1 \) and \( N - k \) degrees of freedom.
+
+
+
+### Normality of Residuals
+
+Another assumption is that the residuals (errors) from the ANOVA model follow a normal distribution. We use visual tools like Q-Q plots and histograms to check this.
+
+```{r}
+# Fit an ANOVA model
+model <- aov(values ~ group)
+
+# Get residuals from the model
+res <- residuals(model)
+
+# Q-Q plot to check normality
+qqnorm(res)
+qqline(res, col = "red")
+
+# Histogram of residuals
+hist(res, main = "Histogram of Residuals", col = "lightblue", xlab = "Residuals")
+```
+
+**Interpretation:**  
+- In the Q-Q plot, if points fall roughly along the straight line → residuals are close to normal.  
+- The histogram should look roughly bell-shaped if residuals are normal.  
+- If there is heavy skew or large departures from the Q-Q line, consider a transformation or a nonparametric method.
+
+## F-Test in ANOVA
+
+The F-test is the main tool used in ANOVA to decide whether there are any statistically significant differences among group means. It compares the variability between groups (caused by the treatment effect) to the variability within groups (caused by random noise or natural differences).
+
+
+
+### Properties of the F Distribution
+
+The F-distribution is the sampling distribution used to calculate the test statistic in ANOVA. Here are a few important things to know:
+
+- The shape of the F-distribution is right-skewed, especially when sample sizes are small.
+- As both degrees of freedom (numerator and denominator) get larger, the distribution becomes less skewed and more bell-shaped.
+- The F-distribution is always positive because it’s based on a ratio of variances.
+
+```{r}
+# Draw two F-distributions with different degrees of freedom
+# df1 = between-group df = k - 1
+# df2 = within-group df = N - k
+
+draw.F.dist(df1 = 3, df2 = 100)  # smaller sample size
+draw.F.dist(df1 = 3, df2 = 500)  # larger sample size
+```
+
+These plots show how the F-distribution changes with sample size. With more data, the curve smooths out and becomes less skewed.
+
+
+
+### Critical Value and p-value in Hypothesis Testing
+
+In ANOVA, we calculate the F-statistic and compare it to a critical value from the F-distribution, or use a p-value to make our decision.
+
+####  Critical Value:
+
+The critical value is the cutoff point beyond which we would reject the null hypothesis (no difference between group means). For example, the 95th percentile of an \( F(3, 100) \) distribution is:
+
+```{r}
+qf(p = 0.95, df1 = 3, df2 = 100)
+```
+
+If your observed F-statistic is greater than this critical value, the result is considered statistically significant at the 0.05 level.
+
+#### p-value:
+
+The p-value tells us how extreme our observed F-statistic is. It's calculated as the probability of getting an F-value as large or larger than what we observed, assuming the null hypothesis is true:
+
+$$
+p = P(F > F_0)
+$$
+
+Where \( F_0 \) is the F-statistic from your ANOVA output.
+
+A **small p-value (usually < 0.05)** means the observed differences between group means are unlikely to be due to chance alone — we would reject the null hypothesis.
+
+
+
+### Summary
+
+The F-test is the core of ANOVA. By comparing between-group and within-group variation using the F-distribution, we can test whether at least one group mean is significantly different. We use:
+- Critical values from the F-distribution as decision cutoffs.
+- p-values to measure how extreme the test result is.
+
+Understanding the shape and logic of the F-distribution helps interpret ANOVA results correctly.
+
+## Simultaneous Confidence Intervals
+
+Once we reject the global null hypothesis in ANOVA (i.e., we conclude that not all group means are equal), we often want to explore which specific groups are different from each other. This leads us to pairwise comparisons between all groups.
+
+However, doing multiple comparisons increases the chance of making a Type I error — finding a difference when there isn’t one — just by chance. To avoid this, we use simultaneous confidence intervals to control the overall error rate across all comparisons.
+
+
+
+### What Does "Simultaneous" Mean?
+
+Instead of building one confidence interval at a time, simultaneous confidence intervals are created so that all intervals are valid together with a high probability — usually 95%.
+
+If we’re comparing \( k \) groups, there are \( \frac{k(k-1)}{2} \) possible pairwise comparisons. Each interval gives us a range of values for the difference between two group means.
+
+The goal is to construct a family of confidence intervals:
+$$
+\{(L_1, U_1), (L_2, U_2), \dots, (L_k, U_k)\}
+$$
+so that the overall confidence level is at least \( 1 - \alpha \), such as 95%.
+
+This is called family-wise confidence level, and it ensures we don’t make too many false discoveries just by testing many group pairs.
+
+
+
+### Why This Matters in ANOVA
+
+In the selenium example with 4 types of meat (VEN, SQU, RRB, NRB), the null hypothesis was:
+$$
+H_0: \mu_{VEN} = \mu_{SQU} = \mu_{RRB} = \mu_{NRB}
+$$
+
+After rejecting this null hypothesis using the F-test, we want to ask:
+- Is VEN different from SQU?
+- Is RRB different from NRB?
+- And so on…
+
+There are 6 total pairwise comparisons. If we test them all at the usual 95% level without adjustment, we inflate our chances of making a mistake. That’s why we use simultaneous confidence intervals to keep the family-wise error rate under control.
+
+
+
+### Visualizing Pairwise Comparisons
+
+Once we compute simultaneous confidence intervals, it's helpful to visualize them to better understand which group differences are statistically significant. These intervals show a range of likely values for the difference between two group means.
+
+A key feature to look for is whether the interval includes 0:
+
+- If it does not include 0, we conclude that the two group means are significantly different.
+- If it includes 0, we conclude that there is no significant difference between those two groups.
+
+In ANOVA, one of the most commonly used methods for this is Tukey’s Honestly Significant Difference (HSD) test, which provides both:
+- Adjusted confidence intervals for each pairwise comparison, and
+- A visual plot of those intervals.
+
+We'll explore the Tukey's method and its output in detail in the next section.
+
+
+
+## Tukey's HSD & Multiple Comparisons
+
+Tukey's **Honestly significance difference** (HSD) method is frequently used in ANOVA analysis handling the multiplicity issue. In this method, the critical value for pairwise comparison $HSD_{ij}$ and the simultaneous  $(1-\alpha)100\%$ confidence interval for $\mu_i - \mu_j$ are below. 
+
+$$
+HSD_{ij} = q_{\alpha, k, N-k} \sqrt{\frac{MSE}{2}\left(\frac{1}{n_i}+\frac{1}{n_j}\right)}
+$$
+$$
+\bar{x}_i - \bar{x}_j \pm q_{\alpha, k, N-k} \sqrt{\frac{MSE}{2}\left(\frac{1}{n_i}+\frac{1}{n_j}\right)}
+$$
+
+where $\alpha$ is the significance level and $q$ follows a distribution, called **studentized range statistic**. 
+
+The R code to find $q_{\alpha}(\kappa, \nu)$ is below. For example, 4 groups, and total sample size $N=144$ has 95\% quantile of studentized range distribution is 3.677.
+
+```{r}
+qtukey(1-0.05, nmeans=4, df=144-4)
+```
+
+If the absolute difference between two sample means $|\bar{x}_{.i}-\bar{x}_{.j}| > HSD_{ij}$, also equivalently if the above CI excludes 0, then conclude their difference is significant. 
+
+For example, for $\alpha=0.05$, the pairwise comparison $H_0: \mu_{VEN} = \mu_{RRB}$ has $HSD = 8.68$, while their sample mean difference is $3.208 < 8.68$, so do not reject $H_0$ and we cannot conclude there is a significance difference. 
+
+For the null hypothesis $H_0: \mu_{VEN} = \mu_{SQU}$, on the other hand, $HSD = 10.04$ and the sample mean difference is $17.37 > 10.04$, so their pairwise $H_0$ is rejected.	
+
+Figure below shows the HSD simultaneous CIs for all 6 pairwise comparisons. All CIs except for RRB vs VEN exclude 0.
+
+### Tukey Plot Visualization
+
+
+```{r}
+# Create dataset manually
+selenium_data <- data.frame(
+  mean = c(18.5, 21.2, 22.7, 25.3, 19.8, 24.1, 17.4, 23.3, 26.5, 20.1, 21.6, 24.9),
+  group = factor(c("VEN", "VEN", "VEN", "RRB", "RRB", "RRB", "SQU", "SQU", "SQU", "OTH", "OTH", "OTH"))
+)
+```
+
+```{r}
+selenium <- aov(mean ~ group, data = selenium_data)
+tukey <- TukeyHSD(selenium, ordered = TRUE, conf.level = 0.95)
+tukey
+plot(tukey)
+```
+
+### Bonferroni Correction
+
+Bonferroni Correction is a post-hoc method used after ANOVA to compare group means while controlling the overall Type I error rate. When performing multiple comparisons, the chance of finding a false positive increases. Bonferroni adjusts for this by dividing the significance level (alpha) by the number of comparisons. 
+
+For example, if alpha = 0.05 and there are 6 comparisons, each test is evaluated at 0.05 / 6 = 0.0083. This makes it harder to find significant results, reducing the risk of false positives. Bonferroni is easy to apply and works well when the number of comparisons is small, but it can be overly conservative when many tests are performed.
+
+
+```{r}
+# Bonferroni correction is used to control the familywise Type I error rate when making multiple comparisons.
+# Instead of using the standard significance level (e.g., 0.05) for each test,
+# Bonferroni adjusts the threshold by dividing alpha by the number of comparisons.
+
+# For example:
+alpha <- 0.05
+k <- 6
+bonf_alpha <- alpha / k
+bonf_alpha
+```
+
+```{r}
+# Biomedical Example:
+# A clinical study compares wound healing times (in days) across four treatments: A, B, C, and D.
+
+healing_data <- data.frame(
+  time = c(10, 11, 9, 13, 14, 12, 16, 17, 15, 8, 7, 9, 12, 13, 11, 14),
+  treatment = factor(c("A", "A", "A", "B", "B", "B", "C", "C", "C", "D", "D", "D", "A", "B", "C", "D"))
+)
+```
+
+```{r}
+# Step 1: Perform ANOVA to test for any group differences
+anova_model <- aov(time ~ treatment, data = healing_data)
+summary(anova_model)
+```
+
+```{r}
+# Step 2: Apply Bonferroni-adjusted pairwise t-tests
+pairwise.t.test(healing_data$time, healing_data$treatment, p.adjust.method = "bonferroni")
+```
+
+```{r}
+# Interpretation:
+# Each pairwise comparison (e.g., A vs B, A vs C) is evaluated using an adjusted p-value.
+# If the adjusted p-value is below 0.05, the difference in healing times is statistically significant.
+# Bonferroni correction reduces the risk of false positives but makes significance harder to achieve.
+```
+
+### Scheffé’s Test
+
+Scheffé’s test is a post-hoc method used after running an ANOVA, especially when we want to compare more than just simple pairwise group differences. It is one of the most flexible methods because it allows for any contrast between groups, not just two at a time. However, this flexibility comes at a cost: Scheffé’s test is more conservative, meaning it's harder to find statistically significant results.
+
+Unlike Tukey or Bonferroni, Scheffé does not adjust alpha, but instead adjusts the critical F-value used to test group differences. This makes it ideal when researchers want to test custom hypotheses, like comparing the average of two groups against a third.
+
+Below is a biomedical example using wound healing times.
+
+```{r}
+# Load the dataset: healing times (in days) for four treatments A, B, C, D
+healing_data <- data.frame(
+  time = c(10, 11, 9, 12, 13, 14, 16, 15, 17, 8, 7, 9),
+  treatment = factor(c("A", "A", "A", "B", "B", "B", "C", "C", "C", "D", "D", "D"))
+)
+```
+
+```{r}
+# Step 1: Perform one-way ANOVA to check for overall group differences
+anova_model <- aov(time ~ treatment, data = healing_data)
+summary(anova_model)
+```
+
+```{r}
+# Step 2: Run Scheffé’s test using the agricolae package
+if (!require(agricolae)) {
+  install.packages("agricolae")
+  library(agricolae)
+} else {
+  library(agricolae)
+}
+
+# Apply the Scheffé test
+scheffe_result <- scheffe.test(anova_model, "treatment", group = TRUE)
+print(scheffe_result)
+```
+
+```{r}
+# Interpretation:
+# The output shows which group means are statistically different based on Scheffé's method.
+# If two treatments do not share a letter (e.g., A vs C), it means their healing times differ significantly.
+# Because Scheffé is conservative, any significant result is considered strong evidence of a real difference.
+# This test is especially useful when comparing more complex combinations of groups beyond simple pairs.
+```
+
+### Biomedical Example: Comparing Wound Healing Times with Three Topical Treatments
+
+
+In this example, a clinical study investigates how long it takes for wounds to heal using three different topical treatments: A, B, and C. The outcome variable is healing time in days.
+
+We will first perform a one-way ANOVA to determine if there's an overall difference in healing time between the groups. If significant, we will follow up with three post-hoc tests: Tukey’s HSD, Bonferroni Correction, and Scheffé’s Test.
+
+
+```{r}
+# Step 1: Create the dataset
+
+healing_data <- data.frame(
+  time = c(10, 11, 9, 12, 13, 14, 16, 15, 17),
+  treatment = factor(c("A", "A", "A", "B", "B", "B", "C", "C", "C"))
+)
+```
+
+
+This dataset includes wound healing times for 3 patients in each of the 3 treatment groups.
+We will use ANOVA to test for a significant difference in average healing time across the treatments.
+
+
+```{r}
+# Step 2: Run one-way ANOVA
+
+anova_model <- aov(time ~ treatment, data = healing_data)
+summary(anova_model)
+```
+
+
+If the p-value from ANOVA is less than 0.05, we reject the null hypothesis and conclude that at least one group differs in mean healing time. We then proceed with post-hoc tests to find out which groups differ.
+
+
+```{r}
+# Step 3: Tukey's HSD Test
+
+tukey_result <- TukeyHSD(anova_model)
+tukey_result
+```
+
+
+Tukey’s test compares all group pairs and adjusts for multiple comparisons. If the adjusted p-value is less than 0.05, the difference between those two groups is considered statistically significant.
+
+
+```{r}
+# Step 4: Bonferroni-adjusted pairwise t-tests
+
+pairwise.t.test(healing_data$time, healing_data$treatment, p.adjust.method = "bonferroni")
+```
+
+
+Bonferroni correction divides the alpha level (e.g., 0.05) by the number of comparisons.
+This makes it harder to find significant differences, but it lowers the risk of false positives.
+
+
+```{r}
+# Step 5: Scheffé’s Test (using agricolae package)
+
+if (!require(agricolae)) {
+  install.packages("agricolae")
+  library(agricolae)
+} else {
+  library(agricolae)
+}
+
+scheffe_result <- scheffe.test(anova_model, "treatment", group = TRUE)
+scheffe_result
+```
+
+
+Scheffé’s Test is a flexible post-hoc method that allows for all kinds of group contrasts, not just pairwise. It is the most conservative method, meaning it's the strictest when declaring significance.
+If two groups do not share a letter group in the output, their means are significantly different.
+
+
+
+Final Summary:
+
+- Tukey: Great for all pairwise comparisons, balances Type I error and power.
+- Bonferroni: Very strict, good when few comparisons are made.
+- Scheffé: Most flexible, best for testing custom group contrasts, but least powerful.
+
+Choose the test that fits the scenario accordingly.
+

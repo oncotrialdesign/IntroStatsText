@@ -1,0 +1,671 @@
+
+
+# Probability Concepts
+
+```{r}
+library(IntroStats)
+```
+
+## Probability Basics
+
+### Definition
+
+Probability for Equally Likely Outcomes (**f/N Rule**). Suppose an experiment has N possible outcomes, all equally likely. An event that can occur in $f$ ways has probability $f/N$.
+
+![Figure. Probability f/N Rule](https://i.ibb.co/rMTrqrq/probability-f-N.png)
+
+### Example
+
+When 2 balanced dice are rolled, 36 equally likely outcomes are possible, and illustrated below.
+
+![Figure. 36 Possible dice outcomes](https://i.ibb.co/cY5TBnj/159-Figure-04-01.png)
+
+Question (a). Find the probability of the sum of the dice is 11.
+
+**Solution.** 
+
+There are exactly 2 ways to have the sum of 11. So the probability is 2/36 = 0.056.
+
+
+(b) Find the probability of doubles are rolled, that is, both dice come up the same number.
+
+**Solution.** 
+
+There are exactly 6 ways to have the doubles. So the probability is 6/36 = 0.167.
+
+
+### Basic Properties of probabilities
+
+*Property 1:* The probability of an event is always between 0 and 1, inclusive.
+
+*Property 2: *The probability of an event that cannot occur is 0. (An event that cannot occur is called an impossible event.)
+
+*Property 3:* The probability of an event that must occur is 1. (An event that must occur is called a certain event.)
+
+
+Return to the dice problem. What is the probability that the sum is 1? 
+
+What is the probability that the sum of the dice is 12 or less?
+
+
+## Events
+
+### Definition Sample space and event
+
+**Sample space:**  The collection of all possible outcomes
+for an experiment.
+
+**Event:**  A collection of outcomes for the experiment, that
+is, any subset of the sample space. An event occurs if
+and only if the outcome of the experiment is a member
+of the event.
+
+### Example
+
+![Figure Playing cards](https://i.ibb.co/Jp1RX9p/165-Figure-04-03.png)
+
+
+For the experiment of randomly selecting one card from a deck of 52. Let
+
+A = event the card selected is the king of hearts,
+
+B = event the card selected is a king
+
+C = event the card selected is a heart
+
+D = event the card selected is a face
+
+
+List the outcomes constituting each of these events.
+
+*solution.*
+
+
+The outcome of A is the king of hearts card. 
+
+
+![Figure Playing cards](https://i.ibb.co/1qGz7kp/165-Figure-04-04.png)
+
+The outcome of B:
+
+
+![Figure Playing cards](https://i.ibb.co/2W4Lvzt/165-Figure-04-05.png)
+
+The outcome of C:
+
+![Figure Playing cards](https://i.ibb.co/bHYdk2n/165-Figure-04-06.png)
+
+The outcome of D:
+
+
+![Figure Playing cards](https://i.ibb.co/vYQFzLm/165-Figure-04-07.png)
+
+### Venn Diagrams
+
+Venn Diagrams named after English Logician John Venn (1834-1923) are the best ways to show events and relationships.
+
+Venn diagrams for (a) event (not E), (b) event (A & B), and (c) event (A or B)
+
+Relationships Among Events 
+
+-(not E): The event “E does not occur” 
+
+-(A & B): The event “both A and B occur” 
+
+-(A or B): The event “either A or B or both occur”
+
+
+![Figure](https://i.ibb.co/jbNkxxn/166-Figure-04-09.png)
+
+
+
+### Example
+
+The age and frequency for a class of students are listed below:
+
+Age (Frequency): 17(1), 18(1), 19(9), 20(7), 21(7)
+
+One student is randomly selected from the class. Define 
+
+A = event that the selected student is under age 21
+
+B = event that the selected student is over 18
+
+Determine the the following events:
+
+(a) (not B); (b) (A & B); (c) (A or B)
+
+**Solution.**
+
+(a): 2 students (age: 18 and 17)
+
+(b): 16 students (Age: 19 and 20)
+
+### Definition. Mutually exclusive events
+
+**Definition.** Two or more events are mutually exclusive events if no two of them have outcomes in common.
+
+
+![Figure ](https://i.ibb.co/883WR4B/169-Figure-04-14.png)
+
+(a) Two mutually exclusive events; (b) two non-mutually exclusive events
+
+![Figure ](https://i.ibb.co/DCLjpqF/169-Figure-04-15.png)
+
+
+Which ones are showing mutually exclusive events? (a) Three mutually exclusive events;
+(b) three non-mutually exclusive events;(c) three non-mutually exclusive events
+
+
+## Rules of probability
+
+### Definition. 
+
+Probability Notation: If E is an event, then P(E) represents the probability that event E occurs. It is read “the probability of E.”
+
+### Addition rules
+
+If event A and event B are mutually exclusive, then 
+$$
+P(A \text{ or } B) = P(A) + P(B)
+$$
+More generally, if events $A_1$, $A_2, \cdots, A_k$ are mutually exclusive, then 
+$$
+P(A_1 \text{ or } A_2 \text{ or } \cdots, A_k) = \sum P(A_i)
+$$
+
+### Complementation rule
+
+For any event $E$, 
+$$
+P(\text{not } E) = 1- P(E)
+$$
+
+
+### Example
+
+Consider the relative frequencies in US arms.
+
+![Figure ](https://i.ibb.co/PZTQYDx/174-Table-04-05.png)
+
+Find the probability that a randomly selected farm has (a) less than 2000 acres; (b) 50 acres or more.
+
+**Solution.**
+
+Define event J = the selected form has less than 2000 acres. 
+
+Then $$P(J) = 1- P(G) = 1-0.036 = 0.964$$
+
+Define event K = the selected form has 50 acres or more.
+
+$$
+P(K) = 1-P(\text{not }K) = 1-P(A)-P(B)=0.387
+$$
+
+### General addition rule
+
+If A and B are any two events, then 
+$$
+P(A \text{ or } B) = P(A) + P(B) - P(A \text{ & } B)
+$$
+
+### Example
+
+Characteristics of People Arrested Data on people who have been arrested are published by the Federal Bureau of Investigation in Uniform Crime Reports. Records for one year show that 73.9% of the people arrested were male, 12.0% were under 18 years of age, and 8.5% were males under 18 years of age. If a person arrested that year is selected at random, what is the probability that that person is either male or under 18?
+
+**Solution.**
+
+Let M = event the person obtained is male and E = event the person is under 18.
+
+then 
+
+$$
+P(M \text{ or } E) = P(M) + P(E) - P(M \text{ & }E) = 0.739+0.120-0.085 = 0.774
+$$
+
+### Addition in 3 events
+
+If A and B are any two events, then 
+$$
+P(A \text{ or } B \text{ or } C) = P(A) + P(B) + P(C) - P(A \text{ & } B)- P(B \text{ & } C)- P(A \text{ & } C) + P(A \text{ & } B \text{ & } C)
+$$
+
+## Contingency tables
+
+### Understanding Contingency tables
+
+![Figure](https://i.ibb.co/7Kbx5Jm/180-Table-04-06.png)
+
+What are the two variables? How do you understand the Total row and the Total column?
+
+Suppose a faculty member is randomly selected, determine the following probabilities.
+
+(a) $P(A_1)$; (b) $P(R_2)$; (c) $P(A_1 \text{ & } R_2)$
+
+The probabilities $P(A_1)$ and $P(R_2)$ are called **marginal** probabilities because they correspond to the events in the margin of the contingency table.
+
+The probability of $P(A_1 \text{ & } R_2)$ is called **joint** probability.
+
+**Solution.**
+
+(a) $P(A_1) = 68/1164=0.058$
+
+(b) $P(R_2)=381/1164=0.327$
+
+(c) $P(A_1 \text{ & } R_2) = 3/1164 = 0.003$
+
+We sometimes replace the contingency table by joint probabilities and marginal probabilities below.
+
+![Figure ](https://i.ibb.co/yXb40sY/182-Table-04-07.png)
+
+## Conditional Probability
+
+### Definition
+
+The probability that event B occurs given that event A occurs is called a **conditional probability**. It is denoted as $P(B|A)$ which is read “the probability of B given A.” We
+call A the given event.
+
+### Example
+
+When a balanced die is rolled once, 6 equally likely outcomes are possible:
+
+![Figure ](https://i.ibb.co/sg8vjdp/185-Figure-04-22.png)
+Let F = event a 5 is rolled, and O = event the die comes up odd.
+
+Determine the probabilities:
+
+(a) $P(F)$; (b) $P(F|O)$; (c) $P(O | (\text{not } F))$
+
+**Solution.**
+
+(a). 
+
+$$P(F) = 1/6=0.167$$
+
+(b). Given the condition $O$ occurs, there are only 3 possible outcomes: 1, 3, 5.
+
+![Figure ](https://i.ibb.co/W0LYp1S/186-Figure-04-23.png)
+
+$$P(F|O) = 1/3 = 0.333$$
+
+(c). Given that 5 is not rolled (not $F$), the possible outcomes are 5 numbers 1, 2, 3, 4, 6.
+
+![Figure ](https://i.ibb.co/19fwKkW/186-Figure-04-24.png)
+
+$$
+P(O|(\text{not }F)) = 2/5 = 0.4
+$$
+
+### Conditional probability rule
+
+If A and B are any two events with $P(A) >0$, then 
+$$
+P(B|A) = \frac{P(A\text{ & } B)}{P(A)}
+$$
+
+### Example 
+
+U.S. Census Bureau publishes martial status and gender below. Single = never married.
+
+![Figure ](https://i.ibb.co/2jJshDS/188-Table-04-09.png)
+
+Suppose a U.S. adult is selected at random. Determine
+
+(a) the probability that the adult is divorced, given that the adult selected is a male.
+
+(b) the probability that the adult is a male, given that the adault is divoiced.
+
+
+**Solution.**
+
+(a). 
+
+$$
+P(M_4 | S_1) = \frac{P(M_4\text{ & } S_1)}{P(S_1)} = \frac{0.044}{0.485} = 0.091
+$$
+
+
+(b). 
+
+$$
+P(S_1 | M_4) = \frac{P(M_4\text{ & } S_1)}{P(M_4)} = \frac{0.044}{0.104} = 0.423
+$$
+
+## Multiplication rule and Independence
+
+### General multiplication rule
+
+If A and B are any two events, then 
+
+$$
+P(A \text{ & } B) = P(A)\cdot P(B|A)
+$$
+This is obtained immediately from the conditional probability rule 
+$$
+P(B|A) = \frac{P(A\text{ & } B)}{P(A)}
+$$
+
+### Example
+
+The U.S. Congress, Joint Committee on Printing, provides information on the composition of the Congress in the Congressional Directory. For the 113th Congress, 18.7\% of the members are senators and 53\% of the senators are Democrats. What is the probability that a randomly selected member of the 113th Congress is a Democratic senator?
+
+**Solution** Let
+
+D = event the member selected is a Democrat, and
+
+S = event the member selected is a senator.
+
+The event that the member selected is a Democratic senator can be expressed as
+**(S & D)**. We want to determine the probability of that event.
+
+Because 18.7\% of members are senators, 
+
+$$P(S) = 0.187$$ 
+
+and because 53\% of
+
+senators are Democrats, 
+$$P(D | S) = 0.530$$ 
+
+Applying the general multiplication rule, we get
+
+$$P(S \text{ & } D) = P(S) \cdot P(D|S) = 0.187 \cdot  0.530 = 0.099.$$
+
+The probability that a randomly selected member of the 113th Congress is a Democratic senator is 0.099.
+
+*Interpretation* 9.9% of members of the 113th Congress are Democratic senators.
+
+### Example
+
+In Professor Weiss's introductory statistics class, the number of males and females are as shown in the frequency distribution presented below. Two students are selected at random from the class. The first student selected is not returned to the class for possible reselection; that is, the sampling is without replacement. Find the probability that the first student selected is female and the second is male.
+
+![Figure](https://i.ibb.co/gtJHWx5/194-Table-04-10.png)
+
+**Solution** 
+
+Let
+
+F1 = event the first student obtained is female, and
+
+M2 = event the second student obtained is male.
+
+We want to determine P(F1 & M2). Using the general multiplication rule, we write
+$$
+P(F1 \text{ & } M2) = P(F1) \cdot P(M2 | F1).
+$$
+$$
+P(F1) = \frac{23}{40}
+$$
+
+Next, we find $P(M2| F1)$-the conditional probability that the second student selected is male, given that the first one selected is female. 
+
+Given that the first student selected is female, of the 39 students remaining in the class 17 are male, so
+
+$$
+P(M2 | F1) = \frac{17}{39}
+$$
+
+Applying the general multiplication rule, we conclude that
+
+$$
+P(F1 \text{ & } M2) = P(F1) \cdot P(M2| F1) = \frac{23}{40}\cdot\frac{17}{39} = 0.251.
+$$
+
+*Interpretation* When two students are randomly selected from the class, the probability is 0.251 that the first student selected is female and the second student selected is male.
+
+### Definition. Independence
+
+Event B is said to be independent of event A if
+$$
+P(B|A) = P(B)
+$$
+One event is independent of another event if knowning whether the latter event occurs does not affect the probability of the former event.
+
+### Example
+
+Consider the playing cards example again. Let 
+
+F = event a face card is selected
+
+K = event a king is selected
+
+H = event a heart is selected.
+
+Question: (a) Determine whether K is independent of F; (b) whether K is independent of H.
+
+![Figure Playing cards](https://i.ibb.co/Jp1RX9p/165-Figure-04-03.png)
+
+**Solution** 
+
+(a) Note: 
+
+$$
+P(K) = 4/52=1/13
+$$
+To determine whether K is independent of F, we compute $P(K|F)$ and compare to $P(K)$.
+
+$$
+P(K|F) = 4/12 = 1/3
+$$
+
+which does not equal P(K), so K is not independent of F.
+
+(b). When H occurs (a heart is selected), there are 13 possible outcomes. So
+
+$$
+P(K|H) = 1/13
+$$
+
+which equals P(K). So K is independent of H.
+
+### Special multiplication rule
+
+If A and B are independent, then 
+$$
+P(A \text{ & } B) = P(A) \cdot P(B)
+$$
+### Example.
+
+An American roulette wheel contains 38 numbers, of which 18 are red, 18 are black, and 2 are green. When the roulette wheel is spun, the ball is equally likely to land on any of the 38 numbers. In three plays at a roulette wheel, what is the probability that the ball will land on green the first time and on black the second and third times?
+
+![Figure American roulette wheel](https://i.ibb.co/1QYKxyk/roulette.jpg)
+
+
+**Solution** 
+
+First, we can reasonably assume that outcomes on successive plays at the wheel are independent. Now, we let
+
+G1 = event the ball lands on green the first time,
+
+B2 = event the ball lands on black the second time, and
+
+B3 = event the ball lands on black the third time.
+
+We want to determine P(G1 & B2 & B3).
+
+Because outcomes on successive plays at the wheel are independent, we know that event G1, event B2, and event B3 are independent. Applying the special multiplication rule, we conclude that
+
+$$
+P(G1 \text{ & } B2 \text{ & } B3) = P(G1) \cdot P(B2) \cdot P(B3) =\frac{2}{38} \cdot \frac{18}{38} \cdot \frac{18}{38}=0.012
+$$
+
+
+*Interpretation* In three plays at a roulette wheel, there is a 1.2\% chance that the ball will land on green the first time and on black the second and third times.
+
+### Mutually Exclusive Versus Independent Events
+
+The terms mutually exclusive and independent refer to different concepts. Mutually exclusive events are those that cannot occur simultaneously; independent events are those for which the occurrence of some does not affect the probabilities of the others occurring.
+
+In fact, if two or more events are mutually exclusive, the occurrence of one precludes the occurrence of the others. Two events cannot be both mutually exclusive and independent.
+
+When two events are mutually exclusive, there is addition rule: 
+$$P(A \text{ or } B) = P(A) + P(B)$$
+Note: A and B cannot both occur together.
+
+When two events are independent, there is multiplication rule.
+
+$$P(A \text{ & } B) = P(A) \cdot P(B)$$
+
+## Bayes's Rule
+
+### Rule of total probability
+
+
+Suppose that events $A_1, \cdots, A_k$ are mutually exclusive and exhaustive; that is, exactly one of the events must occur $\sum P(A_i) = 1$. Then for any event B, 
+
+$$
+P(B) = \sum P(A_i \text{ & } B) = \sum P(A_i) \cdot P(B|A_i)
+$$
+
+### Example
+
+The U.S. Census Bureau presents data on age of residents and region of residence in Demographic Profiles. The first two columns of table below give a percentage distribution for region of residence; the third column shows the percentage of seniors (age 65 years or over) in each region. For instance, 17.9\% of U.S. residents live in the Northeast, and 14.1\% of those who live in the Northeast are seniors. Determine the percentage of U.S. residents that are seniors.
+
+![Figure ](https://i.ibb.co/XJPzwcq/202-Table-04-11.png)
+
+
+**Solution**:
+
+
+
+Probability derived from the table:
+
+
+
+![Figure ](https://i.ibb.co/xSR2Jj0/203-Table-04-12.png)
+
+
+Let
+
+-   S = event the resident selected is a senior,
+
+and
+
+-   R1 = event the resident selected lives in the Northeast,
+
+-   R2 = event the resident selected lives in the Midwest,
+
+-   R3 = event the resident selected lives in the South, and
+
+-   R4 = event the resident selected lives in the West.
+
+The problem is to determine the percentage of U.S. residents that are seniors, or, in terms of probability, P(S). Because a U.S. resident must reside in exactly one of the four regions, events R1, R2, R3, and R4 are mutually exclusive and ex-haustive. Therefore, by the rule of total probability we have
+
+$$
+P(S) = \sum P(R_j)\cdot P(S| R_j)
+= 0.179 • 0.141 + 0.217 • 0.135 + 0.371 • 0.130 + 0.233 • 0.119
+= 0.130.
+$$
+
+
+### Bayes' Rule
+
+Suppose $A_1, \cdots, A_k$ are mutually exclusive and exhaustive ($\sum P(A_i)=1$), then apply the total probability rule to event B
+
+$$
+P(B) = \sum P(A_i \text{ & } B) = \sum P(A_i) \cdot P(B|A_i)
+$$
+Furthermore, by conditional probability rule,
+
+$$
+P(A_i|B) = \frac{P(A_i\text{ & } B)}{P(B)} = \frac{P(A_i\text{ & } B)}{\sum P(A_i) \cdot P(B|A_i)}
+$$
+
+This is **Bayes' rule**.
+
+
+### Example
+
+
+Following the seniors problem example, we know 14.1\% of Northeast residents are seniors. What percentage of seniors are Northeast residents?
+
+
+Apply Bayes' rule,
+
+
+$$P(S)=\sum P(R_j)P(S|R_j) = 0.179\cdot 0.141 + 0.217\cdot 0.135 + 0.371\cdot 0.130+ 0.233\cdot 0.119 = 0.1305$$
+```{r}
+0.179* 0.141 + 0.217* 0.135 + 0.371* 0.130+ 0.233* 0.119
+```
+
+$$
+P(R_1|S) = \frac{P(R_1)P(S|R_1)}{\sum P(R_j)P(S|R_j)} = \frac{0.179\cdot 0.141}{0.1305}=0.193
+$$
+
+
+19.5\% seniors are Northeast residents.
+
+### Example
+
+According to the Arizona Chapter of the American Lung Association, 7.0\% of the population has lung disease. Of those having lung disease, 90.0\% are smokers; of those not having lung disease, 25.3\% are smokers.
+
+Determine the probability that a randomly selected smoker has lung disease.
+
+**Solution**  
+
+**Step 1: Define events of interest**
+
+Let
+
+-   S = event the person selected is a smoker,
+
+and
+
+-   L1 = event the person selected has no lung disease, and
+
+-   L2 = event the person selected has lung disease.
+
+Note that events L1 and L2 are complementary, which implies that they are mutually exclusive and exhaustive: 
+$$P(L1) + P(L2) = 1; P(L1 \text{ and } L2) = 0$$
+
+The problem is to determine the probability that a randomly selected smoker has lung disease. This is a conditional probability and the condition is **selected person is a smoker**, so need to find out
+
+$$P(L2 | S) = ?$$
+
+
+**Step 2: Find given information related to the events**
+
+- 7.0\% of the population has lung disease indicates $P(L2) = 0.070$. This is one marginal probability.
+
+- Of those having lung disease, 90.0\% are smokers. This indicates a conditional probability and **the condition is having lung disease**. So
+$$P(S | L2) = 0.900$$
+- Of those not having lung disease, 25.3\% are smokers. This also indicates a conditional probability and **the condition is NOT having lung disease**. So
+$$P(S | L1) = 0.253$$. 
+
+- Lastly, we calculate another marginal probability 
+
+$$P(L1) = P(\text{not } L2) = 1 - P(L2) = 1 - 0.070 = 0.930$$. 
+
+- We summarize this information together:
+
+![Figure ](https://i.ibb.co/gjprBV8/205-Table-04-13.png)
+
+
+**Step 3: Apply Bayes' rule to calcuate the conditional probability**
+
+Applying Bayes's rule, we obtain
+
+$$
+P(L2 | S)  = \frac{P(L_2)P(S|L_2)}{P(L_1)P(S|L_1)+P(L_2)P(S|L_2)} = \frac{0.070 • 0.900}{0.930 • 0.253 + 0.070 • 0.900}=0.211
+$$
+
+The probability is 0.211 that a randomly selected smoker has lung disease.
+
+**Step 4. Interpretation**
+
+Among smokers, 21.1\% have lung disease.
+
+This shows that the rate of lung disease among smokers (21.1\%) is more than three times the rate among the general population (7.0\%). 
+
+Similarly, we can show that the probability that a randomly selected nonsmoker has lung disease is 
+
+$$P(L_2|\text{not S})=0.010$$ 
+
+in other words, 1.0\% of nonsmokers have lung disease.
+
+Please calculate this conditional probability yourself using Bayes' rule. *Hint*: Find out $(\text{not } S|L1)$ and $P(\text{not } S|L2)$, then calculate the total probability as the denominator in Bayes' rule: $$P(\text{not } S) = P(\text{not } S|L1)P(L1) + P(\text{not } S|L2)P(L2)$$
+
+Hence the rate of lung disease among smokers (21.1\%) is more than 20 times that among nonsmokers (1.0\%). Because this study is observational, however, we can conclude that smoking causes lung disease; we can only infer that a strong positive association exists between smoking and lung disease.
+
+**Important Note:** We are able to use Bayes's rule in this probablem because $L1$ and $L2$ are mutually exclusive and exthaustive.  
+

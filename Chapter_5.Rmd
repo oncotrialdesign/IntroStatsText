@@ -1,0 +1,71 @@
+
+# Population distribution and sample distribution
+
+```{r}
+library(IntroStats)
+```
+
+## Definition 
+
+A **population** is the entire set of individuals or items of interest, while a **sample** is a subset selected from the population. A **distribution** describes the values of a variable and how often they occur. The population distribution refers to the true distribution of the variable in the population; the sample distribution describes the values observed in a particular sample.
+
+## Example
+
+Define a population of all 10,000 students' heights in a school, and take a sample to illustrate the concept. Suppose the height of this population has a mean of 170 cm and sd of 6 cm, and the following data represent the heights of all 10,000 students.
+
+```{r}
+set.seed(1)
+height_population <- rnorm(10000, mean=170, sd=6)  # cm
+hist(height_population)
+```
+Next, draw a sample of 30 students from the population. Run the following chunk multiple times. Each run represents a sample of 30 students. The sample statistics approximate the population statistics but are not identical.
+
+```{r}
+height_sample <- sample(height_population, 30)
+
+mean(height_sample); 
+sd(height_sample)
+
+```
+- **Population Data**: The values of a  variable for the entire population
+- **Sample data**: The values of a variable for a sample of the population. 
+
+## Relationship between a population distribution and sample distribution 
+
+The **population distribution** is fixed (though often unknown). A **sampling distribution** is the probability distribution of a statistic (like the mean) computed from samples of a given size. Repeated sampling from the same population will produce different samples, and thus different statistics. The sampling distribution reflects this variability.
+
+- The distribution of population data is called the **population distribution**, or the distribution of the variable.
+- The distribution of sample data is called a **sample distribution**.
+
+Consider the population is defined as all U.S. households. Then the size of households is distributed as follows according to U.S. census:
+
+```{r}
+p = c(0.27, 0.34, 0.15, 0.14, 0.06, 0.03, 0.01)
+
+barplot(p, col="turquoise", space=0, 
+        names.arg = c("1", "2", "3", "4", "5","6","7+"), 
+        ylim=c(0, 0.4), 
+        main="Population Distribution (All US Households)",
+        xlab = "Household Size")
+```
+
+Now, suppose we randomly draw 6 samples of size 100 U.S. households. The distributions of the 6 samples are as follows.
+```{r}
+#draw 6 samples of size 100
+draw.US.households(size=100, main="Sample 1 Distribution (100 US Households)")
+draw.US.households(size=100, main="Sample 2 Distribution (100 US Households)")
+draw.US.households(size=100, main="Sample 3 Distribution (100 US Households)")
+draw.US.households(size=100, main="Sample 4 Distribution (100 US Households)")
+draw.US.households(size=100, main="Sample 5 Distribution (100 US Households)")
+draw.US.households(size=100, main="Sample 6 Distribution (100 US Households)")
+```
+When draw a large number of sample size, the sample distribution is approximately the population distribution. The larger the sample size, the better the approximation tends to be.
+
+```{r}
+draw.US.households(size=1000, main="Sample 7 Distribution (1000 US Households)")
+draw.US.households(size=1000, main="Sample 8 Distribution (1000 US Households)")
+
+draw.US.households(size=100000, main="Sample 9 Distribution (100,000 US Households)")
+draw.US.households(size=100000, main="Sample 10 Distribution (100,000 US Households)")
+
+```

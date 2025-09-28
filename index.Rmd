@@ -1,0 +1,110 @@
+---
+title: "Introduction to Statistics for Biomedical Sciences Using R"
+author: "Yuexi Dai, Tanvi Mane, Fatima Hashmi, Xinrui Yu, Philip He"
+date: "June 26, 2025"
+site: "bookdown::bookdown_site"
+documentclass: "book"
+bibliography: ["book.bib", "packages.bib"]
+description: "This is a minimal example of using the bookdown package to write a book"
+link-citations: yes
+github-repo: "rstudio/bookdown-demo"
+---
+
+```{r setup, include=FALSE}
+# This special part loads all your R tools (libraries) for the whole book.
+# It also sets up how your code and messages look.
+
+knitr::opts_chunk$set(
+  echo = TRUE,     # Show the R code in the book
+  warning = FALSE, # Hide warnings (like "package was built under R version X.X")
+  message = FALSE  # Hide messages (like "Attaching package: 'dplyr'")
+)
+
+# --- ALL THE R TOOLS YOUR BOOK NEEDS ---
+# Make sure you have INSTALLED these packages in RStudio's Console BEFORE this step.
+# (We did this for 'condsurv' already, and you should have done it for others too).
+
+
+```
+
+```
+install.packages("survival")
+install.packages("ggsurvfit")
+install.packages("condsurv")
+install.packages("olsrr")
+install.packages("leaps")
+install.packages("MASS")
+install.packages("sm")
+install.packages("broom")
+install.packages("broom.helpers")
+install.packages("mlbench")
+install.packages("ROCR")
+install.packages("psych")
+install.packages("epitools")
+install.packages("DescTools")
+install.packages("coin")
+install.packages("multcomp")
+install.packages("car")
+install.packages("devtools")
+devtools::install_github("phe9480/IntroStats")
+install.packages("ggplot2")
+install.packages("tibble")
+install.packages("tidycmprsk")
+install.packages("cardx")
+install.packages("purrr")
+install.packages("NHANES")
+install.packages("lsr")
+install.packages("effects")
+install.packages("pROC")
+install.packages("multimode")
+```
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(lubridate)
+library(knitr)
+library(gtsummary)
+library(survival)
+library(ggsurvfit)
+library(condsurv) # Your conditional survival tool!
+library(olsrr)
+library(leaps)
+library(MASS)
+library(sm)
+library(broom)
+library(broom.helpers)
+library(mlbench)
+library(ROCR)
+library(psych)
+library(epitools)
+library(DescTools)
+library(coin)
+library(multcomp)
+library(car)
+library(IntroStats) # Your special IntroStats tool!
+library(ggplot2)
+library(tibble)
+library(devtools)
+library(tidycmprsk)
+library(cardx)
+library(purrr) 
+library(NHANES)
+library(lsr)
+library(effects)
+library(pROC)
+library(multimode)
+
+mycol = "turquoise"
+```
+
+
+
+```
+{r eval=FALSE}
+bookdown::serve_boojjk()
+```
+
+

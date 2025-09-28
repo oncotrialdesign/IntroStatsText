@@ -1,0 +1,324 @@
+
+# Logistic Regression
+
+```{r}
+library(IntroStats)
+```
+
+## Motivating Example: Titanic
+
+On April 15, 1912, the RMS Titanic tragically sank after colliding with an iceberg. Out of 2,224 passengers and crew, more than 1,500 lives were lost. While luck played a role, many factors such as passenger class, gender, and age likely influenced survival outcomes.
+
+This example introduces how logistic regression can be used to analyze such data and estimate the probability of survival using multiple predictors.
+
+Logistic regression is appropriate because the response variable is binary — passengers either survived (1) or did not (0).
+
+We simulate Titanic-like data below for demonstration.
+
+### Preparing the Dataset
+
+```{r}
+set.seed(123)
+
+# Simulate Titanic-like data
+n <- 800
+data <- data.frame(
+  Survived = rbinom(n, 1, prob = 0.4),
+  Pclass = as.factor(sample(c(1, 2, 3), n, replace = TRUE, prob = c(0.2, 0.3, 0.5))),
+  Sex = as.factor(sample(c("male", "female"), n, replace = TRUE, prob = c(0.65, 0.35))),
+  Age = round(rnorm(n, mean = 30, sd = 14), 1),
+  SibSp = sample(0:3, n, replace = TRUE),
+  Parch = sample(0:2, n, replace = TRUE),
+  Fare = round(runif(n, 10, 100), 2),
+  Embarked = as.factor(sample(c("C", "Q", "S"), n, replace = TRUE, prob = c(0.2, 0.1, 0.7)))
+)
+```
+
+### Fitting the Logistic Regression Model
+
+```{r}
+# Fit logistic regression model
+model <- glm(Survived ~ ., family = binomial(link = "logit"), data = data)
+
+# Output model summary
+summary(model)
+```
+
+### Initial Interpretation
+
+The model provides log-odds estimates of survival probability. A positive coefficient suggests higher survival odds, while a negative coefficient indicates reduced odds. Key takeaways:
+
+- Females typically show higher survival odds than males.
+- Higher passenger class (1st class) increases survival odds.
+- Age and fare may have a moderate effect depending on direction and significance.
+
+These results will be examined further in the next sections.
+
+## Logistic Regression
+
+Logistic regression is used when the response variable is binary — meaning it has only two possible outcomes (e.g., survived/did not survive, disease/no disease, success/failure). In this case, we are modeling survival (`Survived = 1`) versus non-survival (`Survived = 0`) on the Titanic.
+
+Unlike linear regression, which models a numeric outcome, logistic regression models the probability of a binary outcome using the logit link function, which relates the predictors to the log-odds of the event occurring.
+
+### Logistic Regression Model Equation
+
+The logistic regression model can be written as:
+
+$$
+\log\left(\frac{p(x)}{1 - p(x)}\right) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p
+$$
+
+Where:
+- $p(x)$ is the probability that $Y = 1$ given predictors $x$
+- $\frac{p(x)}{1 - p(x)}$ is the odds of the event
+- The left-hand side is the log-odds, called the logit
+
+Solving for $p(x)$ gives the logistic function:
+
+$$
+p(x) = \frac{1}{1 + e^{-(\beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p)}}
+$$
+
+This ensures the predicted probabilities are always between 0 and 1.
+
+### Model Assumptions
+
+Logistic regression relies on a few key assumptions:
+
+- The response variable is binary.
+- Observations are independent.
+- There is a linear relationship between the log-odds and the predictors.
+- No multicollinearity among predictors.
+- Large sample size is preferable for stable estimates.
+
+### Interpretation of Coefficients
+
+Each coefficient $\beta_i$ represents the change in the log-odds of the response variable for a one-unit increase in $x_i$, holding other variables constant.
+
+- If $\beta_i > 0$, an increase in $x_i$ increases the odds of the event (i.e., survival).
+- If $\beta_i < 0$, an increase in $x_i$ decreases the odds.
+- The exponentiated coefficient, $e^{\beta_i}$, gives the odds ratio for a one-unit increase in $x_i$.
+
+## Model Fitting
+
+To fit a logistic regression model, we use the `glm()` function in R. This function allows us to specify the binomial family and the logit link, which is the default for logistic regression.
+
+We’ll fit the model using the simulated Titanic-like dataset from Section 24.1.
+
+### Fit the Model
+
+```{r}
+# Fit the logistic regression model using all available predictors
+model <- glm(Survived ~ ., data = data, family = binomial(link = "logit"))
+
+# View the model summary
+summary(model)
+```
+
+### Understanding the Output
+
+The output of `summary(model)` includes:
+
+- **Estimate**: The $\beta$ coefficient for each predictor (on the log-odds scale)
+- **Std. Error**: The standard error of the estimate
+- **z value**: Test statistic for the null hypothesis $\beta = 0$
+- **Pr(>|z|)**: p-value for the hypothesis test
+
+If the p-value is small (commonly < 0.05), the predictor is considered statistically significant.
+
+### Model Formula Recap
+
+The model estimates a formula of the form:
+
+$$
+\log\left(\frac{p(x)}{1 - p(x)}\right) = \beta_0 + \beta_1 \cdot Pclass + \beta_2 \cdot... + \cdots
+$$
+
+Each $\beta$ coefficient tells us how a one-unit change in the predictor affects the log-odds of survival, holding other variables constant.
+
+## Interpretation of Logistic Regression
+
+Interpreting the results of a logistic regression model involves understanding both the significance of the coefficients and what they imply in terms of odds and probabilities.
+
+### Hypothesis test for coefficients
+
+Each coefficient in a logistic regression model is tested using the following hypotheses:
+
+- Null hypothesis ($H_0$): The coefficient $\beta_i = 0$ (the predictor has no effect)
+- Alternative hypothesis ($H_1$): The coefficient $\beta_i \ne 0$ (the predictor has an effect)
+
+R provides a z-statistic and a p-value for each coefficient. These values are used to determine whether to reject the null hypothesis.
+
+```{r}
+# View summary of model
+summary(model)
+```
+
+In the output:
+- A **small p-value** (typically < 0.05) indicates strong evidence that the predictor has a statistically significant effect on the outcome.
+- A **large p-value** means we fail to reject the null, suggesting that the predictor may not have a meaningful influence.
+
+Each coefficient is interpreted on the log-odds scale, so additional transformation is needed to understand the change in probability or odds.
+
+
+
+### Odds Ratio
+
+To better interpret the effect of predictors, we calculate the odds ratio (OR) by exponentiating each coefficient:
+
+$$
+\text{Odds Ratio} = e^{\beta_i}
+$$
+
+- If $\text{OR} > 1$: The predictor increases the odds of the event
+- If $\text{OR} < 1$: The predictor decreases the odds
+- If $\text{OR} = 1$: No effect
+
+```{r}
+# Exponentiate coefficients to get odds ratios
+exp(coef(model))
+
+# Get odds ratios with 95% confidence intervals
+exp(cbind(OddsRatio = coef(model), confint(model)))
+```
+
+This output allows us to interpret the magnitude and direction of each variable's effect on the outcome.
+
+For example:
+- An odds ratio of 2.5 means the odds of survival are 2.5 times greater for that predictor group.
+- An odds ratio of 0.40 means the odds are 60% lower (1 - 0.40 = 0.60).
+
+
+
+### Example: Risk Factors for Heart Disease
+
+To demonstrate logistic regression interpretation in a biomedical setting, we’ll use a dataset simulating heart disease outcomes based on known risk factors like age, cholesterol, and smoking status.
+
+```{r}
+# Simulate data for heart disease example
+set.seed(123)
+n <- 300
+age <- rnorm(n, mean = 55, sd = 10)
+cholesterol <- rnorm(n, mean = 220, sd = 30)
+smoker <- rbinom(n, 1, 0.4)
+heart_disease <- rbinom(n, 1, plogis(-5 + 0.04*age + 0.02*cholesterol + 1.2*smoker))
+heart_data <- data.frame(HeartDisease = heart_disease, Age = age, Chol = cholesterol, Smoker = smoker)
+
+# Fit the logistic regression model
+hd_model <- glm(HeartDisease ~ Age + Chol + Smoker, data = heart_data, family = binomial)
+
+# View model summary
+summary(hd_model)
+
+# Odds ratios and 95% confidence intervals
+exp(cbind(OddsRatio = coef(hd_model), confint(hd_model)))
+```
+
+#### Interpretation:
+
+- The coefficient for Smoker is positive and significant. The odds ratio is greater than 1, indicating that smokers are more likely to develop heart disease.
+- The Age and Cholesterol variables also have positive coefficients, meaning higher age and cholesterol are associated with increased odds of heart disease.
+- These results align with established biomedical knowledge and demonstrate the usefulness of logistic regression in identifying significant health risk factors.
+
+## Prediction
+
+Once a logistic regression model is fit, it can be used to make predictions about new or existing data. In logistic regression, predictions are made in terms of probabilities between 0 and 1. These probabilities represent the likelihood that the outcome equals 1 (e.g., survival, disease, success).
+
+We use the `predict()` function in R to generate:
+- Fitted probabilities (default type = "link" or type = "response")
+- Binary class predictions by applying a cutoff threshold (typically 0.5)
+
+We’ll demonstrate prediction using the `hd_model` from Section 24.4.3, which modeled heart disease risk based on age, cholesterol, and smoking status.
+
+```{r}
+# Generate predicted probabilities
+predicted_probs <- predict(hd_model, type = "response")
+
+# View first few predicted probabilities
+head(predicted_probs)
+```
+
+Each value represents the predicted probability that a patient has heart disease given their risk factors.
+
+
+
+### Converting probabilities to class predictions
+
+By default, a cutoff value of 0.5 is often used:
+- If predicted probability ≥ 0.5 → classify as 1 (heart disease)
+- If predicted probability < 0.5 → classify as 0 (no heart disease)
+
+```{r}
+# Convert probabilities to binary predictions using 0.5 cutoff
+predicted_classes <- ifelse(predicted_probs >= 0.5, 1, 0)
+
+# View classification results
+head(predicted_classes)
+```
+
+
+
+### Evaluating prediction accuracy
+
+We can compare the predicted classes with the actual outcomes to compute model accuracy:
+
+```{r}
+# Compare predictions to actual outcomes
+actual <- heart_data$HeartDisease
+
+# Create confusion matrix
+table(Predicted = predicted_classes, Actual = actual)
+
+# Calculate prediction accuracy
+accuracy <- mean(predicted_classes == actual)
+accuracy
+```
+
+This gives the overall accuracy — the proportion of correctly predicted outcomes. For more thorough evaluation (e.g., sensitivity/specificity), we can use ROC curves.
+
+## Performance assesment using ROC Curve
+
+An ROC (Receiver Operating Characteristic) curve is a visual tool used to evaluate the performance of a binary classification model. It plots the true positive rate (sensitivity) against the false positive rate (1 - specificity) across a range of threshold values.
+
+A good classifier will have a curve that bows toward the top-left corner, indicating high sensitivity and low false positive rate.
+
+We use the `pROC` package to create the ROC curve and compute the AUC (Area Under the Curve), which summarizes the model’s overall ability to discriminate between classes.
+
+```{r}
+# Load package
+library(pROC)
+
+# Predict probabilities from logistic regression model
+probs_hd <- predict(hd_model, type = "response")
+
+# Create ROC object
+roc_hd <- roc(heart_data$HeartDisease, probs_hd)
+
+# Plot the ROC curve
+plot(roc_hd, col = "blue", main = "ROC Curve: Heart Disease Prediction")
+```
+
+The ROC curve gives a complete view of how the model performs at all thresholds — not just at the default cutoff of 0.5.
+
+
+
+### Area Under the Curve 
+
+The AUC is a number between 0 and 1 that quantifies how well the model distinguishes between classes.
+
+- **AUC = 1**: perfect classification  
+- **AUC = 0.5**: no better than random guessing  
+- **Higher AUC values** indicate better discriminatory power
+
+```{r}
+# Compute AUC
+auc(roc_hd)
+```
+
+#### Interpretation:
+If AUC = 0.84, it means there’s an 84% chance the model will correctly distinguish a randomly chosen positive case from a negative one.
+
+In a biomedical context, this means our model is reasonably accurate at predicting who is at risk of heart disease based on the included risk factors (age, cholesterol, smoker status). However, further clinical validation is always important before using such a model in practice.
+
+
+

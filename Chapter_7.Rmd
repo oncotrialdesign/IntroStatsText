@@ -1,0 +1,970 @@
+
+# Discrete Random Variables
+
+```{r}
+library(IntroStats)
+```
+
+## Definitions 
+
+### Random Variable and Discrete Random Variable
+
+A **random variable** is a quantitative variable whose value depends on chance.
+
+A **discrete random variable** is a random variable whose possible values can be listed. In particular, a random variable with only a finite number of possible values is a discrete random variable.
+
+**Notations:**
+
+-   Lower case letters such as $x, y, z$ to denote variables.
+-   To represent random variables, we usually use upper case letters such as $X$, $Y$, and $Z$.
+-   $\bigl\{X = 2\bigr\}$ denotes the event that the random variable $X$ equals $x$.
+-   $P(X = x)$ denotes the probability of the random variable $X$ equals $x$.
+
+#### Example: Number of Siblings
+
+```{r, echo=FALSE}
+library(knitr)
+
+siblings <- data.frame(
+  Siblings_x = c(0, 1, 2, 3, 4, "Total"),
+  Frequency_f = c(8, 17, 11, 3, 1, 40),
+  Relative_Frequency = c(0.200, 0.425, 0.275, 0.075, 0.025, 1.000)
+)
+
+kable(siblings, caption = "Distribution of siblings with frequencies and relative frequencies")
+```
+
+The table presents each student's number of siblings in a class. For
+example, 11 of the 40 students have 2 siblings, which is about 27.5% of
+the total students.
+
+```{r}
+x <- 0:4; f <- c(8, 17, 11, 3, 1)
+
+rel.freq <- f / sum(f)
+
+#y <- c(rep(x[1],f[1]), rep(x[2],f[2]), rep(x[3],f[3]), rep(x[4],f[4]), rep(x[5],f[5]))
+
+bp <- barplot(rel.freq, col="turquoise", xlab="Number of siblings", ylab="Relative Frequency")
+mtext(side = 1, at = bp, line = 0, text = x)
+
+```
+
+Number of siblings is a variable because it varies from one student to
+another. Suppose now a student is randomly selected, then the number of
+siblings of the student is called a random variable because its value
+depends on chance.
+
+**Describe an example to tell the difference between variable and random
+variable.**
+
+### Probability Distributions and Probability Histogram
+
+**Probability distribution**: A listing of the possible values and corresponding probabilities of a discrete random variable, or a formula for the probabilities.
+
+**Probability histogram:** A graph of the probability distribution that displays the possible values of a discrete random variable on the horizontal axis and the probabilities of those values on the vertical axis. The probability of each value is represented by a vertical bar whose height equals the probability.
+
+#### Example
+
+![Figure Number of Siblings](https://i.ibb.co/KVLVjmn/224-Table-05-01.png)
+
+Let $X$ denote the number of siblings of a randomly selected student.
+
+- (a) Determine the probability distribution of $X$
+
+- (b) Construct a probability histogram for $X$
+
+**Solution**
+
+We need to determine the probability of each of the possible values of the random variable $X$. Apply the $f/N$ rule, we find
+
+$$
+P(X = 2) = \frac{f}{N} = 11/40 = 0.275
+$$
+
+Similarly, we can determine the other probabilities below.
+
+![Probability Distribution for Number of
+Siblings](https://i.ibb.co/KsWjcqG/225-Table-05-02.png)
+
+```{r}
+prob <- f/40
+bp <- barplot(prob, col="turquoise", xlab="Number of siblings", ylab="Probability")
+mtext(side = 1, at = bp, line = 0, text = x)
+```
+
+For any discrete random variable $X$, suppose $X$ has possible values of $x_1, \cdots, x_k$.
+
+$$
+\sum P(X = x_i) = 1
+$$
+
+*Think about why?*
+
+#### Example
+
+Table below shows the frequency distribution for enrollment by grade in public elementary schools in U.S. Frequencies are in thousands of students.
+
+Let $Y$ denote the grade level of a randomly selected elementary school student.
+
+![Figure Elementary students by grades](https://i.ibb.co/7yxcbTn/226-Table-05-03.png)
+
+-   (a) Represent the event that the selected student is in 5th grade.
+
+-   (b) Determine $$P(Y = 5)$$ and express in percentages.
+
+-   (c) Determine the probability distribution of $Y$.
+
+**Solution:**
+
+(a). Use $\bigl\{Y = 5\bigr\}$ to represent the event.
+
+(b). 
+$$
+P(Y=5) = \frac{3629}{34169} = 0.106
+$$
+
+A randomly selected elementary school student in the U.S. has a probability of 10.6% are in the 5th grade.
+
+(c). Similarly, we calculate the probability for each of grades to obtain the probability distribution of $Y$.
+
+![Figure  Elementary students by grades](https://i.ibb.co/k4RV2qs/227-Table-05-04.png)
+
+#### Example
+
+When a balanced dime is tossed three times. Eight equally likely outcomes are possible.
+
+![Figure A coin tossed 3 times](https://i.ibb.co/Pmrfdk3/227-Table-05-05.png)
+
+Let $X$ denote the number of heads tossed, then all possible values of $X$ are 0, 1, 2, 3.
+
+-   (a). Determine $P(X=2)$
+-   (b). Find the distribution of $X$
+-   (c). Use notation to represent the event that at most two heads are tossed.
+-   (d). Find $P(X \le 2)$
+
+**Solution.**
+
+(a). $$P(X=2) = \frac{3}{8}=0.375$$
+
+(b). Similarly, we can find the distribution of $X$
+
+![Figure . A coin tossed 3 times](https://i.ibb.co/sPQymr2/228-Table-05-06.png)
+
+(c). At most two heads are tossed: $\bigl\{X \le 2\bigr\}$.
+
+(d). 
+$$
+P(X \le 2) = P(X=0)+P(X=1)+P(X=2) = 0.125+0.375+0.375=0.875
+$$
+
+There is an 87.5% chance of obtaining two or fewer heads in 3 tosses.
+
+### Simulation: tossing a coin
+
+We perform a simulation study below, step by step, to enhance our understanding of the probability distribution concept.
+
+**Step 1.**
+
+*Perform the experiment once: Toss a coin 3 times* Because the coin is balanced, there is 50% chance to toss a head. The R function `toss.coin()` is to simulate the process. Try this. Each run represents one experiment of tossing 3 the coin 3 times.
+
+```{r}
+library(IntroStats)
+toss.coin(n=3)
+```
+
+**Step 2.**
+
+*Perform the experiment 2 times*
+
+```{r}
+exp1 <- toss.coin(n=3)
+exp1
+
+exp2 <- toss.coin(n=3)
+exp2
+
+```
+
+**Step 3.**
+
+*Perform the experiment 100 times*: draw and bar plot for observed number of heads in 100 experiments.
+
+```{r}
+n.experiments <- 100
+n.heads = rep(NA, n.experiments)
+
+#conduct 100 experiments
+for (i in 1:n.experiments){
+    n.heads[i] <- toss.coin(n=3)$heads
+}
+
+#summary by frequency
+s <- table(n.heads)
+s
+
+#relative frequency
+relative.freq = s/100
+relative.freq
+
+bp <- barplot(s, col="turquoise", xlab="Number of Heads in 3 tosses for 100 experiments", ylab="Frequency")
+mtext(side = 1, at = bp, line = 0, text = s)
+
+barplot(relative.freq, col="turquoise", xlab="Number of Heads in 3 tosses for 100 experiments", ylab="Probability")
+mtext(side = 1, at = bp, line = 0, text = s)
+
+```
+
+**Step 4.**
+
+Compare to the theoretical calculation:
+
+```{r}
+p <- c(0.125, 0.375, 0.375, 0.125)
+p
+
+bp <- barplot(p, col="green", xlab="Probability of Number of Heads in Theory", ylab="Probability")
+mtext(side = 1, at = bp, line = 0, text = 0:3)
+
+```
+
+**Step 5.**
+
+*Perform the experiment 1000 times*: draw and bar plot for observed number of heads in 1000 experiments.
+
+```{r}
+n.experiments <- 1000
+n.heads = rep(NA, n.experiments)
+
+#conduct 100 experiments
+for (i in 1:n.experiments){
+    n.heads[i] <- toss.coin(n=3)$heads
+}
+
+#summary by frequency
+s <- table(n.heads)
+s
+
+#relative frequency
+relative.freq = s/1000
+relative.freq
+
+bp <- barplot(s, col="turquoise", xlab="Number of Heads in 3 tosses for 1000 experiments", ylab="Frequency")
+mtext(side = 1, at = bp, line = 0, text = s)
+
+barplot(relative.freq, col="turquoise", xlab="Number of Heads in 3 tosses for 1000 experiments", ylab="Probability")
+mtext(side = 1, at = bp, line = 0, text = s)
+
+```
+
+**Step 6.**
+
+*Perform the experiment 10000 times*: draw and bar plot for observed
+number of heads in 1000 experiments.
+
+```{r}
+n.experiments <- 10000
+n.heads = rep(NA, n.experiments)
+
+#conduct 100 experiments
+for (i in 1:n.experiments){
+    n.heads[i] <- toss.coin(n=3)$heads
+}
+
+#summary by frequency
+s <- table(n.heads)
+s
+
+#relative frequency
+relative.freq = s/10000
+relative.freq
+
+bp <- barplot(s, col="turquoise", xlab="Number of Heads in 3 tosses for 10000 experiments", ylab="Frequency")
+mtext(side = 1, at = bp, line = 0, text = s)
+
+barplot(relative.freq, col="turquoise", xlab="Number of Heads in 3 tosses for 10000 experiments", ylab="Probability")
+mtext(side = 1, at = bp, line = 0, text = s)
+
+```
+
+**What are your conclusions from this simulation study?**
+
+### Interpretation of Probability Distribution
+
+In a large number of independent observations of a random variable $X$, the proportion of times each possible value occurs will approximate the probability distribution of $X$; or, equivalently, the proportion histogram will approximate the probability histogram for $X$.
+
+## The Mean and SD of a Discrete Random Variable
+
+### Definition: Mean of a Discrete Random Variable
+
+For a variable $x$, the mean of all possible observations for the entire
+population is called the **population mean**, and calculated as
+
+$$
+\mu=\frac{\sum x_i}{N}
+$$
+
+### Example
+
+Consider a population of 8 students whose ages are 19, 20, 20, 19, 21,
+27, 20, 21. Let $X$ denote the age of a randomly selected student. What
+is the mean of $X$? What is the probability distribution of $X$?
+
+```{r}
+x <-  c(19, 20, 20, 19, 21, 27, 20, 21) #Ages of the entire population
+
+#Population mean
+mu <- mean(x)
+mu
+
+#frequency summary
+s <- table(x)
+s
+
+N <- length(x)
+#Probability distribution
+p <- s / N
+p
+
+```
+
+Let's reconsider the calculation of population mean by frequency.
+
+-   2 students: age 19
+
+-   3 students: age 20
+
+-   2 students: age 21
+
+-   1 student: age 27
+
+-   Population mean = sum of all students ages / total number of
+    students
+
+$$
+\mu = \frac{2\times 19 + 3\times 20 + 2\times 21 + 1\times 27}{8} = 19\cdot \frac{2}{8}+20\cdot \frac{3}{8}+21\cdot \frac{2}{8}+27\cdot \frac{1}{8}
+$$
+
+$$
+\mu = 19P(X=19)+20P(X=20)+21P(X=21)+27P(X=27) = \sum x_iP(X=x_i)
+$$
+
+### Definition: Mean of a discrete random variable
+
+The **mean of a discrete random variable** $X$ is denoted $\mu_X$, or
+when no confusion will arise, simply $\mu$. It is defined by $$
+\mu = \sum xP(X=x)
+$$ The terms **expected value** and **expectation** are commonly used in
+place of the term **mean**.
+
+### Example
+
+Consider $X$ as random variable that denotes the number of tellers busy
+with customers at 1:00pm in a bank branch. Suppose the probability
+distribution of $X$, i.e., $P(X = x)$, is
+
+```{r, echo=FALSE}
+library(knitr)
+
+prob_table <- data.frame(
+  x = 0:6,
+  P_X_eq_x = c(0.029, 0.049, 0.078, 0.155, 0.212, 0.262, 0.215),
+  xP_X_eq_x = c(0.000, 0.049, 0.156, 0.465, 0.848, 1.310, 1.290)
+)
+
+# Add a "Total row" for the expected value
+total_row <- data.frame(
+  x = "",
+  P_X_eq_x = "",
+  xP_X_eq_x = 4.118
+)
+
+prob_table_full <- rbind(prob_table, total_row)
+
+kable(prob_table_full, caption = "Probability distribution with expected value")
+```
+
+Find the expected number of tellers servicing customers at 1:00pm, i.e.,
+the mean of $X$.
+
+**Solution:**
+
+$$
+\mu = \sum xP(X=x) = 0\times 0.029+1\times 0.049+\cdots+6\times 0.215 = 4.118
+$$
+
+The mean number of tellers servicing customers at 1:00pm is 4.118.
+
+### Interpretation of the Mean of a Random Variable
+
+In a large number of independent observations of a random variable $X$,
+the average value of those observations will approximately equal the
+mean, $\mu$ of $X$. The larger the number of observations, the closer
+the average tends to be to $\mu$.
+
+Graphs showing the average number of busy tellers versus the number of
+observations for two simulations of 100 observations each
+
+![Figure . Tellers](https://i.ibb.co/4WZHBQL/234-Figure-05-03.png)
+
+### Standard deviation of a discrete random variable
+
+The standard deviation of a discrete random variable $X$ is denoted
+$\sigma_X$ or when no confusion will arise, simply $\sigma$. It is
+defined as 
+$$
+\sigma = \sqrt{\sum (x-\mu)^2P(X=x)}
+$$
+
+The standard deviation of a discrete random variable can also be obtained from the computing formula 
+
+$$
+\sigma = \sqrt{\sum x^2P(X=x)-\mu^2}
+$$
+#### Example
+
+For the teller example, following the formula,
+```{r, echo=FALSE}
+library(knitr)
+
+variance_table <- data.frame(
+  x = 0:6,
+  P_X_eq_x = c(0.029, 0.049, 0.078, 0.155, 0.212, 0.262, 0.215),
+  x_squared = c(0, 1, 4, 9, 16, 25, 36),
+  x2P_X_eq_x = c(0.000, 0.049, 0.312, 1.395, 3.392, 6.550, 7.740)
+)
+
+# Add total row for the last column
+total_row <- data.frame(
+  x = "",
+  P_X_eq_x = "",
+  x_squared = "",
+  x2P_X_eq_x = 19.438
+)
+
+variance_table_full <- rbind(variance_table, total_row)
+
+kable(variance_table_full, caption = "Probability distribution with squared terms and variance calculation")
+```
+
+
+$$
+\sigma = \sqrt{\sum x^2P(X=x)-\mu^2}=\sqrt{19.438-4.118^2} = 1.6
+$$
+
+#### Example: Expected Side Effects in a Cancer Drug Trial
+
+Consider $X$ as a random variable that denotes the **number of moderate side effects** experienced by a patient during the course of a new cancer drug trial. Based on data from previous trials, the probability distribution of $X$, i.e., $P(X = x)$, is given by the table below:
+
+| $x$ (Number of Side Effects) | $P(X = x)$ |
+|------------------------------|------------|
+| 0                            | 0.10       |
+| 1                            | 0.20       |
+| 2                            | 0.35       |
+| 3                            | 0.25       |
+| 4                            | 0.10       |
+
+We will compute the **expected value** (mean) and the **standard deviation** of $X$ to understand the average burden of side effects and its variability across patients.
+
+```{r}
+# Define x values and corresponding probabilities
+x <- 0:4
+p <- c(0.10, 0.20, 0.35, 0.25, 0.10)
+
+# Calculate expected value (mean)
+mu <- sum(x * p)
+# Calculate variance using computing formula
+variance <- sum(x^2 * p) - mu^2
+# Standard deviation
+sigma <- sqrt(variance)
+
+# Output results
+mu
+sigma
+```
+
+**Interpretation**
+
+The expected number of moderate side effects per patient is
+$\mu = 2.05$, which means that, on average, a patient is likely to experience approximately 2 moderate side effects during the trial.
+
+The standard deviation is $\sigma = 1.12$, indicating a moderate level of variability around the mean. This suggests that while many patients may experience around two side effects, others may experience significantly fewer or more—highlighting differences in individual tolerance to the drug.
+
+## Binomial Distribution
+
+The total population of New Jersey is estimated at 8,938,175 people with 4,361,952 male and 4,576,223 female. The New Jersey Gender Ratio is 95 men to 100 women (95:100) or 0.95. New Jersey's gender ratio is lower than the national average of 97 men to 100 women (97:100) or 0.97. Source: States101.com. 
+
+When randomly pick a person in New Jersey, what's the probability that the person is female? It is $p = 4576223 / 8938175 \approx 0.5120$, which is the population probability of female. Let $X$ as the random variable of gender being female for a person in New Jersey (0 = male, 1 = female), then $X\sim Bernoulli(p)$ Bernoulli distribution with parameter $p$. 
+
+The mean of $X$ is $\mu_X = E[X] = 0(1-p) + 1(p) = p$ and variance is $\sigma_X^2 = E[(X-\mu)^2] = (0-p)^2(1-p) + (1-p)^2p = p(1-p)$. 
+
+It's intuitively understandable that "on-average" a random person as female is $p$. However, the variance is not that intuitive. $\sigma_X^2 = 0.2499$. For Bernoulli($p$) distribution, among all possible $0\le p\le 1$, the largest variance occurs when $p=0.5$. This observation is helpful when estimating sample size for experiments with binary outcome.
+
+Now consider the scenario that we randomly pick 20 people from New Jersey, what is the probability of having exactly 2 females? 
+
+Denote $X_1$ as the outcome of the first person being female ($X_1=0$ or 1), and similarly define $X_2, \cdots X_{20}$. Then 
+$$
+X^* = X_1 + \cdots, X_{20}
+$$ 
+is the random variable as the number of females among the 20 random people. The problem is to find out $P(X^* = 2)$. 
+
+The possible values of $X^*$ are $(0, 1, \cdots, 20)$. The distribution of $X^*$ follows a **binomial distribution**, which is the sum of multiple independent Bernoulli random variables. 
+
+How do we calculate $P(X^* = x)$?
+
+### Definition: factorials
+
+The product of the first $K$ positive integers (counting numbers) is
+called $k$ factorial and is denoted $k!$. In symbols, 
+$$
+k! = k(k-1)\cdots 2\cdot 1
+$$ 
+We also define $0!=1$.
+
+**Example**
+
+Find 3!, 4! and 5!.
+
+$$
+3! = 3\times 2\times 1 = 6
+$$ 
+$$
+4! = 4\times 3\times 2\times 1 = 24
+$$
+
+$$
+5! = 5\times 4\times 3\times 2\times 1 = 120
+$$
+
+### Definition: Binomial coefficient
+
+If n is a positive integer and $x$ is a non-negative integer less than or
+equal to n, then the binomial coefficient $\binom{n}{x}$ is defined as
+$$
+\binom{n}{x} = \frac{n!}{x!(n-x)!}
+$$
+
+This is the number of ways to pick $x$ items without considering order
+from a total of $n$ items.
+
+#### Example
+
+Calculate
+
+$$
+\binom{6}{1} = \frac{6!}{1!5!}=6
+$$ 
+$$
+\binom{5}{3} = \frac{5!}{3!2!}=10
+$$
+
+$$
+\binom{4}{4} = \frac{4!}{4!0!}=1
+$$
+
+### Definition: Bernoulli Trials
+
+Repeated trials of an experiment are called Bernoulli trials if the following three conditions are satisfied: 
+
+-   The experiment (each trial) has two possible outcomes, denoted generically $s$, for success, and $f$, for failure. 
+
+-   The trials are independent, meaning that the outcome on one trial in no way affects the outcome on other trials. 
+
+-   The probability of a success, called the success probability and denoted $p$, remains the same from trial to trial.
+
+### Definition: Binomial distribution
+
+Binomial distribution is the probability distribution for the **number of successes** in a sequence of Bernoulli trials.
+
+#### Example
+
+Reconsider the example of tossing 3 coins in a sequence. How do we calculate the probability of observing 2 heads, i.e., $P(X=2)=?$
+
+There are 3 outcomes to observe 2 heads: HHT, THH, and HTH. This is equivalent to pick 2 tosses and assign to H. The total number of ways to assign 2 heads are exactly the binomial coefficient: 
+$$
+\binom{3}{2}=3
+$$
+
+### Number of Outcomes Containing a Specified Number of Successes
+
+In $n$ Bernoulli trials, the number of outcomes that contain exactly $x$ successes equals the binomial coefficient 
+$$
+\binom{n}{x}
+$$
+
+Each toss has 0.5 probability to observe a head, and 0.5 probability to observe a tail. So for each outcome of 2 heads, the probability is $0.5^2(1-0.5)^1$. There are 
+$$
+\binom{3}{2}=3
+$$ 
+such outcomes, so the probability of observing 2 heads is exactly 
+$$
+P(X=2) = \binom{3}{2}0.5^2(1-0.5)^1 = 0.375
+$$
+
+### Binomial Probability Formula
+
+Let $X$ denote the total number of successes in $n$ Bernoulli trials with success probability $p$. Then the probability distribution of the random variable $X$ is given by 
+$$
+P(X=x) = \binom{n}{x}p^x(1-p)^{n-x}
+$$ 
+for $x=0, 1, \cdots, n$.
+
+The random variable $X$ is called a binomial random variable and is said to have the binomial distribution with parameters $n$ and $p$.
+
+### Binomial Probability Formula
+
+-   $n$ trials are to be performed.
+
+-   Two outcomes, success or failure, are possible for each trial.
+
+-   The trials are independent.
+
+-   The success probability, $p$, remains the same from trial to trial.
+
+-   **Step 1** Identify a success.
+
+-   **Step 2** Determine $p$, the success probability.
+
+-   **Step 3** Determine $n$, the number of trials.
+
+-   **Step 4** The binomial probability formula for the number of successes, $X$, is 
+$$
+P(X=x) = \binom{n}{x}p^x(1-p)^{n-x}
+$$
+
+#### Example: Binomial Distribution of Survival to Age 65
+
+There is roughly an 80% chance that a person of age 20 years will be alive at age 65 years. Suppose that 3 people of age 20 are randomly selected. Find the probability that the number alive at age 65 years of age:
+
+(a) exactly 2; (b) at most one; (c) at least 1. (d) determine the probability distribution of the number alive at age 65.
+
+**Solution:**
+
+Let $X$ denote the number of people of the three who are alive age 65.
+
+**Step 1** Identify a success. A success is that a person currently at age 20 will be alive at age 65.
+
+**Step 2** Determine $p$, the success probability. The success probability is $p=0.8$.
+
+**Step 3** Determine $n$, the number of trials. $n=3$ in this example because we randomly select 3 people.
+
+**Step 4** The binomial probability formula for the number of successes, $X$
+
+$$
+P(X=x) = \binom{3}{x}0.8^x(0.2)^{3-x}
+$$ 
+
+(a).
+
+$$
+P(X=2) = \binom{3}{2}0.8^2(0.2)^{3-2}=0.384
+$$
+
+```{r}
+dbinom(x=2, size=3, p=0.8)
+```
+
+(b).
+
+$$
+P(X\le 1) = P(X=0) + P(X=1) = \binom{3}{0} 0.8^0(0.2)^{3-0} + \binom{3}{1}0.8^1(0.2)^{3-1}=0.104
+$$
+
+```{r}
+dbinom(x=0, size=3, p=0.8)+dbinom(x=1, size=3, p=0.8)
+```
+
+(c). 
+
+$$
+P(X\ge 1) = 1-P(X=0)=1-\binom{3}{0}0.8^0(0.2)^{3-0}=0.992
+$$
+
+```{r}
+1-dbinom(x=0, size=3, p=0.8)
+```
+
+(d). There are 4 possible outcomes for the number of successes: 0-3. The probability distribution is
+
+```{r}
+dbinom(x=0:3, size=3, p=0.8)
+```
+
+### Mean and SD of a Binomial Random Variable
+
+The mean and standard deviation of a binomial random variable with parameters n and p are
+
+$$
+\mu = np\\ \sigma = \sqrt{np(1-p)}
+$$ 
+
+#### Example
+
+Find the mean and sd of $X$.
+
+**Solution:**
+
+$$
+\mu = np=3\cdot 0.8 = 2.4\\
+\sigma = \sqrt{np(1-p)} = \sqrt{3\cdot 0.8 \cdot 0.2} = 0.7
+$$
+
+#### Example: HPV Vaccine Immune Response
+
+In a clinical study, each participant receives a series of **3 doses** of the HPV vaccine. According to previous research, each dose independently has an **85% chance** of generating a measurable immune response.
+
+Let the number of successful immune responses $X$ follow a **binomial distribution**: 
+
+$$
+X \sim (n = 3, p = 0.85)
+$$ 
+
+We apply the formulas to compute:
+
+-   the **mean**: $\mu = np$
+-   the **standard deviation**: $\sigma = \sqrt{np(1 - p)}$
+
+```{r}
+# Parameters
+n <- 3        # number of trials (vaccine doses)
+p <- 0.85     # probability of success per dose
+
+# Mean and standard deviation
+mu <- n * p
+sigma <- sqrt(n * p * (1 - p))
+
+# Output results
+mu
+sigma
+
+```
+
+**Interpretation**
+
+On average, a participant is expected to exhibit immune response to approximately 2.55 doses, meaning most individuals will respond positively to 2 or all 3 doses of the HPV vaccine.
+
+The standard deviation $\sigma = 0.63$ reflects moderate variability, suggesting that while the response rate is high, a small number of participants may have only 1 or even 0 successful responses. Understanding this distribution helps evaluate the consistency and effectiveness of the vaccine in a population.
+
+## The Poisson Distribution
+
+### Poisson probability formula
+
+Probabilities for a random variable $X$ that has a Poisson distribution are given by the formula 
+$$
+P(X= x) = e^{-\lambda}\cdot\frac{\lambda^x}{x!}
+$$ 
+where $\lambda$ is a positive real number and The random variable $X$ is called a **Poisson random variable** and is said to have the Poisson distribution with parameter $\lambda$.
+
+#### Example: ER Patient Arrival
+
+The number of patients arriving one ER department at 6:00pm-7:00pm has a Poisson distribution with parameter $\lambda = 6.9$. Determine the probability for the number of patients arriving at the ER at 6:00-7:00pm for
+
+(a) exactly 4; (b) at most 2; (c) between 4 and 10 inclusive; (d) Probability distribution for $X$.
+
+**Solutions:**
+
+(a).
+
+$$
+P(X=4) = e^{-6.9}\frac{6.9^4}{4!} = 0.095
+$$
+
+```{r}
+dpois(x=4, lambda=6.9)
+```
+
+(b). 
+
+$$
+P(X \le 2) = P(X=0)+P(X=1)+P(X=2) = e^{-6.9}\left(\frac{6.9^0}{0!}+\frac{6.9^1}{1!}+\frac{6.9^2}{2!}\right)
+$$
+
+(c).
+
+$$
+P(4\le X \le 10) = P(X=4)+P(X=5)+\cdots+P(X=10) \\ =e^{-6.9}\left(\frac{6.9^4}{4!}+\frac{6.9^5}{5!}+\cdots+\frac{6.9^10}{10!}\right)\\
+=0.821
+$$
+
+```{r}
+dpois(x=4, lambda=6.9)+dpois(x=5, lambda=6.9)+dpois(x=6, lambda=6.9)+dpois(x=7, lambda=6.9)+dpois(x=8, lambda=6.9)+dpois(x=9, lambda=6.9)+dpois(x=10, lambda=6.9)
+```
+
+(d). Probability distribution
+
+```{r}
+prob <- dpois(x=0:20, lambda=6.9)
+barplot(prob, col="turquoise")
+```
+
+### Shape of a Poisson distribute
+
+All Poisson distributions are right skewed.
+
+### Mean and SD of a Poisson random variable
+
+The mean and standard deviation of a Poisson random variable with parameter $\lambda$ are
+
+$$
+\mu=\lambda; \sigma=\sqrt{\lambda}
+$$
+
+One most important property of a Poisson distribution is the mean and variance are the same and equal the parameter $\lambda$. This is also convenient to apply.
+
+#### Example
+
+Let $X$ denote the number of patients arriving at the emergency room between 6 and 7 pm. Assuming $X$ follows a Poisson distribution with $\lambda=6.9$, 
+
+-   (a). Determine and interpret the mean of the random
+variable $X$. 
+-   (b). Determine the standard deviation of $X$
+
+**Solution:**
+
+(a). 
+
+$$
+\mu = 6.9
+$$
+
+On average, 6.9 patients arrive at the ER between 6 and 7pm.
+
+(b). 
+
+$$
+\sigma^2=\lambda=6.9; \sigma = \sqrt{\lambda} = 2.6
+$$
+
+### Poisson distribution features
+
+To further understand Poisson distribution, try out the technology below. Display the Poisson probability distribution with parameter $\lambda$
+
+```{r}
+#Poisson (lambda = 10)
+x <- 0:30
+p10 <- dpois(x, lambda=10)
+p15 <- dpois(x, lambda=15)
+
+bp10 <- barplot(p10, col="turquoise", main="Poisson (lambda = 10)")
+mtext(side = 1, at = bp10, line = 0, text =x, cex=0.8)
+
+
+bp15 <- barplot(p15, col="turquoise", main="Poisson (lambda = 15)")
+mtext(side = 1, at = bp15, line = 0, text =x, cex=0.8)
+
+```
+
+Poisson distribution is similar to Binomial distribution. Can we use Poisson to approximate binomial?
+
+### Poisson Approximation to Binomial Distribution
+
+Recall, a binomial probability distribution is 
+$$
+P(X=x) = \binom{n}{x}p^x(1-p)^{n-x}
+$$
+
+Mean of Binomial random variable $X$ is $np$. Mean of Poisson random variable is $\lambda$. How do both distributions look like when $\lambda = np$?
+
+**Try below:** 
+
+Plot the Binomial distribution $Binom(n=50, p=0.3)$ and
+$Poisson (\lambda = np=15)$.
+
+**Scenario 1: n = 50; p = 0.3**
+
+```{r}
+pois.binom(n=50, p=0.3)
+
+```
+
+**Scenario 2: n = 100; p = 0.3**
+
+```{r}
+pois.binom(n=100, p=0.3)
+```
+
+**Scenario 3: n = 500; p = 0.3**
+
+```{r}
+pois.binom(n=500, p=0.3)
+```
+
+**Observation:**
+
+Event when $n$ is very large, the approximation still has some issues.
+
+What about large $n$ and small $p$? Try below:
+
+**Scenario 4: n = 1000; p = 0.005**
+
+```{r}
+pois.binom(n=1000, p=0.005)
+```
+
+### Procedure for Approximation
+
+To Approximate Binomial Probabilities by Using a Poisson Probability Formula 
+
+-   **Step 1** Find $n$, the number of trials, and $p$, the
+success probability. 
+
+-   **Step 2** Continue only if $n \ge 100$ and
+$np \le 10$ and 
+
+-   **Step 3** Approximate the binomial probabilities by
+using the Poisson probability formula
+
+$$
+P(X=x) = e^{-np}\frac{(np)^x}{x!}
+$$
+
+#### Example: Estimate Infant Deaths in Finland
+
+The infant mortality rate is the number of deaths of children under 1 year old per 1000 live births in a year. It is reported in Finland the mortality rate is 3.4. Use Poisson distribution to approximate the probability that of 500 randomly selected live births in Finland, there are
+
+(a) no infant deaths; (b). at most 3 infant births
+
+**Solution:**
+
+Let $X$ denote the number of infant deaths out of 500 live births in Finland.
+
+Follow the procedure, $n=500$, $p=3.4/1000 = 0.0034$ which is the probability of one infant death in 1 year.
+
+Check whether it is acceptable for Poisson approximation:
+
+$$
+np = 1.7; n > 100
+$$
+
+So it is OK to proceed the approximation.
+
+**(a).**
+
+$$
+P(X = 0) = e^{-1.7}\frac{1.7^0}{0!} = 0.183
+$$
+
+**(b).**
+
+$$
+P(X \le 3) = P(X=0)+P(X=1)+P(X=2)+P(X=3)\\
+=e^{-1.7}\left(\frac{1.7^0}{0!}+\frac{1.7^1}{1!}+\frac{1.7^2}{2!}+\frac{1.7^3}{3!}\right) = 0.907
+$$
+
+```{r}
+#(a)
+dpois(x=0, lambda=1.7)
+
+#(b). ppois(q) = P(X <= q) is the cumulative distribution function
+ppois(q=3, lambda=1.7)
+```
+
+**Interpretation** 
+
+Using the Poisson approximation:
+
+-   There is approximately an 18.3% chance that no infant deaths will occur among 500 live births in Finland.
+
+-   There is approximately a 90.7% chance that 3 or fewer infant deaths will occur in such a group.
+
+-   This low mortality rate reflects Finland’s high standard of prenatal and infant care. The Poisson model is appropriate here due to the small probability of a single event and large number of trials.

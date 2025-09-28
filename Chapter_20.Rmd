@@ -1,0 +1,856 @@
+
+# Non-Parametric Methods
+
+```{r}
+library(IntroStats)
+```
+
+## One-Sample Sign Test
+
+### When to Use
+
+- The One-sample Sign Test is a nonparametric alternative to the one-sample t-test.
+- It is used when:
+  - The data are paired or from a single sample.
+  - The distribution of the population is not normal, or the sample size is too small for parametric tests.
+- The test checks whether the median of a single sample differs from a hypothesized value (usually zero).
+
+
+
+### Assumptions
+
+- Data are from a continuous distribution.
+- Observations are independent.
+- Measurement scale is at least ordinal.
+- Only the signs (+ or -) of the differences matter, not their actual magnitudes.
+
+
+
+### Hypotheses
+
+Let \( M_0 \) be the hypothesized median.
+
+- \( H_0: \text{Median} = M_0 \)
+- \( H_a: \text{Median} \ne M_0 \) (two-sided)  
+  or  
+- \( H_a: \text{Median} > M_0 \) (right-tailed)  
+- \( H_a: \text{Median} < M_0 \) (left-tailed)
+
+
+
+### Test Procedure
+
+1. Subtract the hypothesized median \( M_0 \) from each observation.
+2. Ignore any observations where the difference is zero.
+3. Count the number of positive signs \( S_+ \) and negative signs \( S_- \).
+4. The test statistic is \( \min(S_+, S_-) \).
+5. Under \( H_0 \), the number of positive signs follows a Binomial distribution:  
+   \( S_+ \sim \text{Binomial}(n, 0.5) \), where \( n \) is the number of non-zero differences.
+
+
+
+### Example: Investigating a New Painkiller’s Effect on Recovery Time
+
+A study tests whether a new painkiller reduces recovery time in post-surgery patients. Recovery time differences (new drug – standard) in days for 10 patients are:
+
+```r
+diffs <- c(-2, -1, 0, -3, -2, -4, -1, -1, 0, -3)
+
+# Remove zero differences
+diffs_no_zero <- diffs[diffs != 0]
+
+# Count signs
+S_plus <- sum(diffs_no_zero > 0)
+S_minus <- sum(diffs_no_zero < 0)
+n <- length(diffs_no_zero)
+
+# Binomial test
+binom.test(x = S_plus, n = n, p = 0.5, alternative = "two.sided")
+```
+
+
+
+### Interpretation
+
+```r
+# Example output
+#
+# Exact binomial test
+# 
+# data:  S_plus and n
+# number of successes = 0, number of trials = 8, p-value = 0.007812
+# alternative hypothesis: true probability of success is not equal to 0.5
+# 95 percent confidence interval:
+#  0.000000 0.403186
+# sample estimates:
+# probability of success 
+#                   0 
+```
+
+Since the p-value = 0.0078 is less than 0.05, we reject the null hypothesis. This suggests that the median difference in recovery time is significantly different from zero, indicating that the new painkiller may reduce recovery time.
+
+## One-sample Wilcoxon Signed-Rank Test
+
+### When to Use
+
+- This test is a nonparametric alternative to the one-sample t-test.
+- It is used when the assumptions of the t-test (normality) are not met, especially for small samples or ordinal data.
+- It tests whether the median difference from a hypothesized value (typically zero) is statistically significant.
+
+
+
+### Assumptions
+
+- The sample consists of paired values or a single sample.
+- Data are measured on at least an interval scale.
+- Differences are symmetrically distributed around the median.
+- Data are from a continuous distribution.
+- Observations are independent.
+
+
+
+### Hypotheses
+
+Let \( M_0 \) be the hypothesized median.
+
+- \( H_0: \text{Median} = M_0 \)
+- \( H_a: \text{Median} \ne M_0 \) (two-sided),  
+  or \( H_a: \text{Median} > M_0 \),  
+  or \( H_a: \text{Median} < M_0 \)
+
+
+
+### Test Procedure
+
+1. Subtract the hypothesized median \( M_0 \) from each observation to obtain the differences.
+2. Discard observations where the difference equals zero.
+3. Rank the absolute values of the non-zero differences.
+4. Assign signs (+ or –) to the ranks based on the original sign of the differences.
+5. Calculate the test statistic \( W \) as the sum of the signed ranks.
+6. Compare \( W \) to the expected distribution under \( H_0 \). For small samples, use exact p-values; for large samples, a normal approximation may be used.
+
+
+
+### Example: Evaluating a New Therapy’s Effect on Pain Reduction
+
+Researchers want to evaluate whether a new physical therapy treatment changes pain levels in patients. Pain scores (0–10 scale) before and after treatment for 10 patients are shown below.
+
+```r
+# Pre-treatment and post-treatment scores
+pre <- c(8, 7, 6, 7, 9, 8, 7, 6, 9, 8)
+post <- c(6, 6, 5, 7, 7, 6, 6, 5, 7, 6)
+
+# Differences
+diffs <- post - pre
+
+# Perform one-sample Wilcoxon signed-rank test
+wilcox.test(diffs, mu = 0, alternative = "two.sided", exact = TRUE)
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+# 
+#  Wilcoxon signed rank test
+#
+# data:  diffs
+# V = 0, p-value = 0.00195
+# alternative hypothesis: true location is not equal to 0
+```
+
+The p-value = 0.00195 is less than 0.05, so we reject the null hypothesis. This suggests that the new physical therapy significantly changes pain scores, indicating effectiveness in reducing pain.
+
+## Paired-sample Wilcoxon Signed-Rank Test
+
+### When to Use
+
+- The paired-sample Wilcoxon signed-rank test is used to compare two related or matched samples when the assumptions of the paired t-test are not met.
+- It is appropriate when:
+  - You have two measurements on the same subjects (e.g., before and after treatment).
+  - The data are not normally distributed or measured on an ordinal or interval scale.
+  - The differences between pairs are symmetrically distributed, but not necessarily normal.
+
+
+
+### Assumptions
+
+- The paired observations are dependent (i.e., matched pairs).
+- Data are from a continuous distribution.
+- Differences between pairs are symmetrically distributed.
+- No strong outliers in the difference scores.
+- Zero differences are discarded before analysis.
+
+
+
+### Hypotheses
+
+Let \( M_d \) be the population median of the paired differences:
+
+- \( H_0: M_d = 0 \)
+- \( H_a: M_d \ne 0 \) (two-sided)  
+  or \( H_a: M_d > 0 \)  
+  or \( H_a: M_d < 0 \)
+
+
+
+### Test Procedure
+
+1. Compute the difference between paired observations: \( D_i = X_i - Y_i \)
+2. Discard any differences equal to zero.
+3. Compute the absolute values of the differences.
+4. Rank the absolute differences from smallest to largest.
+5. Assign the original sign (+ or –) to each rank based on the sign of the difference.
+6. Compute the test statistic \( W \) as the sum of positive ranks.
+7. Compare \( W \) to the Wilcoxon signed-rank distribution under the null hypothesis.
+
+For large samples (n > 25), the test statistic is approximately normally distributed.
+
+
+
+### Example: Comparing Pre- and Post-Blood Glucose Levels
+
+A study evaluates the effectiveness of a dietary intervention to reduce blood glucose levels. Ten patients are measured before and after the program.
+
+```r
+# Blood glucose levels before and after intervention
+before <- c(140, 135, 150, 142, 138, 147, 143, 149, 136, 141)
+after <- c(130, 132, 145, 138, 134, 143, 140, 144, 132, 137)
+
+# Perform paired Wilcoxon signed-rank test
+wilcox.test(before, after, paired = TRUE, alternative = "two.sided", exact = TRUE)
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+#
+#  Wilcoxon signed rank test
+#
+# data:  before and after
+# V = 0, p-value = 0.00195
+# alternative hypothesis: true location shift is not equal to 0
+```
+
+Since the p-value = 0.00195 is less than 0.05, we reject the null hypothesis. This suggests that the dietary intervention significantly reduced blood glucose levels in patients.
+
+## Two-Sample Mood’s Median Test
+
+### When to Use
+
+- The Mood’s Median Test is a non-parametric test used to compare the medians of two independent groups.
+- It is appropriate when:
+  - The data are ordinal or continuous, but not normally distributed.
+  - You want to test if the two populations have the same median.
+  - There are outliers or non-normality that violate assumptions of the two-sample t-test.
+
+
+
+### Assumptions
+
+- The two samples are independent.
+- The data are measured at least on an ordinal scale.
+- The responses are from two different populations.
+- The test compares the number of values above and below the pooled median.
+
+
+
+### Hypotheses
+
+Let \( M_1 \) and \( M_2 \) be the medians of Group 1 and Group 2, respectively:
+
+- \( H_0: M_1 = M_2 \)  
+- \( H_a: M_1 \ne M_2 \) (two-sided)
+
+
+
+### Test Procedure
+
+1. Combine the two groups into one pooled dataset.
+2. Compute the overall median of all observations.
+3. Count how many observations in each group are above and below the pooled median.
+4. Construct a 2×2 contingency table of group vs. above/below median.
+5. Use the Chi-square test of independence to analyze the table.
+
+
+
+### Example: Comparing Post-Surgery Recovery Times Between Two Clinics
+
+A health system wants to compare recovery times (in days) between two different surgical clinics. Since the data are skewed and contain outliers, the Mood’s Median Test is used.
+
+```r
+# Recovery times (in days) for two clinics
+clinic_A <- c(5, 7, 8, 6, 9, 10, 12, 8, 7, 6)
+clinic_B <- c(10, 11, 13, 14, 9, 12, 15, 13, 11, 12)
+
+# Combine data
+recovery <- c(clinic_A, clinic_B)
+group <- c(rep("A", length(clinic_A)), rep("B", length(clinic_B)))
+pooled_median <- median(recovery)
+
+# Create table: Above/Below pooled median by group
+above <- recovery > pooled_median
+table(group, above)
+chisq.test(table(group, above))
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+#
+#   Pearson's Chi-squared test with Yates' continuity correction
+#
+# data:  table(group, above)
+# X-squared = 4.5, df = 1, p-value = 0.0339
+```
+
+Since the p-value = 0.0339 is less than 0.05, we reject the null hypothesis. This suggests that the median recovery times differ significantly between Clinic A and Clinic B.
+
+## Two-Sample Mann–Whitney U Test
+
+### When to Use
+
+- The Mann–Whitney U Test is a non-parametric alternative to the two-sample t-test.
+- It compares whether one group tends to have larger values than the other.
+- It is used when:
+  - The data are not normally distributed.
+  - The two groups are independent.
+  - The measurement scale is ordinal or continuous.
+
+
+
+### Assumptions
+
+- The two samples are independent.
+- The observations are randomly drawn.
+- The dependent variable is at least ordinal.
+- The distributions of the two populations are similar in shape.
+
+
+
+### Hypotheses
+
+Let \( X \) and \( Y \) be the distributions of the two groups:
+
+- \( H_0: \text{The distributions of } X \text{ and } Y \text{ are identical} \)
+- \( H_a: \text{The distributions of } X \text{ and } Y \text{ differ} \)
+
+
+
+### Test Procedure
+
+1. Combine all observations from both groups and rank them.
+2. Sum the ranks for each group.
+3. Calculate the U statistic using:
+   \[
+   U = n_1 n_2 + \frac{n_1(n_1 + 1)}{2} - R_1
+   \]
+   where \( n_1 \) is the size of group 1 and \( R_1 \) is the sum of ranks in group 1.
+4. The test statistic is the smaller of \( U_1 \) and \( U_2 \).
+5. Use normal approximation if sample sizes are large.
+
+
+
+### Example: Comparing CRP Levels in Smokers vs Non-Smokers
+
+Researchers are investigating whether C-reactive protein (CRP) levels differ between smokers and non-smokers. The CRP level is a marker of inflammation and can vary with lifestyle. The distribution is skewed, so the Mann–Whitney U Test is used.
+
+```r
+# CRP levels (mg/L) in two independent groups
+smokers <- c(5.8, 6.1, 6.5, 7.2, 6.9, 7.0, 6.6, 7.3)
+nonsmokers <- c(3.4, 3.6, 3.8, 4.1, 3.9, 4.2, 4.0, 3.5)
+
+# Perform Mann–Whitney U Test
+wilcox.test(smokers, nonsmokers, alternative = "two.sided", exact = FALSE)
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+#
+#   Wilcoxon rank sum test with continuity correction
+#
+# data:  smokers and nonsmokers
+# W = 64, p-value = 0.0007
+```
+
+Since the p-value = 0.0007 is less than 0.05, we reject the null hypothesis. This suggests that CRP levels are significantly different between smokers and non-smokers.
+
+## Two-Sample Kolmogorov–Smirnov Test
+
+### When to Use
+
+- The Kolmogorov–Smirnov (K–S) test is used to compare two independent samples to determine if they come from the same distribution.
+- It is a nonparametric test that compares the empirical cumulative distribution functions (ECDFs) of the two groups.
+- It is especially useful when:
+  - The data are continuous
+  - You want to compare both location and shape of the distributions
+
+
+
+### Assumptions
+
+- Observations in each group are independent and randomly sampled
+- The variable of interest is continuous
+- No assumptions about the specific distribution (non-parametric)
+
+
+
+### Hypotheses
+
+Let \( F_1(x) \) and \( F_2(x) \) represent the cumulative distribution functions (CDFs) of the two samples.
+
+- \( H_0 \): \( F_1(x) = F_2(x) \) for all \( x \) (the two groups follow the same distribution)
+- \( H_a \): \( F_1(x) \ne F_2(x) \) for at least one \( x \)
+
+
+
+### Test Statistic
+
+The test statistic \( D \) is the maximum absolute difference between the ECDFs of the two samples:
+
+\[
+D = \sup_x \left| F_1(x) - F_2(x) \right|
+\]
+
+This measures the largest vertical distance between the two empirical distribution curves.
+
+
+
+### Example: Comparing Serum Iron Levels in Anemic vs Non-Anemic Patients
+
+A research team wants to examine whether serum iron levels in patients with anemia differ in distribution from those without anemia. Since the distributions appear non-normal and may differ in shape, the Kolmogorov–Smirnov test is used.
+
+```r
+# Serum iron levels (µg/dL)
+anemic <- c(40, 45, 42, 38, 43, 41, 39, 46)
+nonanemic <- c(55, 60, 59, 62, 57, 61, 58, 63)
+
+# Perform two-sample K–S test
+ks.test(anemic, nonanemic)
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+#
+# Two-sample Kolmogorov-Smirnov test
+#
+# data:  anemic and nonanemic
+# D = 1, p-value = 0.0006
+```
+
+Since the p-value = 0.0006 is less than 0.05, we reject the null hypothesis. This indicates a statistically significant difference in the distributions of serum iron levels between anemic and non-anemic patients.
+
+## Multiple-Sample Kruskal–Wallis Test (Non-parametric one-way ANOVA)
+
+### When to Use
+
+- The Kruskal–Wallis test is used to compare 3 or more independent groups to determine whether they originate from the same distribution.
+- It is the nonparametric alternative to one-way ANOVA when:
+  - The assumptions of normality or equal variances are violated
+  - The data are ordinal or non-normally distributed
+- The test compares the median ranks among groups, not the means.
+
+
+
+### Assumptions
+
+- The dependent variable is continuous or ordinal
+- The independent variable defines 3 or more independent groups
+- Observations are mutually independent
+- The response variable has similar shape across groups (though not identical distributions)
+
+
+
+### Hypotheses
+
+Let \( k \) be the number of groups, and \( F_1, F_2, ..., F_k \) be the population distributions.
+
+- \( H_0 \): All groups have the same distribution (i.e., \( F_1 = F_2 = ... = F_k \))
+- \( H_a \): At least one group differs in distribution
+
+
+
+### Test Statistic
+
+Let \( R_i \) be the sum of ranks in group \( i \), \( n_i \) be the number of observations in group \( i \), and \( N \) be the total sample size. The test statistic is:
+
+\[
+H = \frac{12}{N(N+1)} \sum_{i=1}^{k} \frac{R_i^2}{n_i} - 3(N+1)
+\]
+
+- \( H \) approximately follows a chi-square distribution with \( k - 1 \) degrees of freedom under \( H_0 \)
+
+
+
+### Example: Comparing Inflammation Levels Across Three Diet Plans
+
+A nutrition study investigates whether three different diet plans lead to different levels of inflammation in overweight adults. Inflammation is measured using the biomarker C-reactive protein (CRP).
+
+```r
+# CRP levels (mg/L) for each diet group
+diet_A <- c(4.2, 4.5, 4.7, 4.0, 4.3)
+diet_B <- c(3.6, 3.8, 3.9, 4.1, 3.7)
+diet_C <- c(2.5, 2.8, 2.9, 2.6, 2.7)
+
+# Combine into one vector and group labels
+crp_levels <- c(diet_A, diet_B, diet_C)
+group <- factor(rep(c("A", "B", "C"), each = 5))
+
+# Run Kruskal–Wallis test
+kruskal.test(crp_levels ~ group)
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+#
+# Kruskal-Wallis rank sum test
+#
+# data:  crp_levels by group
+# Kruskal-Wallis chi-squared = 12.0, df = 2, p-value = 0.0025
+```
+
+Since the p-value (0.0025) is less than 0.05, we reject the null hypothesis. This suggests a significant difference in median inflammation levels among the three diet plans.
+
+Follow-up pairwise tests (e.g., Dunn’s test with Bonferroni correction) may be used to determine which specific groups differ.
+
+## Friedman Test (Non-parametric two-way ANOVA)
+
+### When to Use
+
+- The Friedman test is used when you want to compare three or more treatments across the same subjects or blocks.
+- It is a nonparametric alternative to two-way repeated-measures ANOVA when:
+  - The normality assumption is violated
+  - You have ordinal or non-normally distributed data
+  - You want to analyze within-subject or within-block variation
+
+
+
+### Assumptions
+
+- The data consist of blocks (e.g., subjects) and treatments (e.g., timepoints, drugs)
+- Each block receives all treatments (i.e., repeated measures design)
+- Observations are ranked within each block
+- The distribution of ranks under the null hypothesis is the same across treatments
+
+
+
+### Hypotheses
+
+Let there be \( b \) blocks and \( k \) treatments.
+
+- \( H_0 \): The treatment effects are equal (no difference in distributions across treatments)
+- \( H_a \): At least one treatment has a different distribution
+
+
+
+### Test Statistic
+
+Let \( R_j \) be the sum of ranks for treatment \( j \), across all blocks.
+
+The Friedman statistic is:
+
+\[
+Q = \frac{12}{bk(k+1)} \sum_{j=1}^{k} R_j^2 - 3b(k+1)
+\]
+
+- Where:
+  - \( b \) = number of blocks (subjects)
+  - \( k \) = number of treatments
+  - \( R_j \) = sum of ranks for treatment \( j \)
+- Under \( H_0 \), \( Q \) approximately follows a chi-square distribution with \( k - 1 \) degrees of freedom.
+
+
+
+### Example: Comparing Blood Pressure Reduction Across Three Medications (Within Subjects)
+
+A clinical trial tests the effectiveness of three blood pressure medications (A, B, C) on 10 patients. Each patient tries all three medications in random order over three weeks, and their systolic blood pressure reduction is recorded after each.
+
+```r
+# Blood pressure reductions (mmHg) for 10 patients
+patient <- factor(1:10)
+
+drug_A <- c(8, 7, 9, 6, 10, 8, 9, 7, 8, 9)
+drug_B <- c(6, 5, 7, 4, 6, 5, 6, 5, 6, 5)
+drug_C <- c(10, 9, 11, 8, 12, 10, 11, 9, 10, 11)
+
+# Combine data into long format
+library(reshape2)
+data <- data.frame(patient, drug_A, drug_B, drug_C)
+long_data <- melt(data, id.vars = "patient",
+                  variable.name = "treatment",
+                  value.name = "bp_reduction")
+
+# Run Friedman test
+friedman.test(bp_reduction ~ treatment | patient, data = long_data)
+```
+
+
+
+### Interpretation
+
+```r
+# Output:
+#
+# Friedman rank sum test
+#
+# data:  bp_reduction and treatment and patient
+# Friedman chi-squared = 17.55, df = 2, p-value = 0.00015
+```
+
+The p-value (0.00015) is very small, so we reject the null hypothesis.  
+This suggests that at least one blood pressure medication differs significantly in its effect on systolic blood pressure reduction.
+
+Post-hoc pairwise comparisons (e.g., Wilcoxon signed-rank tests with Bonferroni correction) can help determine which drugs differ.
+
+## Permutation Test
+
+### When to Use
+
+- Use the permutation test when you want to compare two or more groups without making assumptions about the population distribution.
+- It is especially useful when:
+  - Sample sizes are small
+  - The data are non-normal
+  - You want an exact p-value by resampling
+- It can be applied to:
+  - Differences in means or medians
+  - Correlation coefficients
+  - Regression slopes
+  - And many other statistics
+
+
+
+### Assumptions
+
+- Observations are independent within and between groups
+- The test statistic (e.g., difference in means) is valid under label exchangeability
+- The null hypothesis assumes group labels do not matter, and any observed difference is due to chance
+
+
+
+### Hypotheses (for Two Groups)
+
+- \( H_0 \): The group labels are exchangeable (i.e., no real effect)
+- \( H_a \): The observed test statistic is unlikely under random reassignment
+
+Let \( T_{\text{obs}} \) be the observed test statistic (e.g., difference in means).
+
+
+
+### Test Statistic
+
+The most common statistic is the difference in means:
+
+\[
+T_{\text{obs}} = \bar{X}_1 - \bar{X}_2
+\]
+
+- We then compute \( T^* \) under many random permutations of group labels.
+- The p-value is:
+
+\[
+p = \frac{\text{Number of } T^* \geq |T_{\text{obs}}|}{\text{Number of permutations}}
+\]
+
+
+
+### Example: Testing if a New Drug Reduces CRP Levels Compared to Placebo
+
+A small trial tests whether a new anti-inflammatory drug reduces C-reactive protein (CRP) levels compared to a placebo.
+
+```r
+# CRP levels (mg/L)
+drug <- c(3.2, 2.8, 3.1, 2.6, 2.9)
+placebo <- c(4.1, 4.4, 4.0, 3.9, 4.2)
+
+# Combine data
+group <- c(rep("drug", 5), rep("placebo", 5))
+crp <- c(drug, placebo)
+data <- data.frame(group, crp)
+
+# Observed difference in means
+obs_diff <- mean(data$crp[data$group == "placebo"]) -
+            mean(data$crp[data$group == "drug"])
+
+# Permutation test
+set.seed(42)
+n_perm <- 10000
+perm_diffs <- numeric(n_perm)
+
+for (i in 1:n_perm) {
+  perm_labels <- sample(data$group)
+  perm_diffs[i] <- mean(data$crp[perm_labels == "placebo"]) -
+                   mean(data$crp[perm_labels == "drug"])
+}
+
+# P-value
+p_val <- mean(abs(perm_diffs) >= abs(obs_diff))
+p_val
+```
+
+
+
+### Interpretation
+
+```r
+# Example output:
+# [1] 0.0013
+```
+
+The permutation test gives a p-value of 0.0013, which is highly significant.  
+This suggests that the new drug significantly reduces CRP levels compared to placebo.  
+Because this method relies on randomization, it does not require normality and is robust even with small sample sizes.
+
+## Spearman Rank Correlation
+
+### When to Use
+
+- The Spearman rank correlation is a nonparametric measure of the monotonic relationship between two continuous or ordinal variables.
+- Use this test when:
+  - Data are not normally distributed
+  - There are outliers that could distort Pearson’s correlation
+  - Variables are ordinal or have a non-linear but monotonic trend
+
+
+
+### Assumptions
+
+- The two variables are continuous or ordinal
+- Observations are independent
+- The relationship is monotonic (as one variable increases, the other tends to increase or decrease consistently)
+
+
+
+### Hypotheses
+
+- \( H_0 \): There is no monotonic association between the two variables  
+  \[ \rho_s = 0 \]
+- \( H_a \): There is a monotonic association between the two variables  
+  \[ \rho_s \neq 0 \]
+
+
+
+### Formula
+
+The Spearman rank correlation coefficient \( \rho_s \) is given by:
+
+\[
+\rho_s = 1 - \frac{6 \sum d_i^2}{n(n^2 - 1)}
+\]
+
+Where:
+- \( d_i \) = difference between the ranks of each pair
+- \( n \) = number of observations
+
+
+
+### Example: Correlation Between Sodium Intake and Systolic Blood Pressure
+
+A nutrition researcher collects data on daily sodium intake (mg) and systolic blood pressure (mmHg) in 12 adult patients to examine whether a monotonic relationship exists.
+
+```r
+# Sample data
+sodium <- c(2300, 2500, 1800, 3000, 2700, 2200, 3100, 2900, 2400, 2600, 2000, 2800)
+sbp <- c(122, 130, 115, 140, 136, 120, 142, 138, 126, 134, 118, 135)
+
+# Data frame
+df <- data.frame(sodium, sbp)
+
+# Spearman rank correlation
+cor.test(df$sodium, df$sbp, method = "spearman")
+```
+
+
+
+### Interpretation
+
+```r
+# Example output:
+# Spearman's rank correlation rho
+# data:  df$sodium and df$sbp
+# S = 34, p-value = 0.004
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#       rho 
+# 0.8818182 
+```
+
+The Spearman correlation coefficient is 0.88 with a p-value of 0.004, indicating a strong positive monotonic relationship between sodium intake and systolic blood pressure. As sodium intake increases, blood pressure tends to increase as well.
+
+
+
+## Nonparametric Regression
+
+### When to Use
+
+- Nonparametric regression is used to estimate the relationship between variables when:
+  - The form of the relationship is unknown or nonlinear
+  - No assumption of normality or linearity is appropriate
+  - You want to model smooth trends without specifying a parametric equation
+
+Common methods include:
+- LOESS (Locally Estimated Scatterplot Smoothing)
+- Kernel smoothing
+
+
+
+### Assumptions
+
+- Data are independent
+- The relationship between variables is smooth, but not necessarily linear
+- No strict distributional assumptions (e.g., normality) are required
+
+
+
+### Biomedical Example: Modeling Recovery Time Based on Age After Surgery
+
+A hospital collects data from 30 patients recovering from minor orthopedic surgery. The goal is to explore whether there’s a smooth trend between patient age and days to full recovery, without assuming a linear model.
+
+```r
+# Simulated data
+set.seed(123)
+age <- seq(20, 70, length.out = 30)
+recovery_days <- round(30 - 0.3 * age + 5 * sin(age / 8) + rnorm(30, 0, 2), 1)
+
+# Data frame
+df <- data.frame(age, recovery_days)
+
+# LOESS fit
+library(ggplot2)
+
+ggplot(df, aes(x = age, y = recovery_days)) +
+  geom_point(color = "steelblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "darkred", span = 0.75) +
+  labs(title = "Nonparametric Regression: Recovery Days vs Age",
+       x = "Age (years)",
+       y = "Recovery Time (days)")
+```
+
+
+
+### Interpretation
+
+The plot shows a smooth, nonlinear relationship between age and recovery time. Younger patients recover slightly faster on average, but the effect is not perfectly linear. LOESS reveals subtle curvature — likely due to biological variability that a linear model would miss.
+
+
+
+

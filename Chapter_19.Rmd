@@ -1,0 +1,414 @@
+
+# Two-Way ANOVA
+
+```{r}
+library(IntroStats)
+```
+
+In this chapter, we explore several types of Two-way ANOVA designs that help us analyze the effects of two categorical variables on a continuous outcome. These include the Randomized Complete Block Design, designs with replication, repeated measures models, two-factor repeated measures, and factorial designs. We use biomedical examples and R code to illustrate how these techniques are applied in real-world data analysis.
+
+## The Randomized Complete Block Design
+
+### Overview
+
+The Randomized Complete Block Design (RCBD) is a classic example of a two-way ANOVA where one factor (e.g., treatment) is the primary focus, and the second factor (the block, such as age group or patient group) is used to reduce variability. In this design, each treatment is applied exactly once within each block.
+
+![Two-way ANOVA Design](https://i.ibb.co/4g7364s/2-ANOVA-RCBD.png)
+
+### ANOVA Table Structure
+
+Each cell in the design represents one observation—no replicates. The two-way ANOVA table breaks the variation into components from the block effect, treatment effect, and residual (error).
+
+![Two-way ANOVA Table](https://i.ibb.co/m51w5yT/2-ANOVA-RCBD-table.png)
+
+### Biomedical Example: Teaching Method and Age Group
+
+Suppose a physical therapist wants to compare the effectiveness of three teaching methods for training patients on a medical device. Since age may impact learning, five age groups are used as blocks. One patient per method is assigned within each age group.
+
+```{r}
+library(knitr)
+data <- data.frame(
+  Age = c("Under 20", "20-29", "30-39", "40-49", "50 and over"),
+  Method_A = c(7, 8, 9, 10, 11),
+  Method_B = c(9, 9, 9, 9, 12),
+  Method_C = c(10, 10, 12, 12, 14)
+)
+kable(data, caption = "Time (in minutes) to learn device by age group and method")
+```
+
+The statistical model is:
+
+$$x_{ij} = \mu + \beta_i + \tau_j + \epsilon_{ij}$$
+
+Where:
+- $\mu$ is the overall mean
+- $\beta_i$ is the effect of the $i$-th block (age group)
+- $\tau_j$ is the effect of the $j$-th method
+- $\epsilon_{ij}$ is the random error for patient $ij$
+
+We test:
+- $H_0$: All methods have the same mean effect.
+- $H_a$: At least one method differs.
+
+This design helps control for age-related variability while isolating the effect of teaching method.
+
+### Fitting the Model in R
+
+```{r}
+x <- c(7,8,9,10,11, 9,9,9,9,12, 10,10,12,12,14)
+age <- rep(c("Under 20", "20-29", "30-39", "40-49", "50 and over"), 3)
+method <- rep(c("A", "B", "C"), each=5)
+mydata <- data.frame(x = x, age = age, method = method)
+block.anova <- aov(x ~ age + method, data = mydata)
+summary(block.anova)
+```
+
+### Model Diagnostics
+
+We assess residuals to validate ANOVA assumptions.
+
+```{r}
+plot(block.anova)
+```
+
+From the diagnostic plots, the residuals appear approximately normally distributed with constant variance, satisfying model assumptions.
+
+### Tukey HSD Pairwise Comparison
+
+To explore pairwise differences between methods:
+
+```{r}
+tukey <- TukeyHSD(block.anova, which="method", ordered=TRUE, conf.level = 0.95)
+tukey
+plot(tukey)
+```
+
+This comparison shows which methods differ significantly after adjusting for multiple testing.
+
+### Additional Biomedical Example: Pain Management Protocols
+
+Imagine comparing three postoperative pain management protocols: standard care, oral medication, and nerve block. Patients are grouped by type of surgery (e.g., knee, hip, shoulder), and one patient per treatment is assigned per surgery type.
+
+This is also a RCBD where surgery type is the block and treatment is the factor of interest. The analysis follows the same steps and structure described above.
+
+
+
+## The Randomized Complete Block Design with Replicates
+
+### Overview
+
+In this version of RCBD, multiple patients are assigned to each treatment-block combination, allowing us to evaluate not only main effects but also interaction effects.
+
+![RCBD with Replicates](https://i.ibb.co/xFZhHKN/2-ANOVA-RCBD-replicates.png)
+
+### ANOVA Table with Interaction
+
+![RCBD Replicate Table](https://i.ibb.co/gDxVq0S/2-ANOVA-RCBD-replicates-table.png)
+
+The addition of replication introduces a block-by-treatment interaction term. If significant, it implies treatment effects vary by block.
+
+You would use a similar R formula but include an interaction term like `aov(response ~ block * treatment)`.
+
+
+
+
+## The Repeated Measures Design
+
+### Overview
+
+Repeated measures designs involve taking multiple measurements on the same subject. For example, physical function scores may be recorded at baseline, 1 month, 3 months, and 6 months. Since these repeated observations are on the same individuals, they are correlated and should not be treated as independent.
+
+### Data Visualization
+
+```{r}
+x <- c(80,95,65,50,60,70,80,70,80,65,60,50,50,85,50,15,10,80,
+       60,90,55,45,75,70,80,60,80,30,70,50,65,45,65,30,15,85,
+       95,95,50,70,80,75,85,75,70,45,95,70,80,85,90,20,55,90,
+       100,95,45,70,85,70,80,65,65,60,80,60,65,80,70,25,75,70)
+subj <- factor(rep(1:18, 4))
+time <- factor(rep(c("baseline", "M1", "M3", "M6"), each=18))
+data <- data.frame(subj, time, x)
+library(ggpubr)
+bxp <- ggboxplot(data, x = "time", y = "x", add = "point")
+bxp
+```
+
+### Fit the Repeated Measures ANOVA
+
+```{r}
+repeated.anova <- aov(x ~ time + Error(subj/time), data = data)
+summary(repeated.anova)
+```
+
+### Model Diagnostics and Normality Checks
+
+```{r}
+library(rstatix)
+data %>% group_by(time) %>% shapiro_test(x)
+ggqqplot(data, "x", facet.by = "time")
+```
+
+If Shapiro-Wilk p-values are > 0.05 and QQ-plots are approximately straight, assumptions are met.
+
+### Adjusted Models with `anova_test()`
+
+```{r}
+res.aov <- anova_test(data = data, dv = x, wid = subj, within = time)
+get_anova_table(res.aov)
+```
+
+### Pairwise Comparisons (Multiple Corrections)
+
+```{r}
+# Bonferroni
+pwc <- data %>% pairwise_t_test(x ~ time, paired = TRUE, p.adjust.method = "bonferroni")
+pwc
+```
+
+Repeat using `hommel`, `hochberg` if desired.
+
+### Visualization of P-values
+
+```{r}
+pwc <- pwc %>% add_xy_position(x = "time")
+bxp + stat_pvalue_manual(pwc) +
+  labs(subtitle = get_test_label(res.aov, detailed = TRUE),
+       caption = get_pwc_label(pwc))
+```
+
+
+
+## Two-Factor Repeated Measures Design
+
+### Overview
+
+This design examines the effect of **two within-subjects factors** on a continuous response variable. A common biomedical application is evaluating how a treatment (e.g., new drug vs placebo) affects subjects **over multiple time points**. Both factors — treatment and time — are repeated measures here.
+
+### Setup and Visualization
+
+Imagine a study where 18 subjects are randomly assigned to either a **new drug** or a **placebo**. Their physical function is measured at **baseline**, **month 1**, **month 3**, and **month 6**. We want to see:
+- Does physical function differ over time?
+- Is there a treatment effect?
+- Is there a **time × treatment interaction**?
+
+```{r}
+treatment <- rep("New Drug", length(subj))
+treatment[subj %in% 1:9] <- "Control"
+data$treatment <- factor(treatment)
+```
+
+We add the treatment assignment and visualize scores by time and treatment:
+
+```{r}
+bxp <- ggboxplot(
+  data, x = "time", y = "x",
+  color = "treatment", palette = "jco"
+)
+bxp
+```
+
+### Normality Check
+
+Before running ANOVA, we check that residuals are approximately normal:
+
+```{r}
+data %>%
+  group_by(treatment, time) %>%
+  shapiro_test(x)
+
+ggqqplot(data, "x", ggtheme = theme_bw()) +
+  facet_grid(time ~ treatment, labeller = "label_both")
+```
+
+If most p-values > 0.05 and QQ-plots show straight lines, normality is assumed.
+
+### Two-Factor Repeated Measures ANOVA
+
+Now we fit the full model with interaction:
+
+```{r}
+anova2 <- aov(x ~ treatment + time + treatment:time + Error(subj/time), data = data)
+summary(anova2)
+```
+
+Interpretation:
+- **Treatment effect** tells if there’s an overall difference between drug and placebo.
+- **Time effect** shows whether average scores change over time.
+- **Interaction** tells if treatment effect depends on time.
+
+If the interaction is **not significant**, we may drop it:
+
+```{r}
+anova3 <- aov(x ~ treatment + time + Error(subj/time), data = data)
+summary(anova3)
+```
+
+### Pairwise Comparisons
+
+If no interaction, we can interpret the main effects separately.
+
+#### Comparing Treatments (Unpaired)
+```{r}
+pwc.treatment <- data %>%
+  pairwise_t_test(x ~ treatment, paired = FALSE, p.adjust.method = "bonferroni")
+pwc.treatment
+```
+
+#### Comparing Time Points (Paired)
+```{r}
+pwc.time <- data %>%
+  pairwise_t_test(x ~ time, paired = TRUE, p.adjust.method = "bonferroni")
+pwc.time
+```
+
+### Visualization with Adjusted P-values
+
+```{r}
+pwc.time <- pwc.time %>% add_xy_position(x = "time")
+bxp +
+  stat_pvalue_manual(pwc.time, tip.length = 0, hide.ns = TRUE) +
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc.time)
+  )
+```
+
+### Advanced Pairwise Analysis
+
+To evaluate **treatment differences at each time point**:
+
+```{r}
+one.way <- data %>%
+  group_by(time) %>%
+  anova_test(dv = x, wid = subj, between = treatment) %>%
+  get_anova_table() %>%
+  adjust_pvalue(method = "bonferroni")
+one.way
+```
+
+And to compare **time effects within each treatment group**:
+
+```{r}
+one.way2 <- data %>%
+  group_by(treatment) %>%
+  anova_test(dv = x, wid = subj, within = time) %>%
+  get_anova_table() %>%
+  adjust_pvalue(method = "hommel")
+one.way2
+```
+
+
+
+## The Factorial Design
+
+### Overview
+
+A factorial design is used when we want to study the effects of **two or more independent factors**, and how they interact. This is different from repeated measures because each combination is applied to **different subjects**.
+
+Example: A health study investigates how nurse age group and patient type influence the **length of home visits**.
+- Factor A: Nurse age group (`20–29`, `30–39`, `40–49`, `50+`)
+- Factor B: Patient type (`Cardiac`, `Cancer`, `CVA`, `Tuberculosis`)
+
+### Model
+
+$$x_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}$$
+
+Where:
+- $\alpha_i$ is the effect of nurse age group
+- $\beta_j$ is the effect of patient type
+- $(\alpha\beta)_{ij}$ is the interaction effect
+- $\epsilon_{ijk}$ is random error
+
+### Data Input and Model Fitting
+
+```{r}
+# Load required library
+library(ggplot2)
+
+# Build clean dataset
+type <- rep(c("Cardiac", "Cancer", "CVA", "Tuberculosis"), times = 20)
+age <- rep(c("20-29", "30-39", "40-49", "50+"), each = 20)
+y <- c(
+  22, 26, 21, 23, 24, 35, 37, 30, 33, 38,
+  29, 28, 27, 32, 40, 36, 35, 31, 30, 31,
+  25, 27, 23, 26, 38, 34, 36, 39, 35, 34,
+  31, 33, 28, 30, 44, 41, 45, 43, 42, 41,
+  28, 30, 26, 24, 34, 32, 33, 36, 35, 37,
+  29, 31, 28, 30, 33, 46, 40, 42, 41, 43,
+  23, 22, 24, 21, 25, 34, 35, 33, 32, 34,
+  27, 29, 26, 28, 30, 45, 43, 42, 44, 46
+)
+
+data <- data.frame(age = factor(age), type = factor(type), y = y)
+
+# Plot interaction using base R
+interaction.plot(
+  x.factor = data$age,
+  trace.factor = data$type,
+  response = data$y,
+  fun = mean,
+  type = "b",
+  col = 1:4,
+  pch = 19,
+  xlab = "Age Group",
+  ylab = "Mean Visit Duration",
+  legend = TRUE
+)
+```
+
+### Visualizing Interaction Effects
+
+```{r}
+# Plot interaction effects using base R
+interaction.plot(
+  x.factor = data$age,
+  trace.factor = data$type,
+  response = data$y,
+  fun = mean,
+  type = "b",
+  col = 1:4,
+  pch = 19,
+  xlab = "Age Group",
+  ylab = "Mean Visit Duration",
+  legend = TRUE
+)
+```
+
+
+This plot helps identify if lines cross, which may suggest an **interaction**.
+
+### Effect Sizes
+
+```{r}
+library(lsr)
+
+# Build the ANOVA model first
+model.1 <- aov(y ~ age * type, data = data)
+
+# Then calculate effect sizes
+etaSquared(model.1)
+```
+
+
+- $\eta^2$ = Proportion of total variance explained by each factor.
+- **Partial $\eta^2$** adjusts for error and is usually higher.
+
+### Estimated Group Means
+
+```{r}
+library(effects)
+
+# Rebuild the model using lm for compatibility with effects package
+model.1 <- lm(y ~ age * type, data = data)
+
+# Compute estimated marginal means
+eff <- effect("age:type", model.1)
+
+# Display the summary
+summary(eff)
+```
+
+
+This shows the **estimated marginal means** and how each group combination contributes to the outcome.
+
+

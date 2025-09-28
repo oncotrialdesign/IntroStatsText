@@ -1,0 +1,443 @@
+
+
+# Inference for Comparing Two Population Proportions
+
+```{r}
+library(IntroStats)
+```
+
+## Normal Approximation Method (two-proportion z-test)
+
+The normal approximation method, also called the two-proportion z-test, is used when we want to compare the proportion of success between two independent groups. This method helps us decide whether the difference in sample proportions is large enough to suggest a real difference in the population or if it could have occurred just by chance.
+
+When the sample sizes are large, the difference between the two sample proportions approximately follows a normal distribution. Specifically, the normal approximation is valid when both groups meet the success-failure condition: each group must have at least 5 expected successes and 5 expected failures (i.e., **n₁p̂₁ ≥ 5**, **n₁(1−p̂₁) ≥ 5**, and similarly for group 2). If this condition is met, we can apply the z-test formula to calculate a test statistic and determine statistical significance.
+
+For example, we might use this test to compare the proportion of patients who recover using Treatment A versus Treatment B.
+
+### The Distribution of $\hat{p}_1 - \hat{p}_2$
+
+#### Key Properties
+
+- Consider two sample proportions, $\hat{p}_1$ and $\hat{p}_2$, that follow normal distributions.  
+  Their difference also follows a **normal distribution**:
+  
+$$
+\hat{p}_1 - \hat{p}_2 \sim N(\mu_{\hat{p}_1 - \hat{p}_2}, \sigma^2_{\hat{p}_1 - \hat{p}_2})
+$$
+
+- Mean and variance:
+  - 
+$$
+\mu_{\hat{p}_1 - \hat{p}_2} = p_1 - p_2
+$$
+  - 
+$$
+  \sigma_{\hat{p}_1 - \hat{p}_2} = \sqrt{\frac{p_1(1-p_1)}{n_1} + \frac{p_2(1-p_2)}{n_2}}
+$$
+
+- Test statistic:
+$$
+z = \frac{(\hat{p}_1 - \hat{p}_2) - (p_1 - p_2)}{\sqrt{\frac{p_1(1-p_1)}{n_1} + \frac{p_2(1-p_2)}{n_2}}} \sim N(0, 1)
+$$
+
+- Under $H_0: p_1 = p_2$, the test statistic simplifies to:
+$$
+z = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{p(1-p)}\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim N(0, 1)
+$$
+
+
+#### Addressing the Unknown $p$ in $H_0$
+
+- When constructing hypothesis tests or confidence intervals for two proportions, $p$ is unknown under $H_0$.  
+- To resolve this, we estimate $p$ using the combined samples.
+
+#### Estimation of $p$
+- Under $H_0$, the two samples are assumed to have the same proportion, so the best estimate is the **pooled sample proportion**:
+$$
+  \hat{p}_p = \frac{x_1 + x_2}{n_1 + n_2}
+$$
+
+#### Updated Test Statistic
+- Replace $p$ with $\hat{p}_p$ in the test statistic:
+$$
+z = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}_p(1 - \hat{p}_p)}\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim N(0, 1)
+$$
+
+### Two-Proportions z-Test
+
+![Two-Proportions z-Test](https://i.ibb.co/56KBrMh/Procedure12-3a.png)
+
+![Two-Proportions z-Test](https://i.ibb.co/fS6qWJM/Procedure12-3b.png)
+### Example: Two-Proportion z-Test
+
+#### Problem
+
+In a poll of random samples with 747 men and 434 women in the U.S., 276 men and 195 women said they sometimes order a dish without meat or fish.  
+At a **5% significance level**, do the data suggest that the proportion of men who sometimes order a dish without meat or fish is smaller than that of women?
+
+
+![Two-Proportions z-Test](https://i.ibb.co/8zdLfVf/563-Table-12-02.png)
+
+**Solution:**
+
+**Statistics Preparation**
+- $x_1 = 276$, $n_1 = 747$, $x_2 = 195$, $n_2 = 434$  
+- $\hat{p}_1 = \frac{x_1}{n_1} = \frac{276}{747} = 0.369$  
+- $\hat{p}_2 = \frac{x_2}{n_2} = \frac{195}{434} = 0.449$  
+- $\hat{p}_p = \frac{x_1 + x_2}{n_1 + n_2} = \frac{471}{1181} = 0.399$  
+
+**Step 1: Hypotheses**
+- $H_0: p_1 = p_2$  
+- $H_a: p_1 < p_2$ (left-tailed test).
+
+
+**Step 2: Significance Level**
+- $\alpha = 0.05$
+
+**Step 3: Compute the Test Statistic**
+- Formula:  
+  $$z = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}_p(1-\hat{p}_p)}\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$  
+- Substituting values:  
+  $$z = \frac{0.369 - 0.449}{\sqrt{0.399(1 - 0.399)}\sqrt{\frac{1}{747} + \frac{1}{434}}} = -2.71$$
+
+**Step 4: Determine the Critical Value**
+- Critical value for a left-tailed test:  
+  $$-z_{\alpha} = -z_{0.05} = -1.645$$
+
+**Step 5: Decision**
+- The test statistic $z = -2.71$ falls in the rejection region ($z < -1.645$).  
+- Therefore, **reject $H_0$**.  
+
+**Conclusion**
+At the 5% significance level, there is sufficient evidence to conclude that the proportion of men who sometimes order a dish without meat or fish is smaller than that of women.
+
+![Two-Proportions z-Test](https://i.ibb.co/sPLyYZg/566-Figure-12-03a.png)
+
+![Two-Proportions z-Test](https://i.ibb.co/2dnq81c/566-Figure-12-03b.png)
+
+
+### Two-Proportions z-Interval
+
+![Two-Proportions z-Interval](https://i.ibb.co/0Q1dGFs/Procedure12-4.png)
+
+### Example: Two-Proportions z-Interval
+
+#### Problem
+Obtain a 90% CI for the difference $p_1 - p_2$.
+
+
+#### Solution
+
+#### Step 1: Find $z_{\alpha/2}$
+- For a 90% CI, $\alpha = 0.1$, so:  
+  $$z_{\alpha/2} = z_{0.05} = 1.645$$
+
+#### Step 2: Compute the Endpoints of the CI
+- Formula:  
+  $$\hat{p}_1 - \hat{p}_2 \pm z_{\alpha/2}\sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{n_1} + \frac{\hat{p}_2(1-\hat{p}_2)}{n_2}}$$  
+- Substituting values:  
+  $$-0.08 \pm 0.049$$  
+- The 90% CI is **(-0.129, -0.031)**.
+
+```{r}
+# Inputs
+r1 <- 276
+n1 <- 747
+r2 <- 195
+n2 <- 434
+
+# Sample proportions
+p1 <- r1 / n1
+p2 <- r2 / n2
+
+# Difference in proportions
+diff <- p1 - p2
+
+# Standard error
+se <- sqrt((p1 * (1 - p1) / n1) + (p2 * (1 - p2) / n2))
+
+# z-score for 90% confidence
+z <- qnorm(0.95)  # since 90% CI -> 5% in each tail -> 95th percentile
+
+# Confidence interval
+lower <- diff - z * se
+upper <- diff + z * se
+
+# Show the result
+cat("90% Confidence Interval for the difference in proportions:\n")
+cat("(", round(lower, 3), ",", round(upper, 3), ")\n")
+```
+
+
+### Plus-Four z-Interval for $p_1 - p_2$ (Extra Material)
+
+### Limitations of Standard z-Interval
+- The standard z-Interval may not always provide accurate results, even for relatively large samples:
+  $$\hat{p}_1 - \hat{p}_2 \pm z_{\alpha/2}\sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{n_1} + \frac{\hat{p}_2(1-\hat{p}_2)}{n_2}}$$
+
+### Plus-Four z-Interval (Agresti and Caffo)
+- An alternative procedure:
+  $$
+  (\tilde{p}_1 - \tilde{p}_2) \pm z_{\alpha/2}\sqrt{\frac{\tilde{p}_1(1-\tilde{p}_1)}{n_1+2} + \frac{\tilde{p}_2(1-\tilde{p}_2)}{n_2+2}}
+  $$
+- Where:
+  $$\tilde{p}_1 = \frac{x_1 + 1}{n_1 + 2}, \quad \tilde{p}_2 = \frac{x_2 + 1}{n_2 + 2}$$
+
+### In-Class Practice and Discussion
+
+#### Problem (a)
+
+Researchers randomly divided 4532 healthy women over 65 years old into two groups:
+- Group 1: 2229 received hormone-replacement therapy (HRT).
+- Group 2: 2303 received a placebo.  
+
+Over 5 years:
+- 40 women in Group 1 were diagnosed with dementia.
+- 21 women in Group 2 were diagnosed with dementia.
+
+#### Question
+At the **5% significance level**, do the data provide sufficient evidence to conclude that healthy women over 65 years old who take HRT are at greater risk for dementia than those who do not?
+
+#### Steps
+1. **Populations and Samples**:  
+   - Population 1: Women taking HRT.  
+   - Population 2: Women receiving placebo.  
+
+2. **Hypotheses**:  
+   - $H_0: p_1 = p_2$  
+   - $H_a: p_1 > p_2$ (right-tailed test).  
+
+3. **Significance Level**:  
+   - $\alpha = 0.05$  
+
+4. **Test Statistic**:  
+   - Use the two-proportions z-test.  
+
+5. **Critical Value**:  
+   - $z_{0.05} = 1.645$.  
+
+6. **Conclusion**:  
+   - Compute the test statistic, compare with the critical value, and decide whether to reject $H_0$.
+
+#### Problem (b)
+
+Determine and interpret the **90% CI** for the difference in dementia risk rates for healthy women over 65 years old.
+
+#### Steps
+
+1. Compute the 90% CI using:  
+   $$\hat{p}_1 - \hat{p}_2 \pm z_{\alpha/2}\sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{n_1} + \frac{\hat{p}_2(1-\hat{p}_2)}{n_2}}$$  
+
+2. Interpret the CI in the context of the difference in dementia risk rates.
+
+### Summary
+
+The two-proportion z-test is a useful method for comparing the proportions of success between two independent groups, especially when sample sizes are large enough to justify a normal approximation. By checking the success-failure condition for both groups, we ensure that the normal distribution provides a reliable basis for inference. The test uses a z-statistic to measure how far apart the sample proportions are, and a p-value to decide whether the observed difference is statistically significant or likely due to random variation. This method is commonly used in biomedical studies, clinical trials, and social science research when comparing two groups.
+
+## Chi-Square Test Method (Without Continuity Correction)
+
+The chi-square test is used to compare two proportions by checking for independence between two categorical variables. In this case, the null hypothesis \( H_0: p_1 = p_2 \) is equivalent to testing whether the **treatment group** and **response outcome** are independent.
+
+This method uses a 2×2 contingency table and compares the observed counts to the expected counts under the assumption of independence. When the sample size is large enough, the chi-square test provides a valid approximation and does **not require a correction**.
+
+For large samples, the **chi-square test without continuity correction** gives a p-value very close (or even identical) to the one obtained from the two-proportion z-test. In this example, the chi-square test and z-test both produce a p-value of approximately **0.01996**, suggesting a statistically significant difference between the groups.
+
+```{r}
+# Chi-square test WITHOUT continuity correction using base R
+# Group 1: 21 successes out of 150 → 129 failures
+# Group 2: 48 successes out of 200 → 152 failures
+
+# Make 2×2 table
+tbl <- matrix(c(21, 129, 48, 152), nrow = 2, byrow = TRUE)
+
+# Run chi-square test without continuity correction
+chisq.test(tbl, correct = FALSE)
+```
+
+## Chi-Square Test with Continuity Correction
+
+The chi-square test with continuity correction is used when comparing two proportions in a 2×2 contingency table, especially when the sample size is small to moderate. This method helps adjust for the fact that the chi-square distribution is continuous, while the actual data are discrete (whole number counts). The correction is applied to avoid overestimating the significance of the test statistic.
+
+The null hypothesis remains the same as before:
+
+\[
+H_0: p_1 = p_2
+\]
+
+This is equivalent to testing whether the row and column variables (e.g., treatment and response) are independent.
+
+### Test Statistic with Continuity Correction:
+
+The formula for the chi-square statistic with Yates' continuity correction is:
+
+\[
+\chi^2 = \sum \frac{(|O - E| - 0.5)^2}{E}
+\]
+
+Where:  
+- \( O \) = observed count  
+- \( E \) = expected count  
+- The correction subtracts 0.5 from the absolute difference before squaring.
+
+This correction reduces the chi-square value slightly, making the test more conservative (less likely to produce a false positive).
+
+### R Code Example:
+
+In the following example, we compare two treatment groups:
+
+- Group 1: 21 successes out of 150 → 129 failures  
+- Group 2: 48 successes out of 200 → 152 failures
+
+```{r}
+# Construct 2x2 contingency table
+# Row 1: Treatment group 1 (21 successes, 129 failures)
+# Row 2: Treatment group 2 (48 successes, 152 failures)
+
+tbl <- matrix(c(21, 129, 48, 152), nrow = 2, byrow = TRUE)
+
+# Perform chi-square test with continuity correction
+chisq.test(tbl, correct = TRUE)
+```
+
+This test outputs the chi-square statistic, degrees of freedom, and the p-value with the continuity correction applied. Use this method when dealing with a 2x2 table and smaller sample sizes to improve the accuracy of your inference.
+
+## Fisher’s Exact Test
+
+The Fisher’s Exact Test is used to compare two proportions when sample sizes are small or when the assumptions of the chi-square test are not met. In particular, it is appropriate when the expected counts in any of the cells of a 2×2 contingency table are less than 5, which violates the assumptions of the normal approximation and chi-square methods.
+
+Unlike the chi-square test, which relies on a large-sample approximation to the chi-square distribution, Fisher’s test calculates the exact p-value using the hypergeometric distribution. This makes it especially useful in clinical trials, rare disease studies, or other biomedical applications where data may be limited.
+
+
+### Example: Comparing Side Effects in Two Patient Groups
+
+Suppose a pharmaceutical company is testing two treatments for high blood pressure. Group 1 receives **Drug A** and Group 2 receives **Drug B**. After the trial, researchers record whether patients in each group experienced a specific side effect.
+
+- In Group 1, **21 out of 150** patients reported the side effect.
+- In Group 2, **48 out of 200** patients reported the side effect.
+
+We want to know if there is a statistically significant difference in side effect rates between the two treatments.
+
+#### Data Summary:
+
+|                | Side Effect (Yes) | Side Effect (No) | Total |
+|----------------|-------------------|------------------|-------|
+| Group 1 (Drug A) | 21                | 129              | 150   |
+| Group 2 (Drug B) | 48                | 152              | 200   |
+
+---
+
+### R Code
+
+```{r}
+# Construct 2x2 contingency table
+# Group 1: 21 experienced side effects, 129 did not
+# Group 2: 48 experienced side effects, 152 did not
+
+tbl <- matrix(c(21, 129, 48, 152), nrow = 2, byrow = TRUE)
+
+# Apply Fisher's Exact Test
+fisher.test(tbl, alternative = "two.sided", conf.level = 0.95)
+```
+
+
+### Interpretation
+
+The Fisher's Exact Test calculates the exact p-value for testing whether there is an association between treatment group and side effect occurrence. If the resulting p-value is less than the significance level (commonly 0.05), we reject the null hypothesis and conclude that the two treatments differ in terms of side effect rates.
+
+This method is especially reliable in cases with small sample sizes or unevenly distributed outcomes, where chi-square tests may not be valid.
+
+## Example: Side Effects of a New Drug
+
+To summarize and compare the different hypothesis testing methods for two proportions, we revisit the example involving side effects from two treatments for high blood pressure. A clinical trial is conducted to compare the side effects of two medications:
+
+- **Drug A (Group 1):** 21 patients experienced side effects out of 150.  
+- **Drug B (Group 2):** 48 patients experienced side effects out of 200.  
+
+We want to determine whether the difference in side effect rates between these two drugs is statistically significant using three different methods.
+
+### Approach 1. Two-Proportion Z-Test (Normal Approximation)
+
+This test is appropriate when sample sizes are large and the success-failure condition is met for both groups.
+
+```{r}
+two.p.z(x1=21, n1=150, x2=48, n2=200, tail="two", alpha=0.05)
+```
+Equivalent R function:
+
+```{r}
+# Run two-proportion z-test (normal approximation)
+prop.test(x = c(21, 48), n = c(150, 200), alternative = "two.sided", correct = FALSE)
+```
+
+This method uses the normal distribution to approximate the difference in proportions. The `correct = FALSE` argument disables continuity correction.
+
+### Approach 2. Chi-Square Test (Without Continuity Correction)
+
+We can perform the chi-square test on the same data using a 2×2 contingency table.This is equivalent to the above normal approximation method.
+
+```{r}
+#Use chi-square test without continuity correction
+chisq.two.p(r1=21, n1=150, r2=48, n2=200, conflev=0.95, correct=FALSE)
+```
+Equivalent R function:
+
+```{r}
+# Construct 2x2 table. Need to be careful on the order of the numbers.
+tbl <- matrix(c(21, 129, 48, 152), nrow = 2, byrow = TRUE)
+
+# Chi-square test without continuity correction
+chisq.test(tbl, correct = FALSE)
+```
+
+### Approach 3. Chi-Square Test (With Continuity Correction)
+
+To make the chi-square test more conservative in smaller samples, we apply a continuity correction.
+
+```{r}
+chisq.two.p(r1=21, n1=150, r2=48, n2=200, conflev=0.95, correct=TRUE)
+
+```
+
+Equivalent R function:
+
+```{r}
+# Chi-square test with continuity correction
+chisq.test(tbl, correct = TRUE)
+```
+This method adjusts the test statistic slightly and typically results in a slightly larger p-value.
+
+
+### Approach 4. Fisher’s Exact Test
+
+Fisher’s Exact Test is used when sample sizes are small or when any expected counts are less than 5. It calculates the exact p-value using the hypergeometric distribution. For example, we would like to compare 21 successes out of 150 trials in group 1 versus 48 successes out of 200 trials using the code below:
+
+```{r}
+# Fisher's exact test 
+fisher(r1=21, n1=150, r2=48, n2=200, alpha=0.05, conflev=0.95, alternative = "two.sided")
+```		
+
+Equivalent R function:
+
+```{r}
+# Fisher's exact test
+fisher.test(tbl, alternative = "two.sided", conf.level = 0.95)
+```
+
+This method is accurate regardless of sample size and is preferred when expected counts are low.
+
+**Summary**
+
+All four methods test the same hypothesis:
+
+\[
+H_0: p_1 = p_2 \quad \text{vs.} \quad H_A: p_1 \neq p_2
+\]
+
+| Method                     | Appropriate When                     | Key Feature                     |
+|----------------------------|---------------------------------------|----------------------------------|
+| Two-Proportion Z-Test      | Large sample sizes                    | Uses normal approximation        |
+| Chi-Square (no correction) | Large sample sizes                    | Matches z-test closely           |
+| Chi-Square (with correction) | Small–moderate samples (2×2 tables) | More conservative (adds 0.5)     |
+| Fisher’s Exact Test        | Small samples or expected counts < 5 | Exact p-value, no approximation  |
+
+In this example, all tests point to a statistically significant difference in side effect rates between the two drugs. However, the p-values may differ slightly based on the method used. This demonstrates how different tests can lead to similar conclusions while relying on different statistical assumptions.

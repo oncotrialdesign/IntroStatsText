@@ -1,0 +1,105 @@
+
+# Sensitivity and specificity
+
+```{r}
+library(IntroStats)
+```
+
+## Marginal probability
+
+Figure below illustrates the marginal probability and events. $$P(A) = \sum_j^n P(A\cap B_j)$$, where $B_1, \cdots, B_n$ are $n$ disjoint events and $\sum_j P(B_j) = 1$. 
+    
+![Marginal Probability](https://i.ibb.co/8PVnsjw/Marginal.png)
+
+
+## Definitions: Sensitivity and specificity
+
+Figure below illustrates the definitions of sensitivity, specificity, positive predictive value, and negative predictive value when characterizing testing results. Both sensitivity and specificity can be computed based on the current sample data, assuming that this data accurately reflects the technical proficiency of testing within the general population. Predictive value positive denotes the probability that a patient actually has the disease when a patient from the general population tests positive. Calculating this correctly necessitates knowledge of the disease's prevalence within the general population, which should ideally be estimated from a large sample size rather than solely relying on the current sample data. In cases where an existing estimate of disease prevalence isn't available, one can use the current sample to make an estimate. 
+
+![Sensitivity and Specificity](https://i.ibb.co/xsFjkXZ/sensitivity-and-specificity.png)
+
+## Confidence Intervals
+
+The confidence interval (CI) is usually reported for sensitivity and specificity estimates. Both sensitivity and specificity are estimated based on binary samples. So the CI can be derived from the underlying Bernoulli distribution. Many methods can be used for computing confidence intervals for a single proportion. Five methods are described below: (1) Exact (Clopper-Pearson); (2) Score (Wilson); (3) Wilson Score with continuity correction; (4) Normal approximation; (5)Normal approximation with continuity correction. For a comparison of methods, see Newcombe (1998). For each of the following methods, let $p$ be the population sensitivity, and let $r$ represent the number of true positives with $n$ total positives. Let $\hat{p} = r / n$. The CI for specificity can be similarly obtained.
+
+Exact (Clopper-Pearson): Using a mathematical relationship (see Fleiss et al (2003), p. 25) between the F distribution and the cumulative binomial distribution, the lower and upper confidence limits of a $100(1-\alpha)$\% exact confidence interval for the true proportion $p$ are given by 
+$$
+      \left[\frac{r}{r+(n-r+1)F_{1-\alpha/2, 2(n-r+1), 2r}}, \frac{(r+1)F_{1-\alpha/2;2(r+1),2(n-r)}}{(n-r) + (r + 1) F_{1-\alpha/2; 2(r+1), 2(n-r)}}\right]
+$$
+      
+Score (Wilson): The Wilson Score confidence interval, which is based on inverting the z-test for a single proportion. 
+
+$$
+      \frac{(2n\hat{p}+z_{1-\alpha/2}^2)\pm z_{1-\alpha/2}\sqrt{z_{1-\alpha/2}^2+4n\hat{p}(1-\hat{p})}}{2(n+z_{1-\alpha/2}^2)^2}
+$$
+      
+Score with continuity correction: The Score confidence interval with continuity correction is based on inverting the z-test for a single proportion with continuity correction.
+$$
+Lower Limit = \frac{(2n\hat{p}+z_{1-\alpha/2}^2-1)- z_{1-\alpha/2}\sqrt{z_{1-\alpha/2}^2 - (2 + (1/n)) + 4\hat{p}(n(1-\hat{p})+1)}}{2(n+z_{1-\alpha/2}^2)^2}
+$$
+
+$$
+Upper Limit = \frac{(2n\hat{p}+z_{1-\alpha/2}^2+1)+ z_{1-\alpha/2}\sqrt{z_{1-\alpha/2}^2 + (2 - (1/n)) + 4\hat{p}(n(1-\hat{p})-1)}}{2(n+z_{1-\alpha/2}^2)^2}
+$$
+
+Normal approximation: The simple asymptotic formula is based on the normal approximation to the binomial distribution. The approximation is close only for very large sample sizes.
+$$
+      \hat{p} \pm z_{1-\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
+$$
+      
+Normal approximation with continuity correction: Incorporating continuity correction,
+$$
+      \left(\hat{p} - z_{1-\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} - \frac{1}{2n}, \hat{p} + z_{1-\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} + \frac{1}{2n} \right)
+$$
+
+## Example 
+
+A medical research team proposed a screening test for Alzheimer's disease. A random sample 450 patients and another independent random sample of 500 patients are tested and the results are listed in Table \ref{tab:sensitivity}. Both samples were drawn from US population of 65 years old or above.
+	\begin{center}
+		\begin{table}[]
+		\centering
+		\caption{\label{tab:sensitivity} Alzheimer's Diagnosis}
+		\begin{tabular}{@{}cccc@{}}
+			\toprule
+			Test & Disease Present($D$) & Disease Absent ($\bar{D}$) & Total \\ 
+			\midrule
+			Positive ($T$)      & 436 & 5 & 441   \\
+			Negative ($\bar{T}$)& 14 & 495 & 509  \\
+			Total             & 450 & 500 & 950   \\ 
+			\bottomrule
+		\end{tabular}
+		
+	\end{table}
+    \end{center}
+The sensitivity is $P(T|D) = 436/450 = 0.97$, and  the specificity is $P(\bar{T}|\bar{D}) = 495/500=0.99$. What is the predictive value positive for a person of age 65 or older form US population? The predictive value positive is $P(D|T)$ and calculated using Bayes' theorem
+
+$$
+P(D|T) = \frac{P(T|D)P(D)}{P(T|D)P(D)+P(T|\bar{D})P(\bar{D})} = \frac{0.97P(D)}{0.97P(D)+0.01(1-P(D))}
+$$
+
+According to Evans et al, the Alzeimer's prevalence in US population aged 65 and above is 11.3 percent, so $P(D) = 0.113$. So $P(D|T)$ is calculated as 0.93. Similarly, one can calculate the predictive value negative.
+	
+The 95\%CI for sensitivity using 5 different methods can be calculated below. 
+
+```{r}
+######################
+#14. Calculation of 5 CIs
+######################
+ci.p(r=436, n=450, conflev=0.95, method="Clopper-Pearson Exact")
+ci.p(r=436, n=450, conflev=0.95, method="Wilson Score")
+ci.p(r=436, n=450, conflev=0.95, method="Wilson Score with Continuity")
+ci.p(r=436, n=450, conflev=0.95, method="Asymptotic Normal")
+ci.p(r=436, n=450, conflev=0.95, method="Asymptotic Normal with Continuity")
+
+```
+
+
+Calculate the specificity and its 95%CI. 
+```{r}
+ci.p(r=495, n=500, conflev=0.95, method="Clopper-Pearson Exact")
+ci.p(r=495, n=500, conflev=0.95, method="Wilson Score")
+ci.p(r=495, n=500, conflev=0.95, method="Wilson Score with Continuity")
+ci.p(r=495, n=500, conflev=0.95, method="Asymptotic Normal")
+ci.p(r=495, n=500, conflev=0.95, method="Asymptotic Normal with Continuity")
+
+```

@@ -1,0 +1,473 @@
+
+
+# The Sampling Distribution of the Sample Mean ($\bar{x}$)
+
+```{r}
+library(IntroStats)
+```
+
+## Sampling Error
+
+### Definition: Sampling Error
+
+**Sampling error** is the error resulting from using a sample to
+estimate a population characteristic.
+
+### Example: Sampling Error in IRS Tax Return Estimates
+
+IRS publishes annual figures on individual income tax returns. For the
+year 2010, the IRS reported that the mean tax of individual income tax
+returns was \$11266. Actually, the IRS reported the mean tax of a sample
+of 308,946 individual tax returns from a total of more than 130 million
+such returns.
+
+**Question:**
+
+-   Is the reported mean tax by IRS a sample mean or population mean?
+
+-   Should we expect the mean of all 130 million tax returns is exactly
+    the same as \$11266?
+
+-   Why would IRS do this way?
+
+-   How can we answer the question: is the sample mean tax $\bar{x}$
+    likely to be within \$100 of the population mean?
+
+### Definition: Sampling Distribution of the Sample Mean
+
+For a variable $x$ and a given sample size, the distribution of the
+variable $\bar{x}$ is called the sampling distribution of the sampling
+mean.
+
+### Example: Heights of Starring Players
+
+Consider 5 players' heights:
+
+```{r}
+Player <- c("A", "B", "C", "D", "E")
+Height <- c(76, 78, 79, 81, 86)
+
+dat <- data.frame(cbind(Player, Height))
+dat
+```
+
+Consider we sample 2 from this population of 5 players.
+
+a.  Obtain the sampling distribution of the sample mean of sample size
+    2.  
+b.  Find the probability that the sampling error made in estimating the
+    population mean by the sample mean will be 1 inch or less?
+
+Try sampling below
+
+```{r}
+sample(Height, size = 2)
+```
+
+**Solution:**
+
+a.  Because there are only 5 players in this population, all possible
+    samples are listed below. For each sample, we can calculate the
+    sample mean. There a total of $\binom{5}{2}=10$ possible samples.
+
+```{r, echo=FALSE}
+library(knitr)
+
+samples <- data.frame(
+  Sample = c("A, B", "A, C", "A, D", "A, E", 
+             "B, C", "B, D", "B, E", 
+             "C, D", "C, E", "D, E"),
+  Heights = c("76, 78", "76, 79", "76, 81", "76, 86", 
+              "78, 79", "78, 81", "78, 86", 
+              "79, 81", "79, 86", "81, 86"),
+  Mean_xbar = c(77.0, 77.5, 78.5, 81.0, 
+                78.5, 79.5, 82.0, 
+                80.0, 82.5, 83.5)
+)
+
+kable(samples, caption = "Samples with corresponding heights and their means")
+```
+
+The population mean is 80.
+
+```{r}
+mean(Height)
+```
+
+However, only 1 sample has the sample mean 80!
+
+To obtain the sample mean ($\bar{x}$)'s distribution, draw all possible
+sample means.
+
+```{r}
+xbar <- c(77, 77.5, 78.5, 81, 78.5, 79.5, 82, 80, 82.5, 83.5)
+stripchart(xbar, method="stack", pch=1,cex=2)
+abline(v=80, col="red")
+```
+
+![Players](https://i.ibb.co/PTF3DTF/310-Figure-07-01.png)
+
+The mean of sample means is also 80.
+
+```{r}
+mean(xbar)
+```
+
+**Is this coincidence?**
+
+b.  Because this the dot plot shows all samples of size 2. There are 3
+    samples having means within 1 inch of the population mean 80. The
+    probability is 3/10 = 0.3.
+
+This means a random sample of size 2 will have 0,3 probability having
+its sample mean $\bar{x}$ falls within 1 inch of the population mean.
+
+### Example: Heights
+
+Consider we sample 4 plays. There are a total of $\binom{5}{4}=5$
+samples.
+
+%![Players](https://i.ibb.co/bLTCYm6/310-Table-07-03.png)
+
+```{r, echo=FALSE}
+library(knitr)
+
+samples4 <- data.frame(
+  Sample = c("A, B, C, D", "A, B, C, E", "A, B, D, E", "A, C, D, E", "B, C, D, E"),
+  Heights = c("76, 78, 79, 81", "76, 78, 79, 86", "76, 78, 81, 86", 
+              "76, 79, 81, 86", "78, 79, 81, 86"),
+  Mean_xbar = c(78.50, 79.75, 80.25, 80.50, 81.00)
+)
+
+kable(samples4, caption = "Four-element samples with corresponding heights and means")
+```
+
+
+The dot plot of the sample means is below.
+
+![Players](https://i.ibb.co/fMJpHQb/310-Figure-07-02.png)
+
+None of the 5 samples has a sample mean of 80! However, the mean of
+sample means is 80!
+
+```{r}
+mean(c(78.5, 79.75, 80.25, 80.5, 81))
+```
+
+Compared to the previous sample size of 2, when the sample size is 5,
+the dots are getting closer to each other. The probability of sample
+mean within 1 inch of population mean 80 is 4/5 = 0.8. It is much larger
+than 0.3. This indicates the sampling error is smaller!
+
+### Sampling error vs sample size
+
+![Players](https://i.ibb.co/89cfSZ0/311-Figure-07-03.png)
+
+We calculate the probability of within 1 inch and within 0.5 inch of
+population mean $\mu$.
+
+![Players](https://i.ibb.co/6W8CNCn/311-Table-07-04.png)
+
+The larger the sample size, the smaller the sampling error tends to be
+in estimating a population mean $\mu$ by a sample mean $\bar{x}$.
+
+### Example: Systolic Blood Pressure
+
+**Introduction**
+
+In this simulation, we use the publicly available **NHANES** dataset to
+investigate how **sampling error** varies with **sample size** when
+estimating a population mean — in this case, the **average systolic
+blood pressure (SBP)** of adults.
+
+We demonstrate that as sample size increases, the sampling error (i.e.,
+standard deviation of sample mean $\bar{x}$) decreases.
+
+**Load Data and Prepare Sample**
+
+```{r}
+library(NHANES)
+library(dplyr)
+library(ggplot2)
+
+# Filter data to include only adults with non-missing SBP
+data <- NHANES %>%
+  filter(!is.na(BPSysAve), Age >= 18) %>%
+  dplyr::select(BPSysAve)
+
+# View the population mean SBP (used as "true" mean)
+true_mu <- mean(data$BPSysAve)
+true_mu
+```
+
+**Simulate Sampling with Different Sample Sizes** 
+
+We take repeated random samples (with replacement) of varying sizes and compute the mean of each sample.
+
+```{r}
+set.seed(123)
+
+sample_sizes <- c(10, 30, 100, 300)
+n_sim <- 1000
+
+# Simulate sampling process
+sampling_results <- lapply(sample_sizes, function(n) {
+  replicate(n_sim, {
+    sample_mean <- mean(sample(data$BPSysAve, n, replace = TRUE))
+    sample_mean
+  })
+})
+
+names(sampling_results) <- paste0("n = ", sample_sizes)
+
+# Combine results into a data frame for plotting
+df_plot <- do.call(rbind, lapply(names(sampling_results), function(name) {
+  data.frame(SampleMean = sampling_results[[name]],
+             SampleSize = name)
+}))
+
+ggplot(df_plot, aes(x = SampleMean, fill = SampleSize)) +
+  geom_density(alpha = 0.5) +
+  geom_vline(xintercept = true_mu, linetype = "dashed", color = "red") +
+  labs(title = "Distribution of Sample Means for Different Sample Sizes",
+       x = "Sample Mean of SBP",
+       y = "Density",
+       fill = "Sample Size") +
+  theme_minimal()
+
+```
+
+**Calculate Sampling Error**
+
+```{r}
+sampling_errors <- sapply(sampling_results, sd)
+sampling_errors_df <- data.frame(
+  SampleSize = sample_sizes,
+  SamplingError = sampling_errors
+)
+sampling_errors_df
+
+```
+
+**Interpretation**
+
+As shown in both the plot and the summary table, sampling error
+decreases as sample size increases. When $n$ is small (e.g., 10), the
+sample means vary widely. When $n$ is large (e.g., 300), the sample
+means cluster tightly around the population mean $\mu$.
+
+## The mean and standard deviation of the sample mean
+
+### Mean of the Sample Mean
+
+The mean of the sample mean equals the population mean for any sample
+size $n$.
+
+$$
+\mu_{\bar{x}} = \mu
+$$
+
+### Example: Heights of players
+
+Consider a sample of size 2 from the 5 players.
+
+a.  Determine the population mean $\mu$
+b.  Obtain the mean of the sample mean $\mu_{\bar{x}}$
+
+**solution:**
+
+The population mean is the average of the entire population: $\mu = 80$.
+
+The mean of a sample mean of size 2 equals the population mean $80$.
+
+### Standard deviation of the sample mean
+
+For samples of size n, the standard deviation of $\bar{x}$ equals the
+population standard deviation divided by the square root of the sample
+size.
+
+$$
+\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}
+$$
+
+### Example: Living space
+
+The mean living space for single-family detached homes is 1742 sq ft.
+Assume a standard deviation of 568 sq. ft.
+
+a.  For a sample of 25 homes, determine the mean and standard deviation
+    of $\bar{x}$.
+b.  Repeat for a sample size of 500.
+
+**solution.**
+
+a.  $\mu_{\bar{x}} = \mu=1742$ sq. ft. and
+    $\sigma_{\bar{x}} = 568/\sqrt{25} = 113.6$ sq. ft
+
+b.  $\mu_{\bar{x}} = \mu=1742$ sq. ft. and
+    $\sigma_{\bar{x}} = 568/\sqrt{500} = 25.4$ sq. ft
+
+### Definition: Standard Error
+
+Because the standard deviation of $\bar{x}$ determines the amount of
+sampling error to be expected when a population mean is estimated by a
+sample mean, it is often referred as the **standard error of the sample
+mean**.
+
+In general, the standard deviation of a statistic used to estimate a
+parameter is called the **standard error (SE)** of the statistic.
+
+### Example: Estimating Mean Blood Pressure and Standard Error
+
+Suppose we are interested in estimating the average systolic blood
+pressure (SBP) of adult females in a population. The true population
+mean is unknown, but from previous studies, the population standard
+deviation is assumed to be $\sigma = 12$ mmHg.
+
+We take a random sample of $n = 36$ adult females and find that their
+sample mean is $\bar{x} = 122$ mmHg.
+
+```{r}
+# Given values
+sigma <- 12       # population standard deviation
+n <- 36           # sample size
+x_bar <- 122      # sample mean
+
+# Standard Error of the Mean
+SE <- sigma / sqrt(n)
+SE
+```
+
+**Interpretation** The population standard deviation is $\sigma = 12$
+mmHg. The sample size is $n = 36$, so the standard error of the sample
+mean is: $$
+SE = \frac{\sigma}{\sqrt{n}} = \frac{12}{\sqrt{36}} = 2 mmHg
+$$ This means that $\bar{x} = 122$ mmHg is expected to vary by
+approximately $\pm 2$ mmHg from sample to sample due to sampling
+variability.
+
+## The sampling distribution of the sample mean $\bar{x}$
+
+### Distribution of sample mean $\bar{x}$
+
+Recall, sample mean $\bar{x}$ with a sample size $n$ is $$
+\bar{x} = \frac{1}{n}(x_1+\cdots+x_n)
+$$ where each $x_i$ is a random variable, drawn from a normal
+distribution. Then $\bar{x}$ is also a random variable following a
+normal distribution, with mean $\mu$ same as the mean of $x_i$; and the
+variance of $\bar{x}$ is variance of $x_i$ divided by $n$. In other
+words, let
+
+$$
+x_i\sim N(\mu, \sigma)
+$$ then $$
+\bar{x} \sim N(\mu, \sigma^2/n)
+$$ $\bar{x}$ and $x_i$ have the same mean, but the variance of $\bar{x}$
+is a fraction $\frac{1}{n}$ of variance of $x$.
+
+### Illustration of sampling distribution of x_bar
+
+```{r}
+#Illustration of sampling distribution of x_bar
+draw.dist.xbar.normal(n=10, sigma=2, mu=10, 
+                      main="Distribution of x_bar: A sample of 10 from N(2, 10)")		
+
+draw.dist.xbar.normal(n=50, sigma=2, mu=10, 
+                      main="Distribution of x_bar: A sample of 50 from N(2, 10)")		
+
+```
+
+### Example: Cholesterol Level
+
+According to the national health and nutrition examination survey of
+1988-1994, the estimated mean serum cholesterol level $(\mu)$ for US
+females aged 20-74 years to be 204 mg/dl and the standard deviation
+$(\sigma)$ is 44. Consider these as the US population mean and standard
+deviation.
+
+**Question**. For a random sample of 50 women in this age group, what is
+the probability that the sample mean ($\bar{x}$) is greater than 220
+mg/dl?
+
+**Solution:**
+
+The sample mean $\bar{x}$ approximately follows a normal distribution
+with mean $\mu$ and variance $\sigma^2/n$. In this problem, $n=50$,
+$\sigma=44$, so the standard error is $44/\sqrt{50} = 6.22$. Then $$
+            P(\bar{x} > 220) = 1- P(\bar{x} \le 220)            
+$$\
+which is calculated as `1-pnorm(220, mean=204, sd=44/sqrt(50))=0.005`.
+
+```{r}
+1-pnorm(220, mean=204, sd=44/sqrt(50))
+```
+
+### Sample Mean: Implications in Scientific Research
+
+In scientific research, the population mean $\mu$ is unknown and the
+objective of the research is to estimate $\mu$. The distribution of the
+sample mean implies:
+
+-   It provides one way to estimate $\mu$.
+-   As $n$ becomes large, the standard error becomes small.
+-   Furthermore, the mean of $\bar{x}$ is equal to $\mu$.
+-   As a result, if we draw a large random sample, the average of the
+    observed sample data can be a good estimate of $\mu$.
+-   In statistics, we use $\hat{\mu}$ to denote the estimated mean based
+    on a sample, herein $\hat{\mu} = \bar{x}$, where $\bar{x}$ is the
+    average of the observed values $(x_1, \cdots, x_n)$.
+-   The sample mean's variance is inversely proportional to $n$.
+
+### Central limit theorem
+
+The sample mean $\bar{x}$ approximately follows a normal distribution
+with mean $\mu$ and variance $\sigma^2/n$ when the sample size $n$ is
+large, where $\mu$ is the mean of $x$ and $\sigma^2$ is the variance of
+$X$, for any distribution of $x$. As a result,
+$$z=\frac{\bar{x}-\mu}{\sigma/\sqrt{n}}$$ approximately follows the
+standard normal distribution $N(0, 1)$.
+
+### Sampling Distribution
+
+a.  Sample mean $\bar{x}$ has a mean equals population mean
+    $\mu_{\bar{x}} = \mu$.
+b.  The standard deviation of $\bar{x}$:
+    $\sigma_{\bar{x}} = \sigma/\sqrt{n}$.
+c.  If $x$ is normally distributed, so is $\bar{x}$, regardless of
+    sample size.
+d.  if $n$ is large, $\bar{x}$ is approximately normally distributed,
+    regardless of the distribution of $x$.
+
+![Central Limit Theorem](https://i.ibb.co/TB36LnD/323-Figure-07-06.png)
+
+### Example: Birth weight
+
+Birth weighs of male babies have a standard deviation of 1.33 lb.
+Determine the percentage of all samples of 400 male babies that have
+mean birth weights within 0.125 lb of the population mean birth weight
+of all male babies.
+
+**Solution**
+
+Let $\mu$ denote the population mean birth weight of all male babies.
+For a sample of size 400, the sample mean birth weight $\bar{x}$ is
+approximately normally distributed with 
+
+$$
+\mu_{\bar{x}} = \mu
+$$ 
+and 
+
+$$
+\sigma_{\bar{x}} = 1.33/\sqrt{400} = 0.0665
+$$
+The probability of $\bar{x}$ within 0.125 lb of $\mu$ can be calculated
+as
+
+$$
+P(-0.125 < \bar{x} - \mu < 0.125) = P\left(\frac{-0.125}{0.0665} < \frac{\bar{x} - \mu}{0.0665} < \frac{0.125}{0.0665}\right) = \Phi\left(\frac{0.125}{0.0665}\right) - \Phi\left(\frac{-0.125}{0.0665}\right) = 0.9398
+$$
+```{r}
+pnorm(0.125/0.0665) - pnorm(-0.125/0.0665)
+```
+

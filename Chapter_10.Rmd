@@ -1,0 +1,542 @@
+
+
+# Confidence Interval of the Population Mean 
+
+```{r}
+library(IntroStats)
+```
+
+## Estimating a Population Mean
+
+### Sampling distribution of $\bar{x}$
+
+Recall, sample mean $\bar{x}$ with a sample size $n$ is $$
+\bar{x} = \frac{1}{n}(x_1+\cdots+x_n)
+$$ where each $x_i$ is a random variable, drawn from a normal
+distribution. Then $\bar{x}$ is also a random variable following a
+normal distribution, with mean $\mu$ same as the mean of $x_i$; and the
+variance of $\bar{x}$ is variance of $x_i$ divided by $n$. In other
+words, let
+
+$$
+x_i\sim N(\mu, \sigma)
+$$ then $$
+\bar{x} \sim N(\mu, \sigma^2/n)
+$$ $\bar{x}$ and $x_i$ have the same mean, but the variance of $\bar{x}$
+is a fraction $\frac{1}{n}$ of variance of $x$.
+
+### Definition: Point estimate and CI estimate
+
+A common problem in statistics is to estimate the population mean. Why
+do we need to estimate a population mean? For example, \* The mean cost
+of a wedding in New Jersey, \* The mean starting salary of a college
+graduate with a statistics major, \* The mean prolongation of survival
+time for patients diagnosed with stage IV lung cancer when treated with
+one new drug compared to the old therapy.
+
+A **point estimate** of a parameter is the value of a statistic used to
+estimate the parameter.
+
+**Unbiased estimator** of a parameter means the mean of all its possible
+values equals the parameter. The sample mean $\bar{x}$ is an unbiased
+estimator of the population mean. Why?
+
+A sample mean is usually not equal to the population mean. Therefore we
+should accompany any point estimate of $\mu$ with information indicating
+the accuracy. This information is called a **confidence interval
+estimate** for $\mu$.
+
+### Definition: confidence interval estimate
+
+-   **Confidence interval (CI)**: An interval of numbers obtained from a
+    point estimate of a parameter.
+-   **Confidence level**: The confidence we have that the parameter lies
+    in the confidence interval (i.e., that the confidence interval
+    contains the parameter).
+-   **Confidence-interval estimate**: The confidence level and
+    confidence interval.
+
+![Interpretation of Confidence
+Interval](https://i.ibb.co/SNXWSGx/336-Figure-08-02.png) 25 samples were
+obtained and each sample has its own sample mean as an estimate of
+population mean $\mu$, and each sample results in a 95% confidence
+interval. One confidence interval here does not include the population
+mean $\mu$.
+
+This is exactly the reason why we say we are 95% confident that the CI
+covers the population mean. This means that if we generate a large
+number of samples (i.e. if a sample represents one scientific
+experiment, we repeat a large number of times), we expect 95% of the
+experiments will generate the confidence intervals covering the true
+population mean $\mu$. It is very important to have the correct
+interpretation of confidence interval.
+
+### Example: Estimating the Average Commute Time
+
+Suppose a transportation researcher wants to estimate the **average
+commute time** $\mu$ for all full-time workers in a large city. Since it
+is impractical to survey every worker, she takes a *random sample* of
+$n = 64$ workers and records their commute times. The sample has:
+
+-   Sample mean: $\bar{x} = 35$ minutes\
+-   Sample standard deviation: $s = 8$ minutes
+
+She wants to construct a **95% confidence interval** for the population
+mean $\mu$.
+
+**Step 1: Use the confidence interval formula**
+
+$$
+\bar{x} \pm z^* \cdot \frac{s}{\sqrt{n}}
+$$
+
+Since $n = 64$ is large, we can use the normal distribution. The
+critical value for 95% confidence is $z^* = 1.96$.
+
+**Step 2: Calculate standard error (SE)**
+
+$$
+\text{SE} = \frac{s}{\sqrt{n}} = \frac{8}{\sqrt{64}} = \frac{8}{8} = 1
+$$
+
+**Step 3: Calculate margin of error**
+
+$$
+\text{Margin of error} = z^* \cdot \text{SE} = 1.96 \cdot 1 = 1.96
+$$
+
+**Step 4: Construct confidence interval**
+
+$$
+\bar{x} \pm 1.96 = 35 \pm 1.96 = (33.04,\ 36.96)
+$$
+
+**Interpretation**
+
+We are 95% confident that the true average commute time $\mu$ for all
+full-time workers in this city lies between 33.04 minutes and 36.96
+minutes.
+
+> **Note:** This does *not* mean that 95% of the population has commute
+> times in this interval.\
+> Instead, it means that if we took many random samples of 64 workers,
+> approximately 95% of the confidence intervals we compute would contain
+> the true population mean $\mu$.
+
+**Simulating Confidence Interval Coverage**
+
+To illustrate how confidence intervals behave across repeated sampling,
+we simulate 25 random samples from a population with known mean
+$\mu = 35$ and standard deviation $\sigma = 8$. Each sample consists of
+$n = 64$ observations. We construct a 95% confidence interval for each
+sample and check whether it contains the true population mean. The goal
+is to visualize the fact that approximately 95% of confidence intervals
+generated from repeated sampling will contain the true mean.
+
+```{r}
+set.seed(2025)
+
+mu <- 35       # true population mean
+sigma <- 8     # population standard deviation
+n <- 64        # sample size
+z <- 1.96      # z* for 95% confidence
+
+# Generate 25 confidence intervals from repeated samples
+samples <- replicate(25, {
+  xbar <- mean(rnorm(n, mu, sigma))
+  se <- sigma / sqrt(n)
+  c(lower = xbar - z * se, upper = xbar + z * se)
+})
+
+# Convert to data frame for plotting
+cis <- as.data.frame(t(samples))
+cis$sample <- 1:nrow(cis)
+cis$contains_mu <- with(cis, mu >= lower & mu <= upper)
+
+library(ggplot2)
+
+ggplot(cis, aes(y = reorder(factor(sample), -sample))) +
+  geom_errorbarh(aes(xmin = lower, xmax = upper, color = contains_mu), height = 0.4) +
+  geom_vline(xintercept = mu, linetype = "dashed", color = "black") +
+  scale_color_manual(values = c("TRUE" = "steelblue", "FALSE" = "red")) +
+  labs(
+    x = "Confidence Interval",
+    y = "Sample ID",
+    color = "Contains μ?",
+    title = "95% Confidence Intervals from 25 Samples"
+  ) +
+  theme_minimal()
+
+```
+
+## CI for population mean when $\sigma$ is known
+
+### The general formulation of confidence interval
+
+The general formulation of confidence interval is expressed as $$
+        estimator \pm (\text{specified reliability coefficient})\times (\text{standard error})
+        $$
+
+For the estimation of $\mu$, the $(1-\alpha)\times 100\%$ CI is $$
+    (\bar{x}-z_{1-\alpha/2}\times se, \bar{x}+z_{1-\alpha/2}\times se) = 
+    (\bar{x}-z_{1-\alpha/2}\times \sigma/\sqrt{n}, \bar{x}+z_{1-\alpha/2}\times \sigma/\sqrt{n})
+$$ where $z_{1-\alpha/2}$ is the $(1-\alpha/2)$ quantile of the standard
+normal distribution `qnorm(1-alpha/2)`.
+
+### One-mean z-interval procedure
+
+![One-mean z-interval
+procedure](https://i.ibb.co/NW4RpR0/procedure8-1.png)
+
+We have this procedure because of the observation below.
+
+![Approximately 95% of all samples have means within 2 standard
+deviations of $\mu$](https://i.ibb.co/C1W5dQL/339-Figure-08-03.png)
+
+### Example: 99% CI for Mean Muscle Strength with Known Variance ($\sigma^2 = 144$)
+
+Consider a physical therapist would like to estimate the mean maximal
+strength of a particular muscle in a certain population who was
+diagnosed with muscular dystrophy. It's assumed the maximal muscle
+strength is approximately normally distributed with a variance of 144. A
+random sample of 15 subjects participated in the research project and
+resulted in a sample mean of $\bar{x} = 84.3$.
+
+**Question.** Find a 99% confidence interval for the mean maximal
+strength.
+
+The standard error is $\sigma/\sqrt{n}=12/\sqrt{15}=3.0984$. For 99%CI,
+$\alpha = 1-0.99 = 0.01$.
+
+The reliability coefficient, sometimes also called critical value,
+$z_{1-\alpha/2} = qnorm(1-0.01/2) = qnorm(0.995) = 2.58$.
+
+As a result, the 99% CI of $\mu$ is
+$84.3\pm 2.58 \sqrt{\frac{144}{15}}=84.3\pm 8.0 = (76.3, 92.3)$.
+
+```{r}
+#Use R function
+ci.mu(xbar=84.3, n=15, sd = sqrt(144), conflev=0.99, method = "Known Variance")
+		#[1] 76.31908 92.28092
+```
+
+**Interpretation:** We can be 95% confident that the mean maximal
+strength is somewhere between 76.32 and 92.28.
+
+### Definition: Margin of Error
+
+**Margin of Error** for the estimate of $\mu$ is denoted as $E$ $$
+E = z_{1-\alpha/2}\cdot \sigma /\sqrt{n}
+$$
+
+![Margin of Error](https://i.ibb.co/BqGrCbJ/342-Figure-08-05.png)
+
+The margin of error is half the CI length.
+
+**Example**
+
+The margin of error of 99%CI in the above example is $$
+E = z_{1-\alpha/2}\cdot \sigma /\sqrt{n} = 2.58 \sqrt{\frac{144}{15}} = 7.99
+$$
+
+The margin of error of 95%CI in the above example is $$
+E = z_{1-\alpha/2}\cdot \sigma /\sqrt{n} = 1.96 \sqrt{\frac{144}{15}} = 6.07
+$$
+
+```{r}
+x <- rnorm(30)
+margin.error.mu(x=x, sigma=1, conflev=0.95, method="Known Variance")
+```
+
+### Margin of Error vs Sample Size and Confidence Level
+
+The margin of error decreases when the confidence level decreases.
+
+```{r}
+conflev <- seq(0.9, 0.99, 0.01)
+E <- margin.error.mu(x=x, sigma=1, conflev=conflev, method="Known Variance")
+plot(conflev, E, type="l", ylab="Margin of Error (E)", xlab="Confidence Level",
+     col=mycol, lwd=3)
+```
+
+In addition, the margin of error decreases when $n$ increases.
+
+```{r}
+n <- seq(20, 50, 1)
+E <- margin.error.mu(sigma=1, conflev=0.95, n=n, method="Known Variance")
+plot(n, E, type="l", ylab="Margin of Error (E)", xlab="Sample Size",
+     col=mycol, lwd=3, main="95% CI of mu")
+```
+
+### Sample Size required to estimate $\mu$
+
+The sample size required for a $(1-\alpha)$ level confidence interval
+for $\mu$ with a specified margin of error $E$ is given by $$
+n = \left(\frac{z_{1-\alpha/2}\cdot \sigma}{E}\right)^2
+$$
+
+round up to a whole number.
+
+**Example**
+
+Determine the sample size needed in order to be 95% confident that $\mu$
+is within 5 of the point estimate $\bar{x}$. Then find the 95%CI with
+the calculated sample size.
+
+**Solution.**
+
+$$
+n = \left(\frac{z_{1-\alpha/2}\cdot \sigma}{E}\right)^2 = \left(\frac{z_{0.975}\cdot 12}{5}\right)^2 = 22.13 \approx 23
+$$
+
+round up to 23. Why?
+
+The minimum sample size of 23 is required in order to achieve the margin
+of error of 5.
+
+```{r}
+n.mu.CI(E=5, sigma=12, conflev = 0.95, method = "Z")
+```
+
+The 95% confidence interval is $$
+\bar{x} \pm z_{0.975}\cdot \frac{12}{\sqrt{23}} = 84.3 \pm 4.90 = (79.4, 89.2)
+$$
+
+```{r}
+ci.mu(xbar=84.3, n=23, sd=12, conflev = 0.95, method="Known Variance")
+```
+
+## Confidence interval of population mean $\mu$ when $\sigma$ unknown
+
+In the previous section, the confidence interval for $\mu$ is derived
+based on assumption of $\sigma^2$ known. However, in scientific
+research, the population variance is not known.
+
+What is the solution?
+
+### Distribution
+
+When the population standard deviation $\sigma$ is replaced by sample
+standard deviation $s$, the distribution below $$
+        t = \frac{\bar{x}-\mu}{s/\sqrt{n}}
+        $$ follows a $t$ distribution with $n-1$ degree of freedom,
+where $s=\sqrt{\sum (x_i-\bar{x})^2/(n-1)}$. As expected, the $t$
+distribution is very similar to the normal distribution, but
+incorporating more variability in $s$.
+
+### Compare the t-distribution with N(0, 1)
+
+```{r}
+    ######################################
+		# t-distribution
+		######################################
+		x <- seq(-4, 4, by=0.01)
+		z <- dnorm(x) #standard normal
+		t2 <- dt(x, df=2)
+		t5 <- dt(x, df=5)
+		t20 <- dt(x, df=20)
+		t30 <- dt(x, df=30)
+		plot(x, z, type="l", lwd=2, 
+		     main="t distribution approaches to Normal as df increases")
+		lines(x, t2,  col=2, lwd=2, lty=2)
+		lines(x, t5,  col=3, lwd=2, lty=3)
+		lines(x, t20, col=4, lwd=2, lty=4)
+		lines(x, t30, col=5, lwd=2, lty=5)
+		legend("topleft", legend=c("N(0, 1)", "t(df=2)", "t(df=5)", "t(df=20)", "t(df=30)"),
+		bty="n", lwd=rep(2,5), col=1:5, lty=1:5)
+```
+
+### Basic properties of $t$-curve
+
+Basic Properties of t-Curves \* Property 1: The total area under a
+t-curve equals 1. \* Property 2: A t-curve extends indefinitely in both
+directions, approaching, but never touching, the horizontal axis as it
+does so. \* Property 3: A t-curve is symmetric about 0. \* Property 4:
+As the number of degrees of freedom becomes larger, t-curves look
+increasingly like the standard normal curve.
+
+### Confidence interval using $t$
+
+When sampling is from The $100(1-\alpha)\%$ CI of $\mu$ is given by $$
+    \bar{x} \pm t_{1-\alpha/2}\frac{s}{\sqrt{n}}
+    $$ where $t_{1-\alpha/2}$ is the $(1-\alpha/2)$th quantile of the
+$t$ distribution with degree of freedom $n-1$, in R, use
+\verb+qt(1-alpha/2, df=n-1)+. This CI can be similarly derived.
+
+![Margin of Error and
+t-interval](https://i.ibb.co/PG3Sbpf/margin-of-error-t.png)
+
+### Example: Blood Pressure
+
+Consider a random sample of blood pressure is (90, 88, 92, 93, 91, 88,
+92, 93, 91, 84, 93, 91, 84, 93, 91, 84, 70, 86, 75, 100, 120, 110). (a)
+If the population variance is assumed as 120, what's the 95%CI of the
+population mean $\mu$? (b) If the population variance is unknown, what's
+the 95%CI of the population mean $\mu$?
+
+**Solution**.
+
+(a) With the population variance known, use the normal distribution to
+    calculate the CI as (86.28615, 95.44113). The 95%CI of the
+    population mean $\mu$ is
+
+$$
+(\bar{x}-z_{0.975}\times \sigma/\sqrt{n}, \bar{x}+z_{0.975}\times \sigma/\sqrt{n})
+= (90.86-1.96\sqrt{120/22}, 90.86+1.96\sqrt{120/22})=(86.29, 95.44).
+$$ The sample mean $\bar{x} = 90.86$ and sample size $n=22$.
+
+```{r}
+x <- c(90, 88, 92, 93, 91, 88, 92, 93, 91, 84, 93, 91, 84, 93, 91, 84, 70, 86, 75, 100, 120, 110)
+n <- length(x)
+n
+xbar <- mean(x)
+xbar
+
+#use R function
+ci.mu(x=x, sd=sqrt(120), n=length(x), conflev=0.95, method = "Known Variance")
+```
+
+(2) Without known population variance, use the t-distribution to
+    calculate the CI as (86.33733, 95.38994). See below the R codes for
+    implementation of the formula.
+
+The $95\%$ CI of $\mu$ is given by $$
+    \bar{x} \pm t_{0.975}\frac{s}{\sqrt{n}} 
+    $$
+
+The 0.975 quantile of t-distribution with $n-1 = 21$ degrees of freedom
+is
+
+```{r}
+qt(0.975, df=21)
+```
+
+So the $95\%$ CI of $\mu$ is $$
+    \bar{x} \pm t_{0.975}\frac{s}{\sqrt{n}} = 90.86 \pm 2.080\frac{\sqrt{120}}{\sqrt{22}}=(86.34, 95.39)
+$$
+
+```{r}
+#use R function
+ci.mu(x=x, sd=sqrt(120), n=length(x), conflev=0.95, method = "Unknown Variance")
+```
+
+### Example: Estimate Mean Cholesterol Level in Diabetic Patients
+
+A medical researcher collects fasting blood cholesterol levels from a
+sample of 25 patients diagnosed with type 2 diabetes. The population
+variance is unknown. The researcher wants to estimate the mean
+cholesterol level using a 95% confidence interval.
+
+```{r}
+# Simulated cholesterol data (in mg/dL)
+chol <- c(205, 189, 212, 198, 220, 208, 210, 190, 195, 202, 
+          215, 225, 218, 194, 197, 210, 211, 222, 207, 219, 
+          200, 196, 213, 204, 209)
+
+n <- length(chol)
+xbar <- mean(chol)
+s <- sd(chol)
+alpha <- 0.05
+tcrit <- qt(1 - alpha/2, df = n - 1)
+
+# Calculate confidence interval
+se <- s / sqrt(n)
+lower <- xbar - tcrit * se
+upper <- xbar + tcrit * se
+c(lower, upper)
+
+```
+
+**Interpretation**
+
+Based on the sample of 38 diabetic patients, the **sample mean** serum
+cholesterol level is:
+
+$$
+\bar{x} = 214.03 \text{ mg/dl}
+$$
+
+with a **standard deviation** of:
+
+$$
+s = 24.89 \text{ mg/dl}
+$$
+
+To estimate the population mean $\mu$, we construct a 95% confidence interval.Using the formula for the confidence interval of the mean with unknown
+population standard deviation (i.e., using $t$ distribution):
+
+$$
+\bar{x} \pm t \cdot \frac{s}{\sqrt{n}}
+$$
+Plugging in the values:
+
+-   $\bar{x} = 214.03$
+-   $s = 24.89$
+-   $n = 38$
+-   degrees of freedom = $n - 1 = 37$
+-   $t^* \approx 2.026$ (from $t$ table for 95% CI and df = 37)
+
+The margin of error is:
+
+$$
+ME = 2.026 \cdot \frac{24.89}{\sqrt{38}} \approx 8.17
+$$
+
+So the 95% confidence interval is:
+
+$$
+[214.03 - 8.17,\ 214.03 + 8.17] = [205.86,\ 222.20]
+$$
+We are 95% confident that the **true mean serum cholesterol level** among all diabetic patients is **between 205.86 and 222.20 mg/dl**. This interval reflects the uncertainty due to sampling variability. If we were to take many such samples of 38 diabetic patients, about 95% of the resulting intervals would contain the true mean $\mu$.
+
+
+### Comparison of $t$ and $z$ Confidence Interval
+
+The only difference between $z$ confidence interval and $t$ confidence
+interval is the quantile $z_{1-\alpha/2}$ or $t_{1-\alpha/2}$, which are
+applied to known or unknown variance. In practice, most problems have
+the situation of unknown variance. However, when the sample size is
+large, their difference is ignorable.
+
+Let's try out some cases to understand better.
+
+```{r}
+
+#Scenario 1. moderate sample size n = 30, normally distributed
+y <- rnorm(30, mean=10, sd=2) #generate random data
+
+#z CI, assuming population sd is the same as the sample sd
+ci.mu(x=y, sd=sd(y), n=length(y), method="Known Variance")
+
+#t CI
+ci.mu(x=y, n=length(y), method="Unknown Variance")
+
+```
+
+```{r}
+
+#Scenario 2. increase sample size to n = 100, normally distributed
+y <- runif(100, min=5, max=15) #generate random data
+
+#z CI, assuming population sd is the same as the sample sd
+ci.mu(x=y, sd=sd(y), n=length(y), method="Known Variance")
+
+#t CI
+ci.mu(x=y, n=length(y), method="Unknown Variance")
+
+```
+
+Check normality of sample
+
+```{r}
+normal.prob.plot(y)
+```
+
+### Extension: What if it is not normal?
+
+Use the nonparametric version Wilcoxon confidence interval of the
+population median.
+
+```{r}
+wilcox.test(x=y, mu=10, conf.level = 0.95, conf.int = TRUE)
+```

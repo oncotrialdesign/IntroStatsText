@@ -1,0 +1,1036 @@
+
+# Survival Analysis
+
+```{r}
+library(IntroStats)
+```
+
+## Examples from Cancer
+
+Survival analysis is a statistical approach used to analyze time-to-event data — the time until a specified event such as death, relapse, device failure, or recovery occurs. In clinical research, especially oncology, this type of analysis is essential to evaluate treatment effectiveness and patient prognosis.
+
+Common examples of time-to-event outcomes include:
+
+- Time from surgery to death  
+- Time from start of treatment to cancer progression  
+- Time from tumor remission to recurrence  
+- Time from HIV infection to development of AIDS  
+- Time to onset of substance use relapse  
+- Time to mechanical failure of a medical device  
+
+One crucial concept in survival data is censoring. This occurs when the exact event time is unknown for a subject. Reasons for censoring include:
+
+- The subject withdrew from the study before the event occurred  
+- The subject was lost to follow-up  
+- The subject did not experience the event before the study ended  
+
+In all of the above, we know that the subject survived at least until a certain point, but not beyond.
+
+These are examples of right censoring, the most common type in biomedical studies. Right censoring means we only observe the subject up to a certain time, after which the event status is unknown.
+
+### Example: Cancer Patients in a Chemotherapy Trial
+
+Suppose we enroll 100 cancer patients undergoing a new chemotherapy treatment. For each patient, we record the number of days from the start of treatment until death or censoring.
+
+- Patient A dies on Day 245 → event observed  
+- Patient B is alive at last follow-up on Day 400 → censored  
+- Patient C withdraws on Day 160 due to side effects → censored  
+
+This setup allows us to compare survival patterns across subgroups — for instance, by tumor stage or biomarker expression — even if not all patients experience the event during the study period.
+
+### Example: Non-Medical Application
+
+Survival analysis is not limited to healthcare. In engineering:
+
+- Time to mechanical failure of an aircraft engine  
+- Time to battery failure in a pacemaker  
+- Time from software deployment to system crash  
+
+All of these involve censored observations and are analyzed using the same survival models.
+
+Understanding how to handle censoring properly is essential — naive estimates ignoring censoring overestimate survival probabilities and underestimate risks.
+
+## The Lung Dataset from {survival} Package
+
+To explore survival analysis using real biomedical data, we will use the `lung` dataset from the `{survival}` package in R. This dataset includes information on patients with advanced lung cancer who participated in a clinical trial conducted by the North Central Cancer Treatment Group.
+
+### Overview of Key Variables:
+
+- `time`: Observed survival time in days  
+- `status`: Censoring status  
+  - 1 = event (death)  
+  - 0 = censored (alive at last follow-up or lost to follow-up)  
+- `sex`: 1 = Male, 2 = Female  
+- `age`: Age in years  
+- `ph.ecog`: ECOG performance status (functional ability)
+
+Note: The original dataset codes `status` as 1 = censored, 2 = dead. This is non-standard. Most survival functions expect 1 = event, 0 = censored. So we recode it accordingly.
+
+```{r}
+library(survival)
+library(dplyr)
+
+
+lung <- survival::lung
+
+lung <- lung %>%
+  mutate(status = dplyr::recode(status, `1` = 0L, `2` = 1L))
+
+head(lung[, c("time", "status", "sex", "age", "ph.ecog")])
+
+
+```
+
+After recoding:
+
+- `status = 0` → the patient is censored  
+- `status = 1` → the patient died
+
+This step ensures compatibility with functions like `Surv()` that require properly formatted event indicators.
+
+### Why This Dataset?
+
+This dataset is commonly used in survival analysis teaching and benchmarking because it has:
+
+- Real clinical trial structure  
+- Right-censored outcomes  
+- Stratifiable variables like sex, ECOG status, and age  
+
+### Biomedical Context:
+
+Patients with advanced lung cancer often undergo survival tracking to assess treatment efficacy. In this dataset:
+
+- Some patients have complete follow-up (death recorded)  
+- Others are censored due to withdrawal or loss to follow-up  
+- Variables such as ECOG score or sex can help stratify survival probabilities
+
+### Example Interpretation:
+
+```{r}
+table(lung$status)
+```
+
+This output shows how many patients experienced the event (death) versus how many were censored.
+
+```{r}
+table(lung$sex)
+```
+
+Gives the gender distribution in the study, which can be used later for stratified Kaplan-Meier curves.
+
+## Calculating Survival Times
+
+In many real-world biomedical datasets, we do not receive survival time directly. Instead, we are given start dates (e.g., diagnosis or surgery) and end dates (e.g., death or last follow-up). In such cases, the first step in survival analysis is calculating the time interval between those two dates.
+
+To handle date arithmetic in R, we use the `{lubridate}` package, which provides clean syntax for manipulating and comparing dates.
+
+### Formatting Character Dates
+
+Suppose we are given raw character variables representing the surgery date (`sx_date`) and last follow-up date (`last_fup_date`). We begin by converting them into proper date format.
+
+```{r}
+library(tibble)
+library(lubridate)
+
+date_ex <- tibble(
+  sx_date = c("2007-06-22", "2004-02-13", "2010-10-27"), 
+  last_fup_date = c("2017-04-15", "2018-07-04", "2016-10-31")
+)
+
+# Convert character to Date format using ymd()
+date_ex <- date_ex %>%
+  mutate(
+    sx_date = ymd(sx_date),
+    last_fup_date = ymd(last_fup_date)
+  )
+
+date_ex
+```
+
+Now both `sx_date` and `last_fup_date` are recognized as Date objects.
+
+### Calculating Overall Survival in Years
+
+We can now compute the time interval between surgery and last follow-up. Using `as.duration()` and `dyears(1)` from `{lubridate}`, we convert the date interval to years of follow-up.
+
+```{r}
+date_ex <- date_ex %>%
+  mutate(
+    os_yrs = as.duration(sx_date %--% last_fup_date) / dyears(1)
+  )
+
+date_ex
+```
+
+The `os_yrs` column now shows observed survival in years, accounting for exact time elapsed.
+
+### Adding Status Information
+
+In order to conduct survival analysis, we need a binary variable indicating whether the patient experienced the event (1) or was censored (0). Let’s add a simple status column to our dataset:
+
+```{r}
+date_ex <- date_ex %>%
+  mutate(status = c(1, 0, 1))  # 1 = event (e.g., death), 0 = censored
+
+date_ex
+```
+
+This structure is now ready for survival modeling using the `Surv()` function.
+
+### Creating Survival Object
+
+```{r}
+library(survival)
+
+# Build survival object using time in years
+Surv(time = date_ex$os_yrs, event = date_ex$status)
+```
+
+This output displays:
+- The time each patient was followed  
+- A `+` symbol next to censored subjects  
+- Numeric time without a `+` means the event occurred
+
+### Original Biomedical Example: Early-Onset Alzheimer’s Study
+
+Let’s say we are analyzing a small study on early-onset Alzheimer’s patients. Researchers are tracking how long it takes from diagnosis to institutionalization (or last follow-up if censored).
+
+```{r}
+alz_data <- tibble(
+  patient_id = 1:4,
+  diagnosis_date = c("2018-05-10", "2019-01-15", "2020-03-01", "2021-07-20"),
+  last_fup_date = c("2023-03-30", "2021-09-01", "2021-08-10", "2024-06-15"),
+  status = c(1, 1, 0, 0)  # 1 = institutionalized, 0 = censored
+) %>%
+  mutate(
+    diagnosis_date = ymd(diagnosis_date),
+    last_fup_date = ymd(last_fup_date),
+    os_months = as.numeric(interval(diagnosis_date, last_fup_date) / months(1))
+  )
+
+alz_data
+```
+
+In this biomedical example:
+- Patients with `status = 1` were institutionalized (event)
+- Patients with `status = 0` were still at home or lost to follow-up (censored)
+- `os_months` gives follow-up time in months
+
+This format mirrors how real studies track progressive diseases where not all participants reach the outcome before the study ends.
+
+## Creating Survival Objects and Curves
+
+The first step in modeling time-to-event data in R is to use the `Surv()` function from the `{survival}` package. This function creates a special object that stores both survival time and event status. It can be used as the response in survival models or to generate Kaplan-Meier curves.
+
+### Creating a Survival Object
+
+We’ll begin by creating a survival object from the lung cancer dataset:
+
+```{r}
+library(survival)
+
+# Build the survival object
+lung_surv <- Surv(time = lung$time, event = lung$status)
+
+# View first 10 observations
+lung_surv[1:10]
+```
+
+Each row shows:
+- Survival time (in days)
+- A `+` next to censored observations
+- No `+` means the event (death) occurred
+
+This object is required for all downstream survival modeling in R.
+
+### Kaplan-Meier Estimation
+
+The Kaplan-Meier method estimates survival probability over time without making assumptions about the underlying distribution. It uses the `survfit()` function:
+
+```{r}
+# Fit an overall survival curve
+s1 <- survfit(lung_surv ~ 1, data = lung)
+
+# Examine structure of survfit object
+str(s1)
+```
+
+The key outputs include:
+- `time`: days at which an event occurred
+- `n.risk`: number still at risk just before each event
+- `surv`: estimated survival probability at each time point
+
+This model gives a stepwise estimate of survival probability, decreasing each time a death occurs.
+
+### Original Biomedical Example: Survival After Heart Transplant
+
+Suppose we are analyzing data from 5 patients who received heart transplants. We track the number of days from transplant to either death or last known follow-up.
+
+```{r}
+ht_data <- tibble(
+  days_post_tx = c(90, 300, 450, 120, 620),
+  status = c(1, 0, 1, 1, 0)  # 1 = died, 0 = censored
+)
+
+# Create survival object
+ht_surv <- Surv(time = ht_data$days_post_tx, event = ht_data$status)
+
+# View survival object
+ht_surv
+```
+
+We can now fit a Kaplan-Meier survival curve for this dataset:
+
+```{r}
+ht_fit <- survfit(ht_surv ~ 1)
+
+# Plot using base R
+plot(ht_fit,
+     xlab = "Days Post-Transplant",
+     ylab = "Survival Probability",
+     main = "Kaplan-Meier Curve: Heart Transplant Patients",
+     col = "darkgreen", lwd = 2)
+```
+
+**Interpretation**: The curve steps downward at each observed death. Flat segments represent periods where no events occurred. The final point shows the survival probability at the last recorded event.
+
+This example reflects how transplant patients are monitored for survival outcomes, and censored if they are still alive at last follow-up.
+
+## Kaplan-Meier Plots
+
+Once a Kaplan-Meier model is fit using `survfit()` or `survfit2()`, the next step is to visualize the survival curves. In modern R practice, we use the `{ggsurvfit}` package to produce customizable, publication-quality plots.
+
+### Basic Kaplan-Meier Plot
+
+To plot an overall survival curve from the lung dataset:
+
+```{r}
+library(ggsurvfit)
+
+# Overall survival curve using ggsurvfit
+survfit2(Surv(time, status) ~ 1, data = lung) %>%
+  ggsurvfit() +
+  labs(
+    title = "Overall Survival Curve (Lung Cancer)",
+    x = "Days",
+    y = "Survival Probability"
+  )
+```
+
+This plot is a step function, where survival probability decreases at the time of each death. It reflects the actual survival experience of the full cohort.
+
+### Stratified Survival Curve by Sex
+
+We can stratify the curve by a categorical variable — such as sex:
+
+```{r}
+survfit2(Surv(time, status) ~ sex, data = lung) %>%
+  ggsurvfit() +
+  labs(
+    title = "Survival by Sex",
+    x = "Days",
+    y = "Survival Probability",
+    color = "Sex"
+  )
+```
+
+In this case:
+- `sex = 1` is Male
+- `sex = 2` is Female
+
+If the curves separate, that may indicate a survival difference between sexes.
+
+### Adding Confidence Intervals
+
+To show uncertainty around the survival estimate, add shaded confidence bands using `add_confidence_interval()`:
+
+```{r}
+survfit2(Surv(time, status) ~ sex, data = lung) %>%
+  ggsurvfit() +
+  add_confidence_interval() +
+  labs(
+    title = "Survival by Sex with 95% CI",
+    x = "Days",
+    y = "Survival Probability",
+    color = "Sex"
+  )
+```
+
+The shaded bands show the 95% confidence interval for survival probability at each time point.
+
+### Adding a Risk Table
+
+Use `add_risktable()` to include a table below the plot that shows the number of patients still at risk at key time intervals:
+
+```{r}
+survfit2(Surv(time, status) ~ sex, data = lung) %>%
+  ggsurvfit() +
+  add_confidence_interval() +
+  add_risktable() +
+  labs(
+    title = "Survival by Sex with Risk Table",
+    x = "Days",
+    y = "Survival Probability",
+    color = "Sex"
+  )
+```
+
+Risk tables are essential for interpreting survival curves — they show how many patients remain under observation as time progresses.
+
+### Original Biomedical Example: Survival by ECOG Performance Status
+
+Let’s analyze survival by ECOG performance status (ph.ecog), which rates patients’ daily functional ability. Higher scores indicate worse performance status.
+
+```{r}
+lung_clean <- lung %>%
+  filter(!is.na(time), !is.na(status), !is.na(ph.ecog))
+
+survfit2(Surv(time, status) ~ ph.ecog, data = lung_clean) %>%
+  ggsurvfit() +
+  add_confidence_interval() +
+  add_risktable() +
+  labs(
+    title = "Survival by ECOG Performance Score",
+    x = "Days",
+    y = "Survival Probability",
+    color = "ECOG Score"
+  )
+```
+
+**Interpretation**:  
+- Patients with ECOG = 0 have better functional status and tend to survive longer.  
+- Higher scores (e.g., ECOG = 2 or 3) show steeper declines in survival probability.  
+- Functional status is a strong predictor of survival in many oncology studies.
+
+### Original Example: Simulated Trial — New Drug vs. Placebo
+
+We simulate survival data from a randomized trial comparing a treatment group to placebo:
+
+```{r}
+set.seed(2025)
+
+sim_trial <- tibble(
+  group = rep(c("Treatment", "Placebo"), each = 100),
+  time = rexp(200, rate = rep(c(0.02, 0.03), each = 100)),
+  status = rbinom(200, 1, prob = 0.9)
+) %>%
+  mutate(group = factor(group, levels = c("Placebo", "Treatment")))
+
+survfit2(Surv(time, status) ~ group, data = sim_trial) %>%
+  ggsurvfit() +
+  add_confidence_interval() +
+  add_risktable() +
+  labs(
+    title = "Simulated Trial: Treatment vs Placebo",
+    x = "Time (days)",
+    y = "Survival Probability",
+    color = "Group"
+  )
+```
+
+**Interpretation**:  
+- The treatment group shows higher survival probability over time.  
+- This is a simulated example of how Kaplan-Meier curves are used to evaluate treatment effects in clinical trials.
+
+## Estimating x-Year Survival Rate
+
+An important application of Kaplan-Meier survival analysis is estimating the probability of surviving past a certain time — typically 1 year, 2 years, or 5 years. This is useful for communicating prognosis in clinical settings.
+
+The quantity $P(T > x)$ represents the probability that a subject survives beyond time x.
+
+### Estimating 1-Year Survival from the Lung Dataset
+
+The `summary()` function can be used on a `survfit()` object to extract survival probabilities at specific times. Since the `lung` dataset reports time in days, we use 365.25 for 1 year:
+
+```{r}
+fit_lung <- survfit(Surv(time, status) ~ 1, data = lung)
+
+summary(fit_lung, times = 365.25)
+```
+
+This output gives:
+- Survival probability at 1 year
+- Confidence intervals
+- Number of subjects still at risk at 1 year
+
+### Comparing 1-Year Survival by Sex
+
+We can also compare survival between subgroups. Let’s compare males and females:
+
+```{r}
+summary(
+  survfit(Surv(time, status) ~ sex, data = lung),
+  times = 365.25
+)
+```
+
+This shows survival probabilities for each sex at the 1-year mark. For example:
+- Females may have a higher 1-year survival probability than males
+- Confidence intervals can help determine if the difference is significant
+
+### Using `tbl_survfit()` for a Clean Summary Table
+
+The `{gtsummary}` package provides a cleaner table of survival probabilities using `tbl_survfit()`:
+
+```{r}
+library(gtsummary)
+
+survfit(Surv(time, status) ~ sex, data = lung) %>%
+  tbl_survfit(
+    times = 365.25,
+    label_header = "**1-Year Survival (95% CI)**"
+  )
+```
+
+This table is formatted for easy inclusion in reports or presentations.
+
+### The Danger of “Naive” Estimates
+
+If you ignore censoring, you will overestimate survival. For example, 121 of the 228 patients in the lung dataset died before 1 year. A naive survival estimate would be:
+
+```{r}
+(1 - 121 / 228) * 100
+```
+
+This gives 47%, but the Kaplan-Meier estimate — which accounts for censoring — was closer to 41%. Ignoring censoring inflates survival rates, which can mislead clinicians and patients.
+
+### Original Biomedical Example: 1-Year Survival in Breast Cancer Patients
+
+Let’s simulate a study with 100 women diagnosed with breast cancer. We estimate 1-year survival for two tumor grades: low-grade and high-grade.
+
+```{r}
+# Load required libraries
+library(survival)
+library(tibble)
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(2025)
+
+# Simulated breast cancer dataset
+breast_data <- tibble(
+  tumor_grade = rep(c("Low-Grade", "High-Grade"), each = 50),
+  time = rexp(100, rate = rep(c(0.01, 0.03), each = 50)),
+  status = rbinom(100, 1, prob = 0.85)
+)
+
+# Fit survival model
+fit_bc <- survfit(Surv(time, status) ~ tumor_grade, data = breast_data)
+
+# Estimate 1-year survival (safe version)
+summary(fit_bc, times = 365.25, extend = TRUE)
+```
+
+
+
+
+**Interpretation**:
+- Patients with low-grade tumors may have higher 1-year survival  
+- Survival estimates account for censoring (some patients may not have reached 1 year)
+- This reflects how tumor biology influences short-term prognosis in oncology
+
+## Estimating Median Survival Time
+
+In survival analysis, the median survival time is a key summary statistic. It tells us the time at which 50% of the population has experienced the event of interest (e.g., death, relapse).
+
+Unlike the mean, the median is more robust to skewed data and censoring, making it a preferred measure in clinical trials and cancer research.
+
+### Estimating Median Survival from the Lung Dataset
+
+We can extract the median survival time using the `survfit()` object directly:
+
+```{r}
+fit_lung <- survfit(Surv(time, status) ~ 1, data = lung)
+
+summary(fit_lung)$table["median"]
+```
+
+This returns the median survival time for the full lung cancer dataset.
+
+To compare median survival across subgroups, we use stratification:
+
+```{r}
+fit_by_sex <- survfit(Surv(time, status) ~ sex, data = lung)
+
+summary(fit_by_sex)$table[, "median"]
+```
+
+This returns the median survival time for both males and females. Keep in mind:
+- If the survival curve never drops to 50%, the median may be reported as NA
+- This happens when fewer than half of the patients have experienced the event
+
+### Interpreting the Median
+
+Let’s say the output shows:
+- Median survival for females = 310 days
+- Median survival for males = 270 days
+
+This means:
+> Half of the female patients were still alive after 310 days, while half of the male patients had died by 270 days.
+
+This helps clinicians compare short-term prognosis across different groups.
+
+### Original Biomedical Example: Pancreatic Cancer Trial
+
+Let’s simulate a dataset of 80 pancreatic cancer patients undergoing two treatment types: Targeted Therapy vs. Standard Chemotherapy.
+
+We’ll compare their median survival times.
+
+```{r}
+set.seed(2025)
+
+pancreatic <- tibble(
+  treatment = rep(c("Targeted", "Standard"), each = 40),
+  time = rexp(80, rate = rep(c(0.007, 0.012), each = 40)),
+  status = rbinom(80, 1, prob = 0.90)
+)
+
+fit_pan <- survfit(Surv(time, status) ~ treatment, data = pancreatic)
+
+summary(fit_pan)$table[, "median"]
+```
+
+### **Interpretation**:
+- If `Targeted` has a median survival of 125 days and `Standard` has 90 days, we interpret:
+> Targeted therapy patients had a longer median survival, suggesting greater short-term benefit.
+
+Be cautious: median survival ignores long-tail survival. Some patients in both groups may live far beyond the median.
+
+## Hazard Ratios and Cox Proportional Hazards Models
+
+The Cox proportional hazards model is one of the most widely used tools in survival analysis. It allows us to estimate the effect of one or more variables on survival time without assuming a specific baseline distribution.
+
+It outputs a key statistic: the hazard ratio (HR), which tells us how much more (or less) likely an event is to occur in one group compared to another, at any given point in time.
+
+### Understanding Hazard Ratios
+
+- A hazard ratio (HR) > 1 implies higher risk of the event (e.g., death)
+- An HR < 1 implies lower risk
+- An HR = 1 implies no difference
+
+These ratios are multiplicative. For example, HR = 2 means twice the hazard, HR = 0.5 means half the hazard.
+
+The Cox model assumes that the ratio of hazards is constant over time, which is known as the proportional hazards assumption.
+
+### Fitting a Cox Model to the Lung Dataset
+
+Let’s model the effect of sex (male vs. female) on survival in the `lung` dataset:
+
+```{r}
+library(survival)
+
+cox_sex <- coxph(Surv(time, status) ~ sex, data = lung)
+summary(cox_sex)
+```
+
+In the output, look for:
+- **coef**: the log hazard ratio
+- **exp(coef)**: the hazard ratio (HR)
+- **Pr(>|z|)**: the p-value testing if the HR is significantly different from 1
+
+A significant HR > 1 for males would indicate that men have higher risk of death than women in this dataset.
+
+### Adding Covariates to the Cox Model
+
+We can add additional variables (covariates) to adjust for other risk factors. Let’s adjust for age and performance status (`ph.ecog`):
+
+```{r}
+cox_multiv <- coxph(Surv(time, status) ~ sex + age + ph.ecog, data = lung)
+summary(cox_multiv)
+```
+
+This helps isolate the effect of sex after controlling for age and functional status. These multivariable models are common in medical research.
+
+### Interpreting Cox Model Output
+
+In the summary:
+- `exp(coef)` gives the hazard ratio
+- `conf.int` gives the 95% confidence interval
+- A narrow interval not including 1 suggests a statistically significant effect
+
+Always check if the proportional hazards assumption is met before interpreting results.
+
+### Original Biomedical Example: Smokers vs. Non-Smokers in a Cancer Study
+
+We simulate a dataset of 120 patients in a cancer trial. We compare the effect of smoking on survival time.
+
+```{r}
+set.seed(2025)
+
+smoking_data <- tibble(
+  smoking = rep(c("Smoker", "Non-Smoker"), each = 60),
+  time = rexp(120, rate = rep(c(0.015, 0.010), each = 60)),
+  status = rbinom(120, 1, prob = 0.88)
+)
+
+cox_smoking <- coxph(Surv(time, status) ~ smoking, data = smoking_data)
+
+summary(cox_smoking)
+```
+
+### **Interpretation**:
+- If `exp(coef)` = 1.5, we interpret:
+> Smokers have a 50% higher risk of death at any given time point compared to non-smokers.
+
+- If p-value < 0.05, the association is statistically significant
+- This reflects how behavioral factors like smoking influence survival outcomes
+
+## Assumptions of the Cox Model
+
+The Cox proportional hazards model assumes that hazard ratios remain constant over time. This is known as the Proportional Hazards (PH) Assumption.
+
+If the PH assumption is violated, the Cox model can produce misleading estimates. Therefore, we must check this assumption before interpreting hazard ratios.
+
+### What is the PH Assumption?
+
+For two groups (e.g., treatment vs. placebo), the PH assumption means:
+
+> The relative risk of the event occurring is constant over time, even though the absolute risk may change.
+
+Visually, this means the survival curves should not cross and the log(-log(S(t))) plots should be roughly parallel.
+
+### Testing the PH Assumption with Schoenfeld Residuals
+
+The `cox.zph()` function tests whether the residuals are independent of time. This provides both statistical tests and plots.
+
+Let’s test this in the `lung` dataset using sex as a predictor:
+
+```{r}
+fit_cox <- coxph(Surv(time, status) ~ sex, data = lung)
+
+ph_test <- cox.zph(fit_cox)
+
+ph_test
+```
+
+If the **p-value is > 0.05**, we **fail to reject** the null hypothesis that hazards are proportional (assumption met).  
+If p-value < 0.05, we reject the assumption (assumption may be violated).
+
+### Visualizing Schoenfeld Residuals
+
+We can plot the residuals to visually inspect time trends:
+
+```{r}
+plot(ph_test)
+```
+
+If the line is approximately **flat and horizontal**, the PH assumption is likely satisfied.
+
+### Original Biomedical Example: PH Assumption in HIV Treatment Study
+
+We simulate a study with two HIV treatments. We want to verify whether the hazards remain proportional over time.
+
+```{r}
+set.seed(2025)
+
+hiv_data <- tibble(
+  treatment = rep(c("Drug A", "Drug B"), each = 75),
+  time = rexp(150, rate = rep(c(0.015, 0.010), each = 75)),
+  status = rbinom(150, 1, prob = 0.9)
+)
+
+cox_hiv <- coxph(Surv(time, status) ~ treatment, data = hiv_data)
+
+ph_hiv <- cox.zph(cox_hiv)
+
+ph_hiv
+```
+
+### **Interpretation**:
+- If p-value > 0.05, we conclude:
+> The effect of HIV treatment on survival satisfies the proportional hazards assumption.
+- This allows us to interpret the hazard ratio from the Cox model confidently
+
+We can also check the residual plot:
+
+```{r}
+plot(ph_hiv)
+```
+
+If the curve is flat, we visually confirm that hazards are proportional over time.
+
+## Adjusted Survival Curves
+
+In multivariable survival analysis, we often want to visualize how a specific predictor (e.g., treatment) affects survival while adjusting for other variables (e.g., age, baseline health).
+
+This is where adjusted survival curves come in. These curves show the estimated survival for each group, averaged over the distribution of covariates.
+
+### Why Adjust Survival Curves?
+
+Unadjusted Kaplan-Meier plots only compare survival by one variable. If other confounders are present (e.g., age, comorbidity), the curves can be misleading.
+
+Adjusted curves allow us to isolate the effect of one predictor while accounting for others.
+
+For example, we may want to compare survival by treatment group adjusting for age.
+
+### Method: Using the `survfit()` Function with a Cox Model
+
+Once a Cox model is fitted with covariates, we can compute adjusted survival curves using the `survfit()` function and the `newdata` argument.
+
+Let’s look at an example using the `lung` dataset:
+
+```{r}
+# Cox model with age and sex
+fit_adj <- coxph(Surv(time, status) ~ sex + age, data = lung)
+
+# Create newdata with specific values
+newdata_sex <- data.frame(
+  sex = c(1, 2),
+  age = rep(mean(lung$age, na.rm = TRUE), 2)
+)
+
+# Generate adjusted survival curves
+fit_adj_surv <- survfit(fit_adj, newdata = newdata_sex)
+
+# Plot
+plot(fit_adj_surv, col = c("blue", "red"), lty = 1:2,
+     xlab = "Days", ylab = "Adjusted Survival Probability")
+legend("topright", legend = c("Male", "Female"),
+       col = c("blue", "red"), lty = 1:2)
+```
+
+This plot shows survival for males and females at the same average age. This isolates the effect of sex on survival.
+
+### Interpretation
+
+> These adjusted curves demonstrate what survival would look like for each sex group if all patients had the same average age.
+
+This makes comparisons fairer and more clinically interpretable, especially in observational studies where baseline differences exist.
+
+### Original Biomedical Example: Kidney Transplant Rejection
+
+We simulate a study comparing two immunosuppressive regimens in 150 kidney transplant patients. We want to compare survival adjusting for baseline creatinine level.
+
+```{r}
+set.seed(2025)
+
+transplant_data <- tibble(
+  regimen = rep(c("Regimen A", "Regimen B"), each = 75),
+  creatinine = c(rnorm(75, 1.2, 0.3), rnorm(75, 1.5, 0.4)),
+  time = rexp(150, rate = rep(c(0.008, 0.012), each = 75)),
+  status = rbinom(150, 1, prob = 0.9)
+)
+
+# Fit Cox model
+cox_transplant <- coxph(Surv(time, status) ~ regimen + creatinine, data = transplant_data)
+
+# Create newdata frame with same creatinine level
+newdata_regimen <- data.frame(
+  regimen = c("Regimen A", "Regimen B"),
+  creatinine = rep(mean(transplant_data$creatinine), 2)
+)
+
+# Adjusted survival curves
+fit_transplant_adj <- survfit(cox_transplant, newdata = newdata_regimen)
+
+# Plot
+plot(fit_transplant_adj, col = c("darkgreen", "orange"), lty = 1:2,
+     xlab = "Days", ylab = "Adjusted Survival Probability")
+legend("topright", legend = c("Regimen A", "Regimen B"),
+       col = c("darkgreen", "orange"), lty = 1:2)
+```
+
+### Interpretation:
+
+> After adjusting for baseline creatinine, patients on **Regimen A** show better adjusted survival probabilities than those on **Regimen B**.
+
+This suggests that Regimen A may be more effective in reducing the risk of transplant rejection.
+
+## Stratified Cox Models
+
+When the proportional hazards assumption is violated for a variable, we may choose not to include it as a covariate, but instead to stratify the model on that variable.
+
+A stratified Cox model allows the baseline hazard to vary across levels of a stratifying variable, while still estimating the effect of other covariates.
+
+### When to Use Stratified Cox Models
+
+Use a stratified Cox model when:
+- A covariate (e.g., treatment site, gender) does not satisfy the proportional hazards assumption
+- You still want to account for that variable’s influence on survival
+- You want to estimate hazard ratios for other predictors without assuming proportionality for the stratified variable
+
+Instead of including the variable as a predictor, we use `strata()` to let it modify the baseline hazard function.
+
+### Basic Syntax
+
+Let’s fit a stratified model using the `lung` dataset, stratifying by `sex` and estimating the effect of `age`.
+
+```{r}
+strat_cox <- coxph(Surv(time, status) ~ age + strata(sex), data = lung)
+summary(strat_cox)
+```
+
+This model estimates the hazard ratio for age, while allowing different baseline hazards for males and females.
+
+Note: The model does not estimate a hazard ratio for `sex`, since we stratified on it instead of including it as a covariate.
+
+### Original Biomedical Example: Stratifying by Diabetes Status
+
+Suppose we are studying time to cardiac event in 160 patients undergoing treatment for high blood pressure. We suspect that the effect of diabetes does not meet the proportional hazards assumption, so we stratify on it while estimating the effect of LDL cholesterol.
+
+```{r}
+set.seed(2025)
+
+cardiac_data <- tibble(
+  diabetes = rep(c("Yes", "No"), each = 80),
+  ldl = c(rnorm(80, 130, 15), rnorm(80, 120, 10)),
+  time = rexp(160, rate = rep(c(0.010, 0.008), each = 80)),
+  status = rbinom(160, 1, prob = 0.88)
+)
+
+strat_model <- coxph(Surv(time, status) ~ ldl + strata(diabetes), data = cardiac_data)
+
+summary(strat_model)
+```
+
+### Interpretation:
+
+> This stratified Cox model estimates the effect of LDL cholesterol on survival time, while allowing the baseline hazard to differ between diabetic and non-diabetic patients.
+
+This approach is appropriate if diabetes status violates the PH assumption, since we no longer require hazards to be proportional across diabetes groups.
+
+The hazard ratio for LDL reflects its association with cardiac event risk, adjusted for stratified diabetes effects.
+
+## Time-Varying Covariates
+
+In standard Cox proportional hazards models, we assume that all covariates remain constant over time. However, in real-world clinical studies, certain covariates — such as medication dosage, biomarker levels, or physical activity — can change over time.
+
+A time-varying covariate is a predictor whose value can differ at different time points for the same individual.
+
+### When to Use Time-Varying Covariates
+
+Use time-varying covariates when:
+- The effect of a predictor on survival is not static
+- Clinical variables change with treatment or progression
+- You want to model updated values over time rather than just baseline measurements
+
+This allows for a more accurate and dynamic representation of how a covariate impacts survival.
+
+### Syntax: Using `tt()` in `coxph()`
+
+The `tt()` function in R allows us to transform a variable based on time.  
+The syntax looks like:
+
+```r
+coxph(Surv(time, status) ~ tt(x), tt = function(x, t, ...) x * log(t), data = ...)
+```
+
+This models the effect of covariate `x` changing over time, using `log(t)` as a modifier.
+
+Let’s see a practical application.
+
+### Original Biomedical Example: Inflammatory Marker Over Time
+
+Suppose we are studying patients with chronic inflammatory disease. The variable `crp` (C-reactive protein) is measured regularly and is known to influence risk of hospitalization.
+
+We suspect that the effect of CRP increases with time, so we model it as a time-varying covariate.
+
+```{r}
+set.seed(2025)
+
+inflammation_data <- tibble(
+  time = rexp(200, 0.01),
+  status = rbinom(200, 1, 0.9),
+  crp = rnorm(200, mean = 5, sd = 1.5)
+)
+
+cox_tvc <- coxph(Surv(time, status) ~ tt(crp),
+                 tt = function(x, t, ...) x * log(t + 1),  # log(t + 1) to avoid log(0)
+                 data = inflammation_data)
+
+summary(cox_tvc)
+```
+
+### Interpretation:
+
+> This model examines how the effect of CRP changes as time progresses.  
+> A positive coefficient for `crp * log(t)` would indicate that CRP becomes increasingly hazardous the longer a patient remains at risk.  
+> This can reflect a biological process where persistent inflammation leads to worsening health outcomes over time.
+
+Including time-varying covariates makes survival models more realistic, especially when tracking patient changes during long-term studies.
+
+## Time-Dependent ROC Curve
+
+In traditional classification models, ROC curves are used to evaluate sensitivity and specificity across thresholds. In survival analysis, however, we must account for time-to-event outcomes and censoring.
+
+A time-dependent ROC curve allows us to assess the predictive accuracy of a biomarker or risk score at a specific time point, taking into account censored data.
+
+### When to Use Time-Dependent ROC
+
+Use time-dependent ROC analysis when:
+- You have a continuous risk score or biomarker (e.g., risk prediction from a Cox model)
+- You want to evaluate how well this score predicts survival up to a certain time point
+- You need to account for censored observations in your model evaluation
+
+This method is especially useful for checking whether a biomarker has discriminatory power at different time horizons (e.g., 1 year, 3 years, etc.).
+
+
+
+### Required Package
+
+This analysis requires the `timeROC` package:
+
+```r
+install.packages("timeROC")
+library(timeROC)
+```
+
+
+
+### Original Biomedical Example: Heart Failure Risk Score
+
+Suppose we are analyzing hospital readmission risk in 220 heart failure patients.  
+We use a linear risk score based on heart rate and BNP levels (B-type natriuretic peptide) to predict readmission within 2 years.
+
+```r
+set.seed(2025)
+
+hf_data <- tibble(
+  time = rexp(220, rate = 0.01),
+  status = rbinom(220, 1, prob = 0.9),
+  hr = rnorm(220, 75, 10),
+  bnp = rnorm(220, 500, 120)
+)
+
+# Risk score: linear combination of HR and BNP
+hf_data <- hf_data %>%
+  mutate(risk_score = 0.03 * hr + 0.005 * bnp)
+
+# Time-dependent ROC at 730 days (2 years)
+roc_result <- timeROC(T = hf_data$time,
+                      delta = hf_data$status,
+                      marker = hf_data$risk_score,
+                      cause = 1,
+                      weighting = "marginal",
+                      times = 730,
+                      iid = TRUE)
+
+plot(roc_result, time = 730, col = "blue", title = FALSE)
+title("Time-Dependent ROC Curve at 2 Years")
+```
+
+
+
+### Interpretation:
+
+> The curve shows how well the risk score predicts hospital readmission by 2 years.  
+> The AUC (Area Under the Curve) value summarizes the score’s overall ability to distinguish between patients who were readmitted and those who were not.  
+> A higher AUC (closer to 1) means better prediction. In clinical settings, AUC values above 0.75 are considered strong.
+
+
+
+## References
+
+* Clark, T., Bradburn, M., Love, S., Altman, D. (2003). Survival analysis part I: Basic concepts and first analyses. 232-238. ISSN 0007-0920.
+
+* M J Bradburn, T G Clark, S B Love, D G Altman. (2003). Survival Analysis Part II: Multivariate data analysis – an introduction to concepts and methods. British Journal of Cancer, 89(3), 431-436.
+
+* Bradburn, M., Clark, T., Love, S., Altman, D. (2003). Survival analysis Part III: Multivariate data analysis – choosing a model and assessing its adequacy and fit. 89(4), 605-11.
+
+* Clark, T., Bradburn, M., Love, S., Altman, D. (2003). Survival analysis part IV: Further concepts and methods in survival analysis. 781-786. ISSN 0007-0920.
+
+* The materials are prepared based on the tutorial by Zabore.
+https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html
+
+* Zabor, E., Gonen, M., Chapman, P., & Panageas, K. (2013). Dynamic prognostication using conditional survival estimates. Cancer, 119(20), 3589-3592.
+

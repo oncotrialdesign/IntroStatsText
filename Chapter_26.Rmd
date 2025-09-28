@@ -1,0 +1,160 @@
+
+# Sample Size Calculation
+
+```{r}
+library(IntroStats)
+```
+
+In general, there are two approaches for sample size estimation. One is based on the precision of estimation, i.e., confidence interval. The other is based on hypothesis testing, i.e., achieving prespecified power, or equivalently controlling type II error.
+
+The specific calculations in both approaches depend on the underlying statistical distributions and appropriate statistical methods.
+
+## Sample size calculation based on CI of mean
+
+Recall, the CI of population mean $\mu$ assuming normal distribution is,
+
+$$
+\bar{x} \pm z_{1-\alpha/2} \sigma/\sqrt{n}
+$$
+For a prespecified precision (also called margin) $M$, then solve for $n$,
+$$
+n = \frac{z_{1-\alpha/2}^2 \sigma^2}{M^2}
+$$
+
+In this formula, the population standard deviation $\sigma$ is assumed known. 
+
+When it is assumed unknown, the CI is based on t-distribution, 
+
+$$
+\bar{x} \pm t_{1-\alpha/2} s/\sqrt{n}
+$$
+and 
+$$
+n = \frac{z_{1-\alpha/2}^2 s^2}{M^2}
+$$
+One needs to provide a reasonable estimate for $s$. When the sample size is large, $t_{1-\alpha/2} \approx z_{1-\alpha/2}$.
+
+
+```{r}
+#n based on Z interval
+n.mu.CI(E=0.6, sigma=1, conflev=0.99, method="Z")
+
+#n based on t interval
+n.mu.CI(E=0.6, sigma=1, conflev=0.99, method="t")
+```
+
+```{r}
+
+E = seq(0.2, 2, by=0.1)
+n1 = n2 = rep(NA, length(E))
+
+for (i in 1:length(E)){
+  n1[i] = n.mu.CI(E=E[i], sigma=1, conflev=0.95)
+  n2[i] = n.mu.CI(E=E[i], sigma=1, conflev=0.95, method="t")
+}
+
+plot(E, n1, type="l", lwd=2, ylab="Sample size (n)", xlab="Margin (E): Half of CI length")
+lines(E, n2, col=2, lwd=2)
+legend("topright", c("Z interval", "t interval"), col=1:2, lwd=rep(2,2), bty="n")
+```
+
+## Sample size calculation based on CI of proportion
+
+*   Normal approximation with a range of estimated proportion. For example, the range is (0.1, 0.3) and margin of 0.1 for 95\% CI, then $n=81$.
+
+```{r}
+n.p.CI(E=0.1, conflev=0.95, g=c(0.1, 0.3))
+```
+```{r}
+E = seq(0.05, 0.2, by=0.01)
+n = rep(NA, length(E))
+
+for (i in 1:length(E)){
+  n[i] = n.p.CI(E=E[i], g=c(0.1, 0.3), conflev=0.95)$n
+}
+
+plot(E, n, type="b", lwd=2, ylab="Sample size (n)", xlab="Margin (E): Half of CI length")
+```
+
+
+*   Another typical approach is to use Clopper-Pearson exact CI. So the sample size can be calculated based on the lower bound of the CI across certain threshold.
+
+For example, current standard of care produces 0.2 response rate ($p_0$)  for lung cancer patients, and the new therapy is targeted to 0.4 response rate ($p_1$). The sample size calculation is based on the lower bound of the Clopper-Pearson 95\% CI greater than 0.2.
+
+The typical approach is to produce a range of sample sizes.
+
+```{r}
+n.p.CI.lowerbound(n=15:30, p0=0.2, p1=0.4, conflev=0.95, method="Clopper-Pearson Exact")
+```
+
+```{r}
+n.p.CI.lowerbound(n=15:30, p0=0.2, p1=0.4, conflev=0.95, method="Wilson Score with Continuity")
+```
+
+```{r}
+n.p.CI.lowerbound(n=15:30, p0=0.2, p1=0.4, conflev=0.95, method="Asymptotic Normal")
+```
+
+## Sample size calculation based on One sample mean
+
+$$
+H_0: \delta = \mu - \mu_0 = 0 \\
+H_a: \delta > 0
+$$
+*   Assuming population standard deviation $\sigma$ is known, then the test statistic is 
+$$
+z = \frac{\bar{x}-\mu_0}{\sigma/\sqrt{n}}
+$$
+
+-   Under $H_0$, $Z\sim N(0, 1)$.
+
+-   Under $H_a$, $Z\sim N\left(\frac{\delta}{\sigma/\sqrt{n}}, 1\right)$ 
+
+-   For significance level $\alpha$ in 2-sided test, the critical value is $z_{1-\alpha/2}$. 
+
+-   The power is defined as 
+$$
+P(|Z| > z_{1-\alpha/2}|H_a) = P(Z > z_{1-\alpha/2}|H_a) + P(Z < -z_{1-\alpha/2}|H_a)
+$$
+Under $H_a$, $P(Z < -z_{1-\alpha/2}|H_a)$ is very small, and typically ignored.
+
+So for a specified power 
+$$1-\beta = P(Z > z_{1-\alpha/2}|H_a) = \Phi\left(\frac{\delta}{\sigma/\sqrt{n}}\right)$$
+Solve for $n$,
+
+$$
+n = \frac{(z_{1-\alpha/2}+z_{1-\beta})^2\sigma^2}{\delta^2}
+$$
+```{r}
+power.z.test(power = 0.9, delta = 1, sd=1, alternative = "one.sided", sig.level=0.05, type="one.sample")
+```
+
+```{r}
+power.t.test(power = 0.90, delta = 1, sd=1, sig.level=0.05, 
+             alternative = "one.sided", type="one.sample")
+```
+
+
+## Sample size calculation based on two sample means
+
+$$
+H_0: \delta = \mu_1 - \mu_0 = 0 \\
+H_a: \delta > 0
+$$
+```{r}
+power.t.test(power = .90, delta = 1, alternative = "one.sided",type="two.sample")
+```
+
+## Sample size calculation based on One sample proportion
+
+
+```{r}
+power.z.test(power = 0.9, delta = 0.2, sd=sqrt(0.2*0.8), alternative = "one.sided", sig.level=0.05, type="one.sample")
+```
+
+## Sample size calculation based on two sample proportions
+
+
+```{r}
+power.prop.test(p1 = .50, p2 = .75, power = .90)
+```
